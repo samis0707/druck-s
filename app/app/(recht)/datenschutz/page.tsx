@@ -194,8 +194,9 @@ export default function DatenschutzPage() {
       <h2 id="e-mail">7. E-Mail-Versand</h2>
       <p>
         Einmalcodes, Auftragsbestätigungen, Freigabe-Bestätigungen und Benachrichtigungen zu Ihrem
-        Auftrag versenden wir per E-Mail über einen von uns eingesetzten E-Mail-Dienst. Dabei
-        werden Ihre E-Mail-Adresse und der Inhalt der jeweiligen Nachricht, gegebenenfalls mit
+        Auftrag versenden wir per E-Mail über den Dienst Transactional Email der{" "}
+        <strong>Scaleway SAS, Paris, Frankreich</strong>, den wir als Auftragsverarbeiter einsetzen
+        (Verarbeitung in der EU). Dabei werden Ihre E-Mail-Adresse und der Inhalt der jeweiligen Nachricht, gegebenenfalls mit
         Anhängen wie Auftragsbestätigung und Druckdaten, verarbeitet. Rechtsgrundlage ist Art. 6
         Abs. 1 lit. b DSGVO. Bitte beachten Sie, dass E-Mails unterwegs grundsätzlich von Dritten
         eingesehen werden können, soweit sie nicht transportverschlüsselt übertragen werden.
@@ -203,9 +204,10 @@ export default function DatenschutzPage() {
 
       <h2 id="hosting">8. Hosting und Server-Logdateien</h2>
       <p>
-        Das Portal wird durch von uns beauftragte Dienstleister gehostet, bei denen Anwendung,
-        Datenbank und Dateispeicher betrieben werden. Mit diesen Dienstleistern bestehen, soweit
-        erforderlich, Verträge zur Auftragsverarbeitung nach Art. 28 DSGVO.
+        Das Portal wird bei der <strong>Scaleway SAS, Paris, Frankreich</strong>, gehostet. Anwendung
+        und Datenbank laufen auf einem Server, die hochgeladenen Dateien liegen im Object Storage
+        von Scaleway; Standort der Rechenzentren ist Frankreich (EU). Mit Scaleway besteht ein
+        Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO.
       </p>
       <p>
         Beim Aufruf des Portals werden technisch bedingt Verbindungsdaten in Logdateien verarbeitet,
