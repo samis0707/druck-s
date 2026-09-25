@@ -1,0 +1,6 @@
+data.db
+*.db
+outbox/
+storage/
+.pytest_cache/
+__pycache__/

@@ -1,0 +1,47 @@
+# Production profile for Coolify: app + ClamAV; Postgres, S3, SMTP, Mistral via env.
+# Coolify provides DATABASE_URL, S3_*, SMTP_*, MISTRAL_API_KEY.
+# ClamAV läuft als eigener Dienst (clamd auf 3310, Signaturen per freshclam) und braucht ca. 2 GB RAM.
+services:
+  clamav:
+    image: clamav/clamav:stable
+    restart: unless-stopped
+    volumes:
+      - clamdb:/var/lib/clamav
+
+  app:
+    build:
+      context: .
+      args:
+        APP_BASE_URL: ${APP_BASE_URL}
+        NEXT_PUBLIC_PLAUSIBLE_DOMAIN: ${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-}
+        NEXT_PUBLIC_PLAUSIBLE_SRC: ${NEXT_PUBLIC_PLAUSIBLE_SRC:-}
+    depends_on:
+      - clamav
+    environment:
+      APP_BASE_URL: ${APP_BASE_URL}
+      FIRM_INBOX: ${FIRM_INBOX}
+      DATABASE_URL: ${DATABASE_URL}
+      S3_ENDPOINT: ${S3_ENDPOINT}
+      S3_REGION: ${S3_REGION:-eu-central}
+      S3_BUCKET: ${S3_BUCKET}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-false}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM}
+      MISTRAL_API_BASE: ${MISTRAL_API_BASE:-https://api.eu.mistral.ai/v1}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY}
+      MISTRAL_MODEL: ${MISTRAL_MODEL:-mistral-medium-3-5-26-04}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${APP_BASE_URL}
+      BETTER_AUTH_TRUSTED_PROXIES: ${BETTER_AUTH_TRUSTED_PROXIES:-}
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: 3310
+    command: sh -c "node db/migrate.js && node server.js"
+
+volumes:
+  clamdb:

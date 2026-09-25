@@ -1,0 +1,180 @@
+/* Fotoband: gefaltete Panels wie ein Leporello. Basis = ruhiger Endzustand, Bewegung nur ohne Reduced-Motion-Wunsch. */
+.fotoband {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: hidden;
+  border-radius: min(var(--radius-4xl, 24px), 24px);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-e1), 0 0 0 1px color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+.fb-panel {
+  position: relative;
+}
+.fb-panel + .fb-panel {
+  border-top: 1px solid var(--color-rule);
+}
+/* Falzkante: dezenter Schatten unter der Faltlinie. */
+.fb-panel + .fb-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 7px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--foreground) 7%, transparent), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+.fb-panel[data-zustand="gesperrt"] {
+  background: var(--color-surface-sunk);
+}
+
+.fb-titel {
+  margin: 0;
+  font: inherit;
+}
+.fb-kopf {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.9rem 1.25rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.fb-kopf:hover {
+  background: color-mix(in srgb, var(--color-brand-500) 5%, transparent);
+}
+.fb-kopf:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: -2px;
+}
+.fb-panel[data-zustand="gesperrt"] .fb-kopf {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.fb-panel[data-zustand="gesperrt"] .fb-kopf:hover {
+  background: transparent;
+}
+.fb-kopf .rail-step {
+  flex: none;
+}
+/* Der Knoten der Schiene pulsiert hier nicht; die offene Stufe zeigt nur den Ring. */
+.fotoband .fb-kopf .rail-step[data-state="current"] .rail-node::after {
+  content: none;
+  animation: none;
+}
+.fb-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.fb-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.fb-summe {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  color: var(--color-ink-mid);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fb-aendern {
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-brand-600);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Körper: Höhe über grid-template-rows, Faltung über rotateX in der Hülle mit Perspektive. */
+.fb-koerper {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+}
+.fb-koerper[data-offen] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+}
+.fb-huelle {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  perspective: 1100px;
+}
+.fb-falz {
+  padding: 0.25rem 1.25rem 1.25rem;
+  transform-origin: 50% 0;
+  outline: none;
+}
+.fb-inhalt {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.fb-fuss {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.fb-hinweis {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-ink-mid);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fb-panel {
+    animation: fb-ein 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 110ms + 60ms);
+  }
+  @keyframes fb-ein {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .fb-koerper {
+    transition: grid-template-rows 0.7s cubic-bezier(0.45, 0, 0.2, 1), visibility 0s linear 0.7s;
+  }
+  .fb-koerper[data-offen] {
+    /* Der Vorgänger faltet sich zuerst ein, dann klappt dieses Panel auf. */
+    transition-delay: 0.18s, 0s;
+  }
+  .fb-falz {
+    transform: rotateX(-82deg);
+    opacity: 0;
+    transition: transform 0.7s cubic-bezier(0.45, 0, 0.2, 1), opacity 0.5s ease;
+  }
+  .fb-koerper[data-offen] .fb-falz {
+    transform: none;
+    opacity: 1;
+    transition-delay: 0.18s;
+  }
+  /* Licht auf dem Papier: beim Aufklappen hellt das Blatt von dunkel auf. */
+  .fb-huelle::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--foreground) 14%, transparent);
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+  }
+  .fb-koerper[data-offen] .fb-huelle::after {
+    opacity: 0;
+    transition-delay: 0.18s;
+  }
+  .fb-kopf {
+    transition: background-color 0.2s ease, opacity 0.3s ease;
+  }
+}

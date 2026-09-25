@@ -1,0 +1,32 @@
+/* Vollbild-Quicklook: Bühne füllt den ganzen Bildschirm, Werkzeugleiste oben. */
+.quicklook-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: color-mix(in srgb, var(--color-ink) 6%, var(--color-surface));
+}
+
+.quicklook-stage-fallback {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+}
+
+.quicklook-stage-fill {
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .quicklook-stage-fill {
+    animation: quicklook-swap 0.18s ease-out;
+  }
+  @keyframes quicklook-swap {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
