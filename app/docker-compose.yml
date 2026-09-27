@@ -50,7 +50,7 @@ services:
       - "8026:8025"
 
   clamav:
-    image: clamav/clamav:stable
+    image: clamav/clamav:stable-debian
     ports:
       - "3311:3310"
     volumes:

@@ -81,7 +81,7 @@ services:
       retries: 10
 
   clamav:
-    image: clamav/clamav:stable
+    image: clamav/clamav:stable-debian
     restart: unless-stopped
     mem_limit: 2g
     volumes:

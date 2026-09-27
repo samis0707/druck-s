@@ -3,7 +3,7 @@
 # ClamAV läuft als eigener Dienst (clamd auf 3310, Signaturen per freshclam) und braucht ca. 2 GB RAM.
 services:
   clamav:
-    image: clamav/clamav:stable
+    image: clamav/clamav:stable-debian
     restart: unless-stopped
     volumes:
       - clamdb:/var/lib/clamav
