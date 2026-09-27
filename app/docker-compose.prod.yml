@@ -1,10 +1,21 @@
 # Production profile for Coolify: app + ClamAV; Postgres, S3, SMTP, Mistral via env.
 # Coolify provides DATABASE_URL, S3_*, SMTP_*, MISTRAL_API_KEY.
 # ClamAV läuft als eigener Dienst (clamd auf 3310, Signaturen per freshclam) und braucht ca. 2 GB RAM.
+# `coolify`-Netzwerk: Coolify-Ressourcen (z. B. die verwaltete Postgres) hängen per Default
+# nicht am Netz dieses Compose-Stacks; ohne diesen Block kann `app` den DB-Hostnamen nicht
+# auflösen (getaddrinfo EAI_AGAIN). Zusätzlich zum eigenen Stack-Netz, also bleibt `clamav`
+# per Servicename weiter erreichbar.
+networks:
+  coolify:
+    external: true
+
 services:
   clamav:
     image: clamav/clamav:stable-debian
     restart: unless-stopped
+    networks:
+      - default
+      - coolify
     volumes:
       - clamdb:/var/lib/clamav
 
@@ -15,6 +26,9 @@ services:
         APP_BASE_URL: ${APP_BASE_URL}
         NEXT_PUBLIC_PLAUSIBLE_DOMAIN: ${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-}
         NEXT_PUBLIC_PLAUSIBLE_SRC: ${NEXT_PUBLIC_PLAUSIBLE_SRC:-}
+    networks:
+      - default
+      - coolify
     depends_on:
       - clamav
     environment:
