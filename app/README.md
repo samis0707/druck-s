@@ -48,3 +48,10 @@ Die Einbindung ist aus, solange `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` nicht gesetzt ist
 in Coolify als Build-Variable markieren). Eine Änderung zur Laufzeit hat keine Wirkung; nach dem
 Ändern neu bauen. Falls später eine Content-Security-Policy ergänzt wird, muss die Script-Domain
 in `script-src` und `connect-src` freigegeben werden (derzeit gibt es keine CSP).
+
+## Partner-Schnittstelle
+
+Partnersysteme (z. B. Seeräuber digital) liefern Druckaufträge per API ein (`POST /api/partner/requests`,
+Status-Abruf, Storno) und bekommen Statuswechsel als signierte Webhooks. Endpunkte, Signatur, Statusmodell,
+Fehlercodes, Partner anlegen (`node scripts/partner-key.mjs`) und Env-Variablen:
+[docs/partner-api.md](docs/partner-api.md).
