@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Badge, toneVariant } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { STAFF_STATUS, STATUS_TONE } from "@/lib/ui-text";
+import { STAFF_STATUS, STATUS_TONE, originBadge } from "@/lib/ui-text";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { StatusFolds } from "@/components/requests/StatusFolds";
 import { ConfirmAction } from "@/components/requests/ConfirmAction";
 import { customerLine, detailRef, type RequestDetail } from "@/components/requests/request-detail";
@@ -129,6 +130,7 @@ export default function StaffRequestPage({ params }: { params: Promise<{ id: str
   const st = detail.request.status;
   const ref = detailRef(detail);
   const kunde = customerLine(detail.customer, "staff");
+  const herkunft = originBadge(detail.request.trust, detail.partner?.name);
   const shipDescription =
     tracking.trim() || deliverDate.trim()
       ? `Der Auftrag wird als versendet markiert und der Kunde per E-Mail informiert${
@@ -218,12 +220,42 @@ export default function StaffRequestPage({ params }: { params: Promise<{ id: str
         aktionen={
           <>
             <Badge variant={toneVariant(STATUS_TONE[st] ?? "gray")}>{STAFF_STATUS[st] ?? st}</Badge>
-            <Badge variant={toneVariant(detail.request.trust === "VERIFIED" ? "green" : "yellow")}>
-              {detail.request.trust === "VERIFIED" ? "Verifiziert" : "Per Link"}
-            </Badge>
+            <Badge variant={toneVariant(herkunft.tone)}>{herkunft.label}</Badge>
           </>
         }
       />
+      {st === "WITHDRAWN" && (
+        <p className="text-sm text-muted-foreground">
+          {detail.partner
+            ? `Von ${detail.partner.name} zurückgezogen — keine weiteren Schritte.`
+            : "Zurückgezogen — keine weiteren Schritte."}
+        </p>
+      )}
+      {detail.partner && (
+        <Card size="sm">
+          <CardContent className="space-y-2">
+            <CardTitle>Partner-Auftrag · {detail.partner.name}</CardTitle>
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
+              <dt className="text-muted-foreground">Partner-Referenz</dt>
+              <dd className="break-all font-mono text-xs leading-5">{detail.partner.ref}</dd>
+              {detail.partner.rows.map((row) => (
+                <div key={row.label} className="contents">
+                  <dt className="text-muted-foreground">{row.label}</dt>
+                  <dd className="whitespace-pre-wrap break-words">
+                    {row.label === "Quelle" && /^https?:\/\//.test(row.value) ? (
+                      <a className="underline" href={row.value} target="_blank" rel="noopener noreferrer">
+                        {row.value}
+                      </a>
+                    ) : (
+                      row.value
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+      )}
       <StatusFolds
         detail={detail}
         audience="staff"

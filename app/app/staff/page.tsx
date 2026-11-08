@@ -31,12 +31,17 @@ import {
   type FinderSort,
 } from "@/components/finder/finder-state";
 import { ROLLUP_TOOLTIP, rollupOf, rollupRail, rollupTone } from "@/components/finder/rollup";
-import { STAFF_STATUS, STATUS_TONE, productLabel } from "@/lib/ui-text";
+import { STAFF_STATUS, STATUS_TONE, originBadge, productLabel } from "@/lib/ui-text";
 
-const STATUS_OPTIONEN = ["RECEIVED", "IN_REVIEW", "WAITING_APPROVAL", "IN_PROGRESS", "SHIPPED"] as const;
+const STATUS_OPTIONEN = ["RECEIVED", "IN_REVIEW", "WAITING_APPROVAL", "IN_PROGRESS", "SHIPPED", "WITHDRAWN"] as const;
 const SICHT_KEY = "dam-finder-sicht";
 
 type Sicht = "liste" | "assets";
+
+function OriginBadge({ trust, partnerName }: { trust: string; partnerName?: string | null }) {
+  const o = originBadge(trust, partnerName);
+  return <Badge variant={toneVariant(o.tone)}>{o.label}</Badge>;
+}
 
 function RollupBadge({ request }: { request: FinderRequest }) {
   const rollup = rollupOf(request.files);
@@ -216,9 +221,7 @@ function Inspektor({ requestId }: { requestId: string }) {
             <Badge variant={toneVariant(STATUS_TONE[detail.request.status] ?? "gray")}>
               {STAFF_STATUS[detail.request.status] ?? detail.request.status}
             </Badge>
-            <Badge variant={toneVariant(detail.request.trust === "VERIFIED" ? "green" : "yellow")}>
-              {detail.request.trust === "VERIFIED" ? "Verifiziert" : "Per Link"}
-            </Badge>
+            <OriginBadge trust={detail.request.trust} partnerName={detail.partner?.name} />
           </div>
           {kunde && <p className="text-sm font-medium">{kunde}</p>}
           <p className="text-sm text-muted-foreground">Hinweis: {productLabel(detail.request.productHint)}</p>
@@ -395,7 +398,12 @@ function Warteschlange({
                   </Link>
                 </td>
                 <td className="px-3.5 py-3">{productLabel(r.productHint)}</td>
-                <td className="max-w-[220px] truncate px-3.5 py-3">{r.email}</td>
+                <td className="max-w-[220px] px-3.5 py-3">
+                  <div className="truncate">{r.email}</div>
+                  {r.partnerName && (
+                    <div className="truncate text-xs text-muted-foreground">Über {r.partnerName}</div>
+                  )}
+                </td>
                 <td className="px-3.5 py-3 text-right tabular-nums">{String(r.fileCount)}</td>
                 <td className="px-3.5 py-3">
                   <RollupBadge request={r} />
@@ -597,9 +605,7 @@ export default function StaffPage() {
                   <Badge variant={toneVariant(STATUS_TONE[r.status] ?? "gray")}>
                     {STAFF_STATUS[r.status] ?? r.status}
                   </Badge>
-                  <Badge variant={toneVariant(r.trust === "VERIFIED" ? "green" : "yellow")}>
-                    {r.trust === "VERIFIED" ? "Verifiziert" : "Per Link"}
-                  </Badge>
+                  <OriginBadge trust={r.trust} partnerName={r.partnerName} />
                   <span className="ml-auto">
                     <Button render={<Link href={`/staff/requests/${r.id}`} />} variant="outline" size="sm">
                       Ansehen
