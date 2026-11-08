@@ -20,7 +20,7 @@ DEV1-S (2 GB) ist für ClamAV zu knapp. Eine verwaltete Datenbank (Aufpreis) und
 
 1. **Projekt und Zugänge.** In der Scaleway-Konsole ein Projekt anlegen. Unter IAM eine Application mit einem API-Schlüssel erstellen, der nur auf den Bucket und TEM zugreifen darf.
 2. **Object Storage.** Bucket in `fr-par` anlegen (Privat, ohne öffentliche Freigabe). Zweiter Bucket oder Präfix für Backups.
-3. **Transactional Email.** Domain in TEM hinzufügen und die angezeigten DNS-Einträge (SPF, DKIM, DMARC) beim Domain-Anbieter setzen. SMTP-Host und Port aus der TEM-Konsole in `.env` übernehmen (Benutzer = Projekt-ID, Passwort = API-Secret-Key).
+3. **Transactional Email.** Domain in TEM hinzufügen und die angezeigten DNS-Einträge (SPF, DKIM, DMARC) beim Domain-Anbieter setzen. SMTP-Host und Port aus der TEM-Konsole in `.env` übernehmen (Benutzer = Projekt-ID, Passwort = API-Secret-Key). Alternativ Brevo-HTTP-API: `BREVO_API_KEY` setzen, dann sind die SMTP-Variablen optional (siehe README, Abschnitt „E-Mail-Versand“).
 4. **Instanz.** DEV1-M, Ubuntu 24.04, Zone `fr-par-1`, SSH-Schlüssel hinterlegen, Sicherheitsgruppe nur 22, 80 und 443 erlauben. Flexible IPv4 zuweisen.
 5. **DNS.** A-Record der Domain auf die Instanz-IP.
 6. **Server vorbereiten** (per SSH):

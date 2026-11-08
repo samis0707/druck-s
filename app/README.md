@@ -55,3 +55,39 @@ Partnersysteme (z. B. Seeräuber digital) liefern Druckaufträge per API ein (`P
 Status-Abruf, Storno) und bekommen Statuswechsel als signierte Webhooks. Endpunkte, Signatur, Statusmodell,
 Fehlercodes, Partner anlegen (`node scripts/partner-key.mjs`) und Env-Variablen:
 [docs/partner-api.md](docs/partner-api.md).
+
+## E-Mail-Versand (Brevo oder SMTP)
+
+Alle Mails (Anmelde-/Freigabecodes, Auftragsbestätigung mit Anhängen, Freigabe-Quittung, Hinweis an
+`FIRM_INBOX`, Versandbestätigung mit Rechnung) laufen über `lib/mail.ts`. Der Transport wird per Env gewählt:
+
+| Variable | Bedeutung |
+|---|---|
+| `MAIL_TRANSPORT` | `brevo` oder `smtp`. Leer: `brevo`, sobald `BREVO_API_KEY` gesetzt ist, sonst `smtp`. |
+| `BREVO_API_KEY` | API-Key aus Brevo (SMTP & API › API-Keys). Nur Server-Env, nie `NEXT_PUBLIC_*`. |
+| `MAIL_FROM` | Absender `Name <adresse>`; leer = `SMTP_FROM` (bisherige Konfiguration). |
+| `MAIL_REPLY_TO` | Optional: Antwortadresse für alle Mails. |
+| `MAIL_MAX_ATTACHMENTS_MB`, `MAIL_MAX_ATTACHMENT_MB` | Optional: Anhang-Grenzen übersteuern (gesamt kodiert / je Datei). |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Optional, nur für `smtp` (lokal und in Integrationstests: Mailpit). |
+
+**Brevo (Produktion, z. B. Railway).** Railway sperrt im Hobby-Plan ausgehendes SMTP; die App spricht deshalb
+die Brevo-HTTP-API an (`POST https://api.brevo.com/v3/smtp/email`, nur `fetch`, Timeout 15 s). Vor dem Go-live:
+
+- Absenderdomain (z. B. `druck-s.de`) in Brevo unter *Absender, Domains* verifizieren (SPF, DKIM, DMARC beim
+  DNS-Anbieter setzen); `MAIL_FROM` muss zu dieser Domain gehören, sonst lehnt Brevo ab.
+- In Brevo unter *Sicherheit › Autorisierte IPs* die IP-Sperre für API-Keys **ausschalten**: Railway hat keine
+  feste ausgehende IP, sonst scheitert jeder Versand mit `401 unauthorized` („unrecognised IP address“).
+- `/api/health` prüft Brevo per `GET /v3/account` (Ergebnis 5 Minuten zwischengespeichert).
+
+Fehler von Brevo (`HTTP-Status`, `code`, `message`) landen im Log, ohne API-Key, Inhalte oder Adressen; die
+`messageId` der Antwort wird bei Erfolg geloggt. Es gibt keine Outbox und kein automatisches Wiederholen:
+wie bisher bei SMTP geht ein Fehler an den Aufrufer (Code-Mail: Fehlermeldung beim Anfordern; Versandbestätigung:
+Versand bleibt gespeichert, `mailed: false`).
+
+**Anhänge.** Brevo nimmt Anhänge Base64-kodiert an und begrenzt eine Mail auf 20 MB inkl. Inhalt, einzelne
+Anhänge auf 4 MB; erlaubt sind nur bestimmte Dateitypen (u. a. PDF, JPG, PNG, TIFF, EPS, ZIP; nicht AI, SVG,
+WebP). Uploads im Portal dürfen bis 100 MB groß sein. Passen Auftragsbestätigung + Druckdateien bzw. die
+Rechnung nicht, geht die Mail ohne Anhänge raus und sagt dem Kunden, dass er die Dateien in seinem Auftrag
+herunterladen kann (der Link führt zur Auftragsseite mit Download); das Log vermerkt es als Warnung. Mit SMTP
+gibt es keine Grenze aus der App (wie bisher). Ein direkt übergebener, zu großer Anhang bricht den Versand mit
+`MailAttachmentError` ab, statt ihn stillschweigend wegzulassen.

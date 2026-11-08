@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { withTx } from "./db";
 import { config } from "./config";
 import { appendAudit } from "./auditLog";
-import { sendMail } from "./mail";
+import { attachmentsFit, sendMail, type MailAttachment } from "./mail";
 import { getRequestFile, putRequestFile } from "./storageFiles";
 import {
   approvalReceiptMail,
@@ -71,30 +71,33 @@ export async function attachConfirmation(input: {
     detail: { version, reason: input.reason ?? null },
   });
   const approveUrl = `${config.appBaseUrl}/requests/${input.requestId}`;
-  const mail = approvalRequestMail({
+  const mailInput = {
     requestRef: requestRef(request),
     version,
     reason: input.reason ?? null,
     resent: version > 1,
     approveUrl,
-  });
+  };
+  const attachments: MailAttachment[] = [input.confirmation, ...input.printFiles].map((f) => ({
+    filename: f.fileName,
+    content: f.bytes,
+    contentType: f.mimeType,
+  }));
+  let mail = approvalRequestMail(mailInput);
+  const fits = attachmentsFit(attachments, mail);
+  if (!fits.ok) {
+    // Dateien liegen ohnehin im Auftrag zum Download; die Mail verweist dann dorthin.
+    console.warn(
+      `[mail] Auftragsbestätigung ${mailInput.requestRef} v${version}: Anhänge nicht versendbar (${fits.detail}), Download-Link statt Anhang`,
+    );
+    mail = approvalRequestMail({ ...mailInput, filesByLink: true });
+  }
   await sendMail({
     to: input.customerEmail,
     subject: mail.subject,
     text: mail.text,
     html: mail.html,
-    attachments: [
-      {
-        filename: input.confirmation.fileName,
-        content: input.confirmation.bytes,
-        contentType: input.confirmation.mimeType,
-      },
-      ...input.printFiles.map((f) => ({
-        filename: f.fileName,
-        content: f.bytes,
-        contentType: f.mimeType,
-      })),
-    ],
+    attachments: fits.ok ? attachments : undefined,
   });
   return bundle;
 }
@@ -285,24 +288,33 @@ async function sendShippedMail(
       return false;
     }
     const invoiceName = bundleFileName(invoiceKey);
-    const mail = shippedMail({
+    const mailInput = {
       requestRef: requestRef(request),
       trackingNumber: tracking,
       specialDeliveryDate: date,
       requestUrl: `${config.appBaseUrl}/requests/${request.id}`,
-    });
+    };
+    const attachments: MailAttachment[] = [
+      {
+        filename: invoiceName,
+        content: await getRequestFile(invoiceKey),
+        contentType: mimeFromName(invoiceName),
+      },
+    ];
+    let mail = shippedMail(mailInput);
+    const fits = attachmentsFit(attachments, mail);
+    if (!fits.ok) {
+      console.warn(
+        `[mail] Versandbestätigung ${mailInput.requestRef}: Rechnung nicht versendbar (${fits.detail}), Download-Link statt Anhang`,
+      );
+      mail = shippedMail({ ...mailInput, invoiceByLink: true });
+    }
     await sendMail({
       to,
       subject: mail.subject,
       text: mail.text,
       html: mail.html,
-      attachments: [
-        {
-          filename: invoiceName,
-          content: await getRequestFile(invoiceKey),
-          contentType: mimeFromName(invoiceName),
-        },
-      ],
+      attachments: fits.ok ? attachments : undefined,
     });
     return true;
   } catch (err) {

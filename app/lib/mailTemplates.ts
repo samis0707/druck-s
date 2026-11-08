@@ -288,13 +288,17 @@ export function approvalRequestMail(input: {
   reason?: string | null;
   resent?: boolean;
   approveUrl: string;
+  /** Dateien zu groß bzw. vom Mail-Anbieter nicht erlaubt: Download im Auftrag statt Anhang. */
+  filesByLink?: boolean;
 }): MailContent {
   const ref = input.requestRef;
   const intro = input.resent
     ? `Die überarbeitete Auftragsbestätigung (Version ${input.version}) zu Ihrem Auftrag ${ref} liegt zur Freigabe bereit.`
     : `Die Auftragsbestätigung zu Ihrem Auftrag ${ref} liegt zur Freigabe bereit.`;
   const salutation = `Guten Tag,`;
-  const attachments = `Die Auftragsbestätigung und die finalen Druckdateien finden Sie im Anhang. Bitte prüfen Sie alles sorgfältig, bevor Sie freigeben.`;
+  const attachments = input.filesByLink
+    ? `Die Auftragsbestätigung und die finalen Druckdateien sind zu groß für den Versand per E-Mail. Sie können sie in Ihrem Auftrag herunterladen. Bitte prüfen Sie alles sorgfältig, bevor Sie freigeben.`
+    : `Die Auftragsbestätigung und die finalen Druckdateien finden Sie im Anhang. Bitte prüfen Sie alles sorgfältig, bevor Sie freigeben.`;
   const help = `Falls etwas nicht stimmt, antworten Sie auf diese E-Mail und nennen Sie die Auftragsnummer ${ref}.`;
   const reason = `Sie erhalten diese E-Mail, weil zu Ihrem Auftrag bei ${company.brand} eine Auftragsbestätigung zur Freigabe bereitgestellt wurde.`;
   const subject = input.resent
@@ -406,6 +410,8 @@ export function shippedMail(input: {
   trackingNumber?: string | null;
   specialDeliveryDate?: string | null;
   requestUrl: string;
+  /** Rechnung nicht als Anhang (zu groß bzw. nicht erlaubt): Download im Auftrag. */
+  invoiceByLink?: boolean;
 }): MailContent {
   const ref = input.requestRef;
   const tracking = input.trackingNumber?.trim() || null;
@@ -423,7 +429,9 @@ export function shippedMail(input: {
         })()
       : null;
   const intro = `Ihr Auftrag ${ref} wurde versendet.`;
-  const invoice = `Die Rechnung finden Sie im Anhang dieser E-Mail.`;
+  const invoice = input.invoiceByLink
+    ? `Die Rechnung können Sie in Ihrem Auftrag herunterladen.`
+    : `Die Rechnung finden Sie im Anhang dieser E-Mail.`;
   const help = `Bei Fragen antworten Sie auf diese E-Mail und nennen Sie die Auftragsnummer ${ref}.`;
   const reason = `Sie erhalten diese E-Mail als Versandbestätigung, weil Ihr Auftrag bei ${company.brand} versendet wurde.`;
   const subject = `Auftrag ${ref} wurde versendet`;
@@ -436,7 +444,9 @@ export function shippedMail(input: {
   if (delivery) rows.push({ label: delivery.label, value: delivery.value, mono: delivery.mono });
   const html = layout({
     title: subject,
-    preheader: `Auftrag ${ref} wurde versendet. Die Rechnung liegt dieser E-Mail bei.`,
+    preheader: input.invoiceByLink
+      ? `Auftrag ${ref} wurde versendet. Die Rechnung steht im Auftrag zum Download bereit.`
+      : `Auftrag ${ref} wurde versendet. Die Rechnung liegt dieser E-Mail bei.`,
     heading: "Ihr Auftrag wurde versendet",
     reason,
     body: [

@@ -6,6 +6,8 @@ const SERVER_ONLY_PATTERNS = [
   "@/lib/db",
   "@/lib/storage",
   "@/lib/mail",
+  "@/lib/mailBrevo",
+  "@/lib/mailTransport",
   "@/lib/mistral",
   "@/lib/requests",
   "@/lib/identities",

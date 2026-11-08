@@ -84,6 +84,35 @@ describe("mail templates", () => {
     expect(mail.text).toContain("Anhang");
   });
 
+  it("approval request mail: Dateien zu groß → Download im Auftrag statt Anhang", () => {
+    const mail = approvalRequestMail({
+      requestRef: REF,
+      version: 1,
+      approveUrl: "http://x/requests/1",
+      filesByLink: true,
+    });
+    expect(mail.text).not.toContain("im Anhang");
+    expect(mail.text).toContain("zu groß für den Versand per E-Mail");
+    expect(mail.text).toContain("herunterladen");
+    expect(mail.text).toContain("http://x/requests/1");
+    expect(mail.html).not.toContain("im Anhang");
+    expect(mail.html).toContain('href="http://x/requests/1"');
+  });
+
+  it("shipped mail: Rechnung als Download statt Anhang", () => {
+    const mail = shippedMail({
+      requestRef: REF,
+      trackingNumber: "JJD0001",
+      requestUrl: "http://x/requests/1",
+      invoiceByLink: true,
+    });
+    expect(mail.text).not.toContain("Anhang");
+    expect(mail.text).toContain("Rechnung können Sie in Ihrem Auftrag herunterladen");
+    expect(mail.html).not.toContain("Anhang");
+    expect(mail.html).not.toContain("liegt dieser E-Mail bei");
+    expect(mail.html).toContain('href="http://x/requests/1"');
+  });
+
   it("receipt und staff notice: Version, Freigeber, Zeitpunkt", () => {
     const receipt = approvalReceiptMail({
       requestRef: REF,
