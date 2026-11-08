@@ -18,6 +18,27 @@ function numberVar(name: string, fallback: number): number {
   return parsed;
 }
 
+export type MailTransportName = "brevo" | "smtp";
+
+/**
+ * MAIL_TRANSPORT=brevo|smtp. Ohne Angabe: brevo, sobald BREVO_API_KEY gesetzt ist, sonst smtp
+ * (Mailpit lokal/in Tests). Reine Funktion, damit die Auswahl ohne Modul-Neuladen testbar ist.
+ */
+export function resolveMailTransport(env: Record<string, string | undefined> = process.env): MailTransportName {
+  const raw = (env.MAIL_TRANSPORT ?? "").trim().toLowerCase();
+  if (raw === "brevo" || raw === "smtp") return raw;
+  if (raw !== "") throw new Error(`Env var MAIL_TRANSPORT must be "brevo" or "smtp" (got "${raw}")`);
+  return (env.BREVO_API_KEY ?? "").trim() !== "" ? "brevo" : "smtp";
+}
+
+function optionalMb(name: string): number | null {
+  const raw = process.env[name];
+  if (raw === undefined || raw === "") return null;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) throw new Error(`Env var ${name} must be a positive number`);
+  return Math.floor(parsed * 1024 * 1024);
+}
+
 export const config = {
   appBaseUrl: optional("APP_BASE_URL", "http://localhost:3000"),
   firmInbox: optional("FIRM_INBOX", "print@example.com"),
@@ -38,13 +59,28 @@ export const config = {
     secretKey: optional("S3_SECRET_KEY", "minioadmin"),
     forcePathStyle: optional("S3_FORCE_PATH_STYLE", "true") === "true",
   },
+  mail: {
+    transport: resolveMailTransport(),
+    /** Absender „Name <adresse>“; fällt auf SMTP_FROM zurück (bisherige Konfiguration). */
+    from: optional("MAIL_FROM") || optional("SMTP_FROM") || "DAM <dam@example.com>",
+    /** Optionale Antwortadresse für alle ausgehenden Mails (leer = Antworten gehen an den Absender). */
+    replyTo: optional("MAIL_REPLY_TO"),
+    brevo: {
+      apiKey: optional("BREVO_API_KEY").trim(),
+      apiBase: optional("BREVO_API_BASE", "https://api.brevo.com/v3"),
+    },
+    /** Überschreibt die Anhang-Grenzen des Transports (MB; leer = Standard des Transports). */
+    maxAttachmentsTotalBytes: optionalMb("MAIL_MAX_ATTACHMENTS_MB"),
+    maxAttachmentBytes: optionalMb("MAIL_MAX_ATTACHMENT_MB"),
+  },
+  /** Nur für MAIL_TRANSPORT=smtp (lokal: Mailpit). */
   smtp: {
-    host: required("SMTP_HOST", "localhost"),
+    // Leer gesetzt (z. B. auf Railway mit Brevo) zählt wie nicht gesetzt.
+    host: optional("SMTP_HOST") || "localhost",
     port: numberVar("SMTP_PORT", 1025),
     secure: optional("SMTP_SECURE", "false") === "true",
     user: optional("SMTP_USER"),
     pass: optional("SMTP_PASS"),
-    from: optional("SMTP_FROM", "DAM <dam@example.com>"),
   },
   mistral: {
     baseUrl: optional("MISTRAL_API_BASE", "https://api.eu.mistral.ai/v1"),

@@ -1,5 +1,5 @@
-# Production profile for Coolify: app + ClamAV; Postgres, S3, SMTP, Mistral via env.
-# Coolify provides DATABASE_URL, S3_*, SMTP_*, MISTRAL_API_KEY.
+# Production profile for Coolify: app + ClamAV; Postgres, S3, mail (Brevo/SMTP), Mistral via env.
+# Coolify provides DATABASE_URL, S3_*, BREVO_API_KEY or SMTP_*, MISTRAL_API_KEY.
 # ClamAV läuft als eigener Dienst (clamd auf 3310, Signaturen per freshclam) und braucht ca. 2 GB RAM.
 # `coolify`-Netzwerk: Coolify-Ressourcen (z. B. die verwaltete Postgres) hängen per Default
 # nicht am Netz dieses Compose-Stacks; ohne diesen Block kann `app` den DB-Hostnamen nicht
@@ -41,12 +41,17 @@ services:
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-false}
-      SMTP_HOST: ${SMTP_HOST}
+      # Mail: Brevo-HTTP-API (BREVO_API_KEY gesetzt) oder SMTP; MAIL_TRANSPORT erzwingt einen.
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_REPLY_TO: ${MAIL_REPLY_TO:-}
+      SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_SECURE: ${SMTP_SECURE:-true}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
-      SMTP_FROM: ${SMTP_FROM}
+      SMTP_FROM: ${SMTP_FROM:-}
       MISTRAL_API_BASE: ${MISTRAL_API_BASE:-https://api.eu.mistral.ai/v1}
       MISTRAL_API_KEY: ${MISTRAL_API_KEY}
       MISTRAL_MODEL: ${MISTRAL_MODEL:-mistral-medium-3-5-26-04}
