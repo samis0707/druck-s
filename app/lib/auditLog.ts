@@ -3,7 +3,7 @@ import type { AuditAction } from "./audit";
 
 export async function appendAudit(entry: {
   action: AuditAction;
-  actorType?: "customer" | "staff" | "system" | null;
+  actorType?: "customer" | "staff" | "system" | "partner" | null;
   actorId?: string | null;
   requestId?: string | null;
   ip?: string | null;

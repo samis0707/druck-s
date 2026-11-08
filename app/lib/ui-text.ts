@@ -7,6 +7,7 @@ export const CUSTOMER_STATUS: Record<string, string> = {
   WAITING_APPROVAL: "Wartet auf Ihre Freigabe",
   IN_PROGRESS: "In Produktion",
   SHIPPED: "Versendet",
+  WITHDRAWN: "Zurückgezogen",
 };
 
 export const STAFF_STATUS: Record<string, string> = {
@@ -16,6 +17,7 @@ export const STAFF_STATUS: Record<string, string> = {
   WAITING_APPROVAL: "Wartet auf Freigabe",
   IN_PROGRESS: "In Produktion",
   SHIPPED: "Versendet",
+  WITHDRAWN: "Zurückgezogen",
 };
 
 export const STATUS_TONE: Record<string, "gray" | "blue" | "yellow" | "green"> = {
@@ -25,7 +27,20 @@ export const STATUS_TONE: Record<string, "gray" | "blue" | "yellow" | "green"> =
   WAITING_APPROVAL: "yellow",
   IN_PROGRESS: "yellow",
   SHIPPED: "green",
+  WITHDRAWN: "gray",
 };
+
+/**
+ * Herkunfts-Badge im Staff-Bereich: Partner-Aufträge zeigen den Partnernamen
+ * („Über Seeräuber digital“), sonst Vertrauensstufe (verifiziert / per Link).
+ */
+export function originBadge(
+  trust: string,
+  partnerName?: string | null,
+): { label: string; tone: "green" | "yellow" | "blue" } {
+  if (partnerName) return { label: `Über ${partnerName}`, tone: "blue" };
+  return trust === "VERIFIED" ? { label: "Verifiziert", tone: "green" } : { label: "Per Link", tone: "yellow" };
+}
 
 export const PRODUCT_HINTS = [
   { value: "name-tag", label: "Namensschild" },

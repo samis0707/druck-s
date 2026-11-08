@@ -55,6 +55,15 @@ export const config = {
     host: optional("CLAMAV_HOST", "localhost"),
     port: numberVar("CLAMAV_PORT", 3310),
   },
+  partner: {
+    /** Neue Partner-Aufträge je Partner und Stunde (0 = unbegrenzt). */
+    rateLimitPerHour: numberVar("PARTNER_RATE_LIMIT_PER_HOUR", 120),
+    /** Zeitlimit für das Laden der Partner-Datei (unter dem 60-s-Timeout des Seeräuber-Clients halten). */
+    fileTimeoutSeconds: numberVar("PARTNER_FILE_TIMEOUT_SECONDS", 45),
+    /** Webhook-Worker im App-Prozess (instrumentation.ts); "off" schaltet ihn ab. */
+    webhookWorker: optional("PARTNER_WEBHOOK_WORKER", "on") !== "off",
+    webhookIntervalSeconds: numberVar("PARTNER_WEBHOOK_INTERVAL_SECONDS", 15),
+  },
   ttl: {
     otpMinutes: numberVar("OTP_TTL_MINUTES", 10),
     sessionHours: numberVar("SESSION_TTL_HOURS", 24),

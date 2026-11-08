@@ -10,6 +10,7 @@ export async function GET(req: Request) {
   const rows = await query(
     `SELECT r.id, r.number, r.product_hint AS "productHint", r.free_text AS "freeText",
             r.status, r.trust, r.origin, r.created_at AS "createdAt",
+            p.name AS "partnerName", r.partner_ref AS "partnerRef",
             COALESCE(u.email, r.prospect_email) AS email,
             (SELECT COUNT(*) FROM request_files f WHERE f.request_id = r.id) AS "fileCount",
             COALESCE((
@@ -23,6 +24,7 @@ export async function GET(req: Request) {
               WHERE f.request_id = r.id
             ), '[]') AS "files"
      FROM requests r LEFT JOIN "user" u ON u.id = r.customer_id
+     LEFT JOIN partners p ON p.id = r.partner_id
      WHERE r.status <> 'DRAFT' ${status ? "AND r.status = $1" : ""}
      ORDER BY r.created_at DESC`,
     status ? [status] : [],

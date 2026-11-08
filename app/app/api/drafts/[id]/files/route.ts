@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { badRequest, notFound } from "@/lib/api";
+import { MAX_FILE_BYTES } from "@/lib/limits";
 import { addFile, getRequest, listFiles } from "@/lib/requests/store";
 
-export const MAX_FILE_BYTES = 100 * 1024 * 1024;
+export { MAX_FILE_BYTES };
 
 /** Stage one file onto a DRAFT. Cheap checks only; deep analysis runs after Send. */
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {

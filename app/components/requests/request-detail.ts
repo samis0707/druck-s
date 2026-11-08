@@ -60,6 +60,8 @@ export interface RequestDetail {
     createdAt?: string;
   };
   customer: DetailCustomer;
+  /** Nur Staff, nur Partner-Aufträge: Partnername, Partner-Referenz, lesbare Angaben. */
+  partner?: { name: string; ref: string; rows: { label: string; value: string }[] } | null;
   files: DetailFile[];
   bundles: DetailBundle[];
   shipment: DetailShipment | null;

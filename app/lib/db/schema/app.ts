@@ -1,5 +1,6 @@
 import {
   bigint,
+  boolean,
   check,
   date,
   index,
@@ -8,10 +9,31 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { authUser } from "./auth";
+
+/** Partner für die Server-zu-Server-Schnittstelle (Migration 007, docs/partner-api.md). */
+export const partners = pgTable(
+  "partners",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull().unique(),
+    name: text("name").notNull(),
+    keyHash: text("key_hash").notNull().unique(),
+    keyPrefix: text("key_prefix").notNull(),
+    keyRotatedAt: timestamp("key_rotated_at", { withTimezone: true }),
+    webhookUrl: text("webhook_url"),
+    webhookSecretEnc: text("webhook_secret_enc"),
+    fileHosts: text("file_hosts").array().notNull().default([]),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("partners_key_prefix_idx").on(t.keyPrefix)],
+);
 
 /**
  * App tables. Identity lives on the Better Auth user (role/status/firm);
@@ -32,14 +54,20 @@ export const requests = pgTable(
     referenceText: text("reference_text"),
     freeText: text("free_text").notNull().default(""),
     status: text("status").notNull().default("DRAFT"),
+    partnerId: uuid("partner_id").references(() => partners.id),
+    partnerRef: text("partner_ref"),
+    partnerMeta: jsonb("partner_meta"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     check("requests_trust_check", sql`${t.trust} IN ('VERIFIED','VOUCHED')`),
-    check("requests_origin_check", sql`${t.origin} IN ('door_a','door_b')`),
+    check("requests_origin_check", sql`${t.origin} IN ('door_a','door_b','partner')`),
     index("requests_status_idx").on(t.status),
     index("requests_customer_idx").on(t.customerId),
+    uniqueIndex("requests_partner_ref_unique")
+      .on(t.partnerId, t.partnerRef)
+      .where(sql`${t.partnerId} IS NOT NULL`),
   ],
 );
 
@@ -191,4 +219,32 @@ export const appSettingsHistory = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("app_settings_history_key_idx").on(t.key, t.id)],
+);
+
+/** Status-Webhooks an Partner (Outbox, Zustellung mit Retry in lib/partners/webhook.ts). */
+export const partnerWebhookOutbox = pgTable(
+  "partner_webhook_outbox",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    partnerId: uuid("partner_id")
+      .notNull()
+      .references(() => partners.id),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => requests.id, { onDelete: "cascade" }),
+    payload: jsonb("payload").notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true }).notNull().defaultNow(),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    failedAt: timestamp("failed_at", { withTimezone: true }),
+    lastStatus: integer("last_status"),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("partner_webhook_outbox_due_idx")
+      .on(t.nextAttemptAt)
+      .where(sql`${t.deliveredAt} IS NULL AND ${t.failedAt} IS NULL`),
+    index("partner_webhook_outbox_request_idx").on(t.requestId, t.id),
+  ],
 );

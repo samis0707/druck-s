@@ -7,6 +7,8 @@ export const STATUSES = [
   "WAITING_APPROVAL",
   "IN_PROGRESS",
   "SHIPPED",
+  /** Vom Partner zurückgezogen (nur aus RECEIVED/IN_REVIEW), Endzustand. */
+  "WITHDRAWN",
 ] as const;
 export type RequestStatus = (typeof STATUSES)[number];
 
@@ -22,6 +24,10 @@ export const REQUEST_EVENTS = [
   "approved",
   "invoice_attached",
   "shipped",
+  /** Partner-Schnittstelle: Auftrag in einem Zug angelegt und eingegangen. */
+  "partner_submitted",
+  /** Partner zieht den Auftrag zurück. */
+  "withdrawn",
 ] as const;
 export type RequestEvent = (typeof REQUEST_EVENTS)[number];
 
@@ -38,7 +44,11 @@ export const TRANSITIONS: Record<RequestEvent, { from: RequestStatus[]; to: Requ
   approved: { from: ["WAITING_APPROVAL"], to: "IN_PROGRESS" },
   invoice_attached: { from: ["IN_PROGRESS"], to: "IN_PROGRESS" },
   shipped: { from: ["IN_PROGRESS"], to: "SHIPPED" },
+  partner_submitted: { from: ["DRAFT"], to: "RECEIVED" },
+  withdrawn: { from: ["RECEIVED", "IN_REVIEW"], to: "WITHDRAWN" },
 };
+
+export type RequestOrigin = "door_a" | "door_b" | "partner";
 
 export type Trust = "VERIFIED" | "VOUCHED";
 
@@ -49,12 +59,15 @@ export interface PrintRequest {
   customerId: string | null;
   prospectEmail: string | null;
   trust: Trust;
-  origin: "door_a" | "door_b";
+  origin: RequestOrigin;
   linkId: string | null;
   productHint: string;
   referenceText: string | null;
   freeText: string;
   status: RequestStatus;
+  /** Partner-Aufträge: Partner und dessen Referenz (sonst null). */
+  partnerId: string | null;
+  partnerRef: string | null;
   createdAt: string;
   updatedAt: string;
 }

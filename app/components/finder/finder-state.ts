@@ -17,6 +17,9 @@ export interface FinderRequest {
   freeText: string;
   status: string;
   trust: string;
+  /** Partner-Aufträge: Name des Partners (z. B. „Seeräuber digital“), sonst null. */
+  partnerName?: string | null;
+  partnerRef?: string | null;
   email: string;
   fileCount: string | number;
   createdAt: string;
@@ -48,7 +51,7 @@ function referenceHaystack(r: Pick<FinderRequest, "id" | "number">): string {
 }
 
 function matchesQuery(r: FinderRequest, q: string): boolean {
-  const hay = `${referenceHaystack(r)} ${r.id} ${r.productHint} ${r.freeText} ${r.email} ${r.status}`.toLowerCase();
+  const hay = `${referenceHaystack(r)} ${r.id} ${r.productHint} ${r.freeText} ${r.email} ${r.status} ${r.partnerName ?? ""} ${r.partnerRef ?? ""}`.toLowerCase();
   return q
     .toLowerCase()
     .split(/\s+/)

@@ -55,6 +55,11 @@ services:
       BETTER_AUTH_TRUSTED_PROXIES: ${BETTER_AUTH_TRUSTED_PROXIES:-}
       CLAMAV_HOST: clamav
       CLAMAV_PORT: 3310
+      # Partner-Schnittstelle (docs/partner-api.md); Standardwerte reichen meist.
+      PARTNER_RATE_LIMIT_PER_HOUR: ${PARTNER_RATE_LIMIT_PER_HOUR:-120}
+      PARTNER_FILE_TIMEOUT_SECONDS: ${PARTNER_FILE_TIMEOUT_SECONDS:-45}
+      PARTNER_WEBHOOK_WORKER: ${PARTNER_WEBHOOK_WORKER:-on}
+      PARTNER_WEBHOOK_INTERVAL_SECONDS: ${PARTNER_WEBHOOK_INTERVAL_SECONDS:-15}
     command: sh -c "node db/migrate.js && node server.js"
 
 volumes:

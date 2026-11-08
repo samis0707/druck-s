@@ -21,13 +21,16 @@ export const AUDIT_ACTIONS = [
   "change_requested",
   "approved",
   "shipped",
+  "partner_request_created",
+  "partner_request_withdrawn",
+  "partner_webhook_failed",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
 export interface AuditEntry {
   id: string;
   action: AuditAction;
-  actorType: "customer" | "staff" | "system";
+  actorType: "customer" | "staff" | "system" | "partner";
   actorId: string | null;
   requestId: string | null;
   ip: string | null;

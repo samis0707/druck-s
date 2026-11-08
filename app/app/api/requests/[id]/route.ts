@@ -8,6 +8,7 @@ import { getReport } from "@/lib/analyze/run";
 import { listBundles } from "@/lib/requests/workflow";
 import { query } from "@/lib/db";
 import { pendingInvoiceKey } from "@/lib/approvalFlow";
+import { partnerMetaRows } from "@/lib/partners/freeText";
 
 /**
  * Request detail for owner or staff: request, customer, files with reports,
@@ -68,8 +69,18 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
         invoiceUrl: `${base}/invoice`,
       }
     : null;
+  // Partner-Aufträge: Herkunft und lesbare Partner-Angaben nur für Staff.
+  let partner: { name: string; ref: string; rows: { label: string; value: string }[] } | null = null;
+  if (access.isStaff && request.partnerId) {
+    const p = await query<{ name: string; meta: unknown }>(
+      "SELECT p.name, r.partner_meta AS meta FROM requests r JOIN partners p ON p.id = r.partner_id WHERE r.id = $1",
+      [id],
+    );
+    if (p.rows[0]) partner = { name: p.rows[0].name, ref: request.partnerRef ?? "", rows: partnerMetaRows(p.rows[0].meta) };
+  }
   return NextResponse.json({
     request: { ...request, ref: requestRef(request) },
+    partner,
     customer,
     files: filesWithReports,
     bundles,

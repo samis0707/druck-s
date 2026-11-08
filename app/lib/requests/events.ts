@@ -6,6 +6,7 @@ import {
   type RequestStatus,
 } from "./types";
 import { assignRequestNumber } from "../requestNumber";
+import { enqueuePartnerWebhookTx, shouldNotifyPartner } from "../partners/webhook";
 
 export class TransitionError extends Error {
   constructor(
@@ -20,7 +21,7 @@ export class TransitionError extends Error {
 export interface EventInput {
   requestId: string;
   event: RequestEvent;
-  actorType?: "customer" | "staff" | "system" | null;
+  actorType?: "customer" | "staff" | "system" | "partner" | null;
   actorId?: string | null;
   detail?: Record<string, unknown>;
 }
@@ -52,8 +53,8 @@ export async function appendEventTx(
   client: PoolClient,
   input: EventInput,
 ): Promise<RequestStatus> {
-  const current = await client.query<{ status: RequestStatus }>(
-    "SELECT status FROM requests WHERE id = $1 FOR UPDATE",
+  const current = await client.query<{ status: RequestStatus; partner_id: string | null }>(
+    "SELECT status, partner_id FROM requests WHERE id = $1 FOR UPDATE",
     [input.requestId],
   );
   if (current.rowCount === 0) throw new TransitionError(input.event, null);
@@ -75,6 +76,10 @@ export async function appendEventTx(
     [rule.to, input.requestId],
   );
   if (from === "DRAFT" && rule.to === "RECEIVED") await assignRequestNumber(client, input.requestId);
+  // Partner-Aufträge: Statuswechsel in derselben Transaktion für den Webhook vormerken (Outbox).
+  if (current.rows[0].partner_id && shouldNotifyPartner(from, rule.to)) {
+    await enqueuePartnerWebhookTx(client, input.requestId, rule.to);
+  }
   return rule.to;
 }
 

@@ -7,7 +7,8 @@ import type { PrintRequest, RequestFile } from "./types";
 export const REQUEST_COLS = `id, number, customer_id AS "customerId", prospect_email AS "prospectEmail",
   trust, origin, link_id AS "linkId", product_hint AS "productHint",
   reference_text AS "referenceText", free_text AS "freeText",
-  status, created_at AS "createdAt", updated_at AS "updatedAt"`;
+  status, partner_id AS "partnerId", partner_ref AS "partnerRef",
+  created_at AS "createdAt", updated_at AS "updatedAt"`;
 
 export const FILE_COLS = `id, request_id AS "requestId", storage_key AS "storageKey",
   file_name AS "fileName", mime_type AS "mimeType", size_bytes AS "sizeBytes",
