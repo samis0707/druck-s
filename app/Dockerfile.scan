@@ -31,7 +31,7 @@ ENV NODE_ENV=production \
     CLAMAV_DB_DIR=/var/lib/clamav \
     CLAMAV_SEED_DIR=/opt/clamav-seed \
     FRESHCLAM_CONFIG=/etc/clamav/freshclam-batch.conf
-VOLUME /var/lib/clamav
+# Signaturen: Volume an /var/lib/clamav (Railway-Volume bzw. compose), keine VOLUME-Anweisung (Railway lehnt sie ab)
 # Startet als root nur für chown des Volumes, dann setpriv → Nutzer clamav (scan-entrypoint.sh).
 ENTRYPOINT ["/opt/scan/scan-entrypoint.sh"]
 CMD []
