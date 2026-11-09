@@ -75,5 +75,39 @@ export function severityLabel(s: string): string {
   if (s === "CLEAN") return "Sauber";
   if (s === "SUSPICIOUS") return "Manuell prüfen";
   if (s === "INFECTED") return "Zurückgehalten";
+  if (s === "PENDING") return SCAN_PENDING_LABEL;
   return s;
+}
+
+/** Batch-Virenscan (CLAMAV_MODE=batch) steht noch aus — für Staff und Kunde gleich formuliert. */
+export const SCAN_PENDING_LABEL = "Virenprüfung läuft";
+
+interface SecurityLike {
+  verdict: string;
+  reasons: string[];
+  scan?: { status: string } | null;
+}
+
+/** Sicherheitszeilen unter „Befunde“: Gründe plus „Virenprüfung läuft“, solange der Batch-Scan aussteht. */
+export function securityNotes(security: SecurityLike): string[] {
+  return security.scan?.status === "PENDING" ? [...security.reasons, SCAN_PENDING_LABEL] : security.reasons;
+}
+
+/**
+ * Sicherheits-Badges einer Datei. Staff: Urteil (plus „Virenprüfung läuft“, wenn das Urteil wegen
+ * struktureller Befunde schon „Manuell prüfen“ ist). Kunde: nur „Zurückgehalten“ oder „Virenprüfung läuft“.
+ */
+export function securityBadges(
+  security: SecurityLike,
+  audience: "customer" | "staff",
+): { label: string; tone: "green" | "yellow" | "red" | "gray" }[] {
+  const pending = security.scan?.status === "PENDING";
+  const out: { label: string; tone: "green" | "yellow" | "red" | "gray" }[] = [];
+  if (audience === "staff" || security.verdict === "INFECTED") {
+    out.push({ label: severityLabel(security.verdict), tone: severityTone(security.verdict) });
+  }
+  if (pending && !out.some((b) => b.label === SCAN_PENDING_LABEL)) {
+    out.push({ label: SCAN_PENDING_LABEL, tone: "gray" });
+  }
+  return out;
 }

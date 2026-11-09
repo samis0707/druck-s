@@ -24,6 +24,9 @@ export const AUDIT_ACTIONS = [
   "partner_request_created",
   "partner_request_withdrawn",
   "partner_webhook_failed",
+  // Batch-Virenscan (scripts/scan-pending.mjs, docs/virenscan.md); schreibt das Skript direkt.
+  "malware_detected",
+  "malware_scan_unavailable",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

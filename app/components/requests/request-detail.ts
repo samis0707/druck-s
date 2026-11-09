@@ -1,5 +1,5 @@
 import { requestRef } from "@/lib/requestNumber";
-import { severityLabel, severityTone } from "@/lib/ui-text";
+import { securityBadges, severityLabel, severityTone } from "@/lib/ui-text";
 import type { PreviewItem } from "@/components/finder/preview";
 
 export type Audience = "customer" | "staff";
@@ -8,7 +8,7 @@ export interface DetailReport {
   printability: string;
   findings: { check: string; summary: string }[];
   uniformity?: { aspect: string; consistent: boolean; deviatingPages: { page: number; value: string }[] }[] | null;
-  security: { verdict: string; reasons: string[] };
+  security: { verdict: string; reasons: string[]; scan?: { status: string } | null };
 }
 
 export interface DetailFile {
@@ -119,9 +119,7 @@ export function buildPreviewItems(
   const items: PreviewItem[] = detail.files.map((f) => {
     const badges: PreviewItem["badges"] = [];
     if (f.report) badges.push({ label: severityLabel(f.report.printability), tone: severityTone(f.report.printability) });
-    if (audience === "staff" && f.report) {
-      badges.push({ label: severityLabel(f.report.security.verdict), tone: severityTone(f.report.security.verdict) });
-    }
+    if (audience === "staff" && f.report) badges.push(...securityBadges(f.report.security, "staff"));
     return {
       id: previewIds.file(f.id),
       name: f.fileName,

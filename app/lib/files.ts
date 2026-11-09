@@ -25,7 +25,9 @@ export async function getFileWithReport(
 }
 
 /**
- * INFECTED files are never served to anyone. Everyone else gets bytes;
+ * INFECTED files are never served to anyone. Everyone else gets bytes — including files whose
+ * batch virus scan is still PENDING (fail-open like an unreachable scanner; the cron job
+ * withholds them as soon as it finds a signature, docs/virenscan.md);
  * the caller decides the wording (staff: ask customer for fresh export,
  * customer: please export a fresh copy).
  */

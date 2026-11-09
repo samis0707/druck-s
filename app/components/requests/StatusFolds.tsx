@@ -24,7 +24,7 @@ import {
   type DetailFile,
   type RequestDetail,
 } from "@/components/requests/request-detail";
-import { productLabel, severityLabel, severityTone } from "@/lib/ui-text";
+import { productLabel, securityBadges, securityNotes, severityLabel, severityTone } from "@/lib/ui-text";
 import "./status-folds.css";
 
 interface LineProps {
@@ -104,9 +104,7 @@ function FileLine({ previewId, name, mimeType, src, sizeBytes, badges, withheld,
 function fileBadges(file: DetailFile, audience: Audience): { label: string; tone: PreviewTone }[] {
   const out: { label: string; tone: PreviewTone }[] = [];
   if (file.report) out.push({ label: severityLabel(file.report.printability), tone: severityTone(file.report.printability) });
-  if (file.report && (audience === "staff" || isWithheld(file))) {
-    out.push({ label: severityLabel(file.report.security.verdict), tone: severityTone(file.report.security.verdict) });
-  }
+  if (file.report) out.push(...securityBadges(file.report.security, audience));
   return out;
 }
 
@@ -131,8 +129,8 @@ function Insights({ file }: { file: DetailFile }) {
               {u.aspect}: abweichend {u.deviatingPages.map((p) => `S.${p.page} ${p.value}`).join(", ")}
             </p>
           ))}
-        {report.security.reasons.length > 0 && (
-          <p className="text-muted-foreground">Sicherheit: {report.security.reasons.join("; ")}</p>
+        {securityNotes(report.security).length > 0 && (
+          <p className="text-muted-foreground">Sicherheit: {securityNotes(report.security).join("; ")}</p>
         )}
       </div>
     </details>

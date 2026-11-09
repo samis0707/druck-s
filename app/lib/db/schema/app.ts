@@ -104,18 +104,28 @@ export const requestFiles = pgTable(
   (t) => [index("request_files_request_idx").on(t.requestId)],
 );
 
-export const analysisReports = pgTable("analysis_reports", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  fileId: uuid("file_id")
-    .notNull()
-    .unique()
-    .references(() => requestFiles.id, { onDelete: "cascade" }),
-  printability: text("printability").notNull(),
-  findings: jsonb("findings").notNull().default([]),
-  uniformity: jsonb("uniformity"),
-  security: jsonb("security").notNull().default({}),
-  measuredAt: timestamp("measured_at").notNull().defaultNow(),
-});
+export const analysisReports = pgTable(
+  "analysis_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    fileId: uuid("file_id")
+      .notNull()
+      .unique()
+      .references(() => requestFiles.id, { onDelete: "cascade" }),
+    printability: text("printability").notNull(),
+    findings: jsonb("findings").notNull().default([]),
+    uniformity: jsonb("uniformity"),
+    /** SecurityFinding (lib/analysis.ts) inkl. `scan` (Status der Virenprüfung, Batch-Zähler). */
+    security: jsonb("security").notNull().default({}),
+    measuredAt: timestamp("measured_at").notNull().defaultNow(),
+  },
+  // Warteschlange des Batch-Virenscans (Migration 008, scripts/scan-pending.mjs).
+  (t) => [
+    index("analysis_reports_scan_pending_idx")
+      .on(t.measuredAt)
+      .where(sql`(${t.security} -> 'scan' ->> 'status') = 'PENDING'`),
+  ],
+);
 
 export const confirmationBundles = pgTable("confirmation_bundles", {
   id: uuid("id").primaryKey().defaultRandom(),

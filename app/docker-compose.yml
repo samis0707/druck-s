@@ -93,7 +93,31 @@ services:
       CLAMAV_PORT: 3310
     command: sh -c "node db/migrate.js && node server.js"
 
+  # Batch-Virenscan (docs/virenscan.md), nur auf Anfrage: App mit CLAMAV_MODE=batch starten, dann
+  #   docker compose --profile batch run --rm scan
+  scan:
+    profiles: ["batch"]
+    build:
+      context: .
+      dockerfile: Dockerfile.scan
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgres://dam:dam@postgres:5432/dam
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: dam
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_FORCE_PATH_STYLE: "true"
+    volumes:
+      - clamscandb:/var/lib/clamav
+
 volumes:
   pgdata:
   miniodata:
   clamdb:
+  clamscandb:

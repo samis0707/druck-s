@@ -2,6 +2,7 @@
  * Analyse-Rollup für den Staff-Finder (client-safe: keine Server-Imports).
  * Worst-of über alle Dateien eines Auftrags:
  * INFECTED > red > SUSPICIOUS/yellow > green/CLEAN > ohne Befund.
+ * PENDING (Batch-Virenscan steht aus) zählt nicht als Befund: es entscheidet die Druckbarkeit.
  */
 
 export type RollupLevel = "withheld" | "problem" | "review" | "ok" | "pending";

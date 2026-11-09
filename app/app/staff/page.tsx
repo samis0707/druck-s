@@ -31,7 +31,7 @@ import {
   type FinderSort,
 } from "@/components/finder/finder-state";
 import { ROLLUP_TOOLTIP, rollupOf, rollupRail, rollupTone } from "@/components/finder/rollup";
-import { STAFF_STATUS, STATUS_TONE, originBadge, productLabel } from "@/lib/ui-text";
+import { STAFF_STATUS, STATUS_TONE, originBadge, productLabel, securityNotes } from "@/lib/ui-text";
 
 const STATUS_OPTIONEN = ["RECEIVED", "IN_REVIEW", "WAITING_APPROVAL", "IN_PROGRESS", "SHIPPED", "WITHDRAWN"] as const;
 const SICHT_KEY = "dam-finder-sicht";
@@ -301,8 +301,8 @@ function Inspektor({ requestId }: { requestId: string }) {
                             {u.deviatingPages.map((p) => `S.${p.page} ${p.value}`).join(", ")}
                           </p>
                         ))}
-                      {report.security.reasons.length > 0 && (
-                        <p className="text-muted-foreground">Sicherheit: {report.security.reasons.join("; ")}</p>
+                      {securityNotes(report.security).length > 0 && (
+                        <p className="text-muted-foreground">Sicherheit: {securityNotes(report.security).join("; ")}</p>
                       )}
                     </div>
                   </details>

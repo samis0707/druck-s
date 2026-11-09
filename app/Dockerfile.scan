@@ -1,0 +1,37 @@
+# Batch-Virenscan als Cron-Job (docs/virenscan.md): startet, prüft alle PENDING-Dateien mit EINEM
+# clamscan-Lauf, schreibt die Ergebnisse in die DB und beendet sich. Kein clamd, kein Next-Build.
+#   docker build -f Dockerfile.scan -t druck-s-scan .
+
+# Nur pg + @aws-sdk/client-s3 in den Versionen aus package-lock.json: erst alles laut Lockfile
+# installieren, dann package.json auf die zwei Pakete reduzieren und den Rest wegräumen.
+FROM node:24-bookworm-slim AS deps
+WORKDIR /deps
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund \
+ && node -e 'const fs=require("fs");const p=require("./package.json");const keep=["pg","@aws-sdk/client-s3"];p.dependencies=Object.fromEntries(keep.map(k=>[k,p.dependencies[k]]));delete p.devDependencies;delete p.scripts;fs.writeFileSync("package.json",JSON.stringify(p,null,2))' \
+ && npm prune --omit=dev --ignore-scripts --no-audit --no-fund \
+ && rm -f package-lock.json node_modules/.package-lock.json \
+ && find node_modules -type d -empty -delete
+
+FROM node:24-bookworm-slim AS node
+
+FROM clamav/clamav-debian:stable
+# Node-Laufzeit (gleiche Major-Version wie die App), nur das Binary.
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+# Signaturen aus dem Image als Startwert für ein leeres Volume (erster Lauf ohne Voll-Download).
+RUN mkdir -p /opt/clamav-seed && cp /var/lib/clamav/*.cvd /opt/clamav-seed/ 2>/dev/null || true \
+ && cp /var/lib/clamav/*.cld /opt/clamav-seed/ 2>/dev/null || true
+WORKDIR /opt/scan
+COPY --from=deps /deps/node_modules ./node_modules
+COPY --from=deps /deps/package.json ./package.json
+COPY scripts/scan-pending.mjs ./scan-pending.mjs
+COPY scripts/scan-entrypoint.sh ./scan-entrypoint.sh
+COPY deploy/freshclam-batch.conf /etc/clamav/freshclam-batch.conf
+ENV NODE_ENV=production \
+    CLAMAV_DB_DIR=/var/lib/clamav \
+    CLAMAV_SEED_DIR=/opt/clamav-seed \
+    FRESHCLAM_CONFIG=/etc/clamav/freshclam-batch.conf
+VOLUME /var/lib/clamav
+# Startet als root nur für chown des Volumes, dann setpriv → Nutzer clamav (scan-entrypoint.sh).
+ENTRYPOINT ["/opt/scan/scan-entrypoint.sh"]
+CMD []

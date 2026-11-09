@@ -31,6 +31,16 @@ export function resolveMailTransport(env: Record<string, string | undefined> = p
   return (env.BREVO_API_KEY ?? "").trim() !== "" ? "brevo" : "smtp";
 }
 
+export type ClamavMode = "daemon" | "batch";
+
+/** CLAMAV_MODE=daemon|batch (leer = daemon). Reine Funktion, testbar ohne Modul-Neuladen. */
+export function resolveClamavMode(env: Record<string, string | undefined> = process.env): ClamavMode {
+  const raw = (env.CLAMAV_MODE ?? "").trim().toLowerCase();
+  if (raw === "" || raw === "daemon") return "daemon";
+  if (raw === "batch") return "batch";
+  throw new Error(`Env var CLAMAV_MODE must be "daemon" or "batch" (got "${raw}")`);
+}
+
 function optionalMb(name: string): number | null {
   const raw = process.env[name];
   if (raw === undefined || raw === "") return null;
@@ -88,6 +98,12 @@ export const config = {
     model: optional("MISTRAL_MODEL", "mistral-medium-3.5"),
   },
   clamav: {
+    /**
+     * daemon (Standard): jede Datei wird beim Intake synchron per clamd geprüft.
+     * batch: kein clamd; der Bericht bekommt scan.status PENDING, der Cron-Job
+     * scripts/scan-pending.mjs prüft später (docs/virenscan.md).
+     */
+    mode: resolveClamavMode(),
     host: optional("CLAMAV_HOST", "localhost"),
     port: numberVar("CLAMAV_PORT", 3310),
   },
