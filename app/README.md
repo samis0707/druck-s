@@ -56,6 +56,13 @@ Status-Abruf, Storno) und bekommen Statuswechsel als signierte Webhooks. Endpunk
 Fehlercodes, Partner anlegen (`node scripts/partner-key.mjs`) und Env-Variablen:
 [docs/partner-api.md](docs/partner-api.md).
 
+## Virenscan (ClamAV)
+
+Uploads werden per ClamAV geprüft. `CLAMAV_MODE=daemon` (Standard) scannt synchron per clamd;
+`CLAMAV_MODE=batch` lässt clamd weg: Dateien zeigen „Virenprüfung läuft“, ein Cron-Job
+(`Dockerfile.scan`, `scripts/scan-pending.mjs`, auf Railway alle 10 Minuten) prüft sie und beendet sich.
+Ablauf, Variablen und Railway-Einrichtung: [docs/virenscan.md](docs/virenscan.md).
+
 ## E-Mail-Versand (Brevo oder SMTP)
 
 Alle Mails (Anmelde-/Freigabecodes, Auftragsbestätigung mit Anhängen, Freigabe-Quittung, Hinweis an
