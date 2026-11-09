@@ -126,11 +126,16 @@ export default function DatenschutzPage() {
       <p>Außerdem nutzen wir den Speicher Ihres Browsers für technisch notwendige Einstellungen:</p>
       <ul>
         <li>
-          <strong>localStorage:</strong> Ihre Wahl zwischen hellem und dunklem Erscheinungsbild.
+          <strong>localStorage:</strong> Ihre Wahl zwischen hellem und dunklem Erscheinungsbild,
+          ob Sie eine geführte Tour bereits gesehen haben, Ihr Lernfortschritt in der
+          Online-Schulung unter „Hilfe“ (welche Lektionen Sie als erledigt markiert haben) sowie im
+          Mitarbeiterbereich die gewählte Ansicht der Auftragsliste.
         </li>
         <li>
           <strong>sessionStorage:</strong> eine Merkmarke, die nach dem Absenden eines Auftrags
-          einmalig den passenden Hinweis anzeigt und nur für die Dauer der Sitzung besteht.
+          einmalig den passenden Hinweis anzeigt, und eine Merkmarke, dass Ihnen die Einladung zur
+          geführten Tour in dieser Sitzung schon angezeigt wurde. Beide bestehen nur für die Dauer
+          der Sitzung.
         </li>
       </ul>
       <p>
@@ -186,17 +191,18 @@ export default function DatenschutzPage() {
 
       <h2 id="virenpruefung">6. Prüfung auf Schadsoftware</h2>
       <p>
-        Hochgeladene Dateien werden auf unseren eigenen Systemen mit dem Virenscanner ClamAV
-        geprüft. Die Dateien werden dafür nicht an Dritte übermittelt. Rechtsgrundlage ist Art. 6
-        Abs. 1 lit. f DSGVO (Schutz unserer Systeme und anderer Nutzer).
+        Hochgeladene Dateien werden mit dem Virenscanner ClamAV geprüft. Die Prüfung läuft
+        innerhalb unserer eigenen Hosting-Umgebung (siehe Abschnitt 8); die Dateien werden dafür
+        nicht an weitere Dritte übermittelt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO
+        (Schutz unserer Systeme und anderer Nutzer).
       </p>
 
       <h2 id="e-mail">7. E-Mail-Versand</h2>
       <p>
         Einmalcodes, Auftragsbestätigungen, Freigabe-Bestätigungen und Benachrichtigungen zu Ihrem
-        Auftrag versenden wir per E-Mail über den Dienst Transactional Email der{" "}
-        <strong>Scaleway SAS, Paris, Frankreich</strong>, den wir als Auftragsverarbeiter einsetzen
-        (Verarbeitung in der EU). Dabei werden Ihre E-Mail-Adresse und der Inhalt der jeweiligen Nachricht, gegebenenfalls mit
+        Auftrag versenden wir per E-Mail über den Dienst Brevo der{" "}
+        <strong>Sendinblue SAS, Paris, Frankreich</strong>, die wir als Auftragsverarbeiter nach
+        Art. 28 DSGVO einsetzen (Verarbeitung in der EU). Dabei werden Ihre E-Mail-Adresse und der Inhalt der jeweiligen Nachricht, gegebenenfalls mit
         Anhängen wie Auftragsbestätigung und Druckdaten, verarbeitet. Rechtsgrundlage ist Art. 6
         Abs. 1 lit. b DSGVO. Bitte beachten Sie, dass E-Mails unterwegs grundsätzlich von Dritten
         eingesehen werden können, soweit sie nicht transportverschlüsselt übertragen werden.
@@ -204,10 +210,17 @@ export default function DatenschutzPage() {
 
       <h2 id="hosting">8. Hosting und Server-Logdateien</h2>
       <p>
-        Das Portal wird bei der <strong>Scaleway SAS, Paris, Frankreich</strong>, gehostet. Anwendung
-        und Datenbank laufen auf einem Server, die hochgeladenen Dateien liegen im Object Storage
-        von Scaleway; Standort der Rechenzentren ist Frankreich (EU). Mit Scaleway besteht ein
-        Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO.
+        Das Portal wird bei der <strong>Railway Corporation, San Francisco, USA</strong>, gehostet,
+        die wir als Auftragsverarbeiter nach Art. 28 DSGVO einsetzen. Anwendung, Datenbank,
+        Virenprüfung und der Speicher für die hochgeladenen Dateien laufen ausschließlich in der
+        Railway-Region <strong>EU West (Amsterdam, Niederlande)</strong>.
+      </p>
+      <p>
+        Da Railway ein Unternehmen mit Sitz in den USA ist, kann ein Zugriff auf die Daten aus
+        einem Drittland nicht vollständig ausgeschlossen werden, etwa im Rahmen von Wartung und
+        Support. Für diesen Fall haben wir mit Railway die Standardvertragsklauseln der
+        EU-Kommission vereinbart (Art. 46 Abs. 2 lit. c DSGVO). Eine Kopie können Sie über die in
+        Abschnitt 1 genannte E-Mail-Adresse anfordern.
       </p>
       <p>
         Beim Aufruf des Portals werden technisch bedingt Verbindungsdaten in Logdateien verarbeitet,
