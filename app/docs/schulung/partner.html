@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Kurzreferenz Partner-API – dmp druckraum</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+  <header class="top">
+    <div class="logo">dmp</div>
+    <div class="t">
+      <div class="k">Kurzreferenz für Partnersysteme</div>
+      <h1>Partner-API: Aufträge einliefern und verfolgen</h1>
+      <div class="sub"><b>dmp druckraum</b> · https://druck-s.de/api/partner · JSON · Zugang nach Vereinbarung</div>
+    </div>
+    <div class="qr"><img src="qr-partner.svg" alt=""><span>Online-Doku</span></div>
+  </header>
+
+  <div class="cols" style="margin-bottom:4mm">
+    <div>
+      <h2>Authentifizierung</h2>
+      <pre>Authorization: Bearer dmp_&lt;64 hex&gt;
+Content-Type: application/json</pre>
+      <p class="muted" style="margin-top:1.4mm">Key und Webhook-Secret (whsec_…) werden einmal ausgegeben. Fehlt der Key, ist er falsch oder der Partner gesperrt → <code>401</code>.</p>
+    </div>
+    <div>
+      <h2>Endpunkte</h2>
+      <table>
+        <tr><th>Aufruf</th><th>Zweck</th></tr>
+        <tr><td><code>POST /requests</code></td><td>Auftrag anlegen – idempotent über <code>partnerRef</code> (201 neu, 200 vorhanden)</td></tr>
+        <tr><td><code>GET /requests/{ref}</code></td><td>Status abrufen (nur eigene)</td></tr>
+        <tr><td><code>POST /requests/{ref}/cancel</code></td><td>Zurückziehen, nur aus RECEIVED / IN_REVIEW</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h2>Auftrag anlegen – Pflichtfelder</h2>
+  <pre>{ "partnerRef": "bestellung-2026-0042",                         // 1–120 Zeichen A–Z a–z 0–9 . _ : -
+  "customer": { "email": "…", "name": "…", "organisation": "…" },
+  "product":  { "hint": "poster", "label": "Plakat A2", "widthMm": 420, "heightMm": 594, "bleedMm": 3, "sides": 1 },
+  "quantity": 10, "wishDate": "2026-11-20",                       // YYYY-MM-DD oder null
+  "delivery": { "mode": "abholung", "address": null },            // lieferung → address Pflicht
+  "file": { "url": "https://…", "name": "plakat.pdf", "mime": "application/pdf", "size": 2048, "sha256": "…" },
+  "source": { "system": "beispiel-partner" } }</pre>
+  <p class="muted" style="margin-top:1.4mm"><code>file.url</code>: HTTPS, Port 443, Host freigegeben; Größe und SHA-256 müssen exakt passen, höchstens 100 MB. Antwort: <code>{ "request": { id, number, status, partnerRef, createdAt, trackingNumber, specialDeliveryDate } }</code></p>
+
+  <div class="cols" style="margin-top:4mm">
+    <div>
+      <h2>Statusmodell</h2>
+      <table>
+        <tr><td><code>RECEIVED</code></td><td>eingegangen, Nummer vergeben</td></tr>
+        <tr><td><code>IN_REVIEW</code></td><td>Druckerei prüft</td></tr>
+        <tr><td><code>WAITING_APPROVAL</code></td><td>Auftragsbestätigung an den Kunden</td></tr>
+        <tr><td><code>IN_PROGRESS</code></td><td>per Code freigegeben, Produktion</td></tr>
+        <tr><td><code>SHIPPED</code></td><td>versendet; trackingNumber oder specialDeliveryDate</td></tr>
+        <tr><td><code>WITHDRAWN</code></td><td>zurückgezogen (Endzustand)</td></tr>
+      </table>
+    </div>
+    <div>
+      <h2>Webhook <span class="muted" style="font-weight:500">status_changed</span></h2>
+      <pre>POST &lt;webhook_url&gt;
+x-druck-s-timestamp: 1762596000
+x-druck-s-signature: v1=HMAC-SHA256(secret, ts + "." + rawBody)
+x-druck-s-delivery: 42</pre>
+      <ul style="margin-top:1.6mm">
+        <li>Zeitstempel höchstens 5 Minuten alt; Signatur über den <b>rohen</b> Body prüfen, zeitkonstant vergleichen.</li>
+        <li>Mit <code>2xx</code> antworten. Sonst bis zu 10 Wiederholungen mit Backoff; <code>400/410/422</code> gelten als endgültig.</li>
+        <li>Über <code>x-druck-s-delivery</code> entdoppeln.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 style="margin-top:4mm">Fehlercodes <span class="muted" style="font-weight:500">— Antwort { error, code, details? }</span></h2>
+  <table>
+    <tr><td><code>400</code></td><td><code>invalid_json</code> · <code>invalid_body</code> (details listet alle Feldfehler) · <code>file_host_not_allowed</code></td></tr>
+    <tr><td><code>401</code></td><td><code>unauthorized</code> – Key fehlt/falsch oder Partner gesperrt</td></tr>
+    <tr><td><code>404</code></td><td><code>not_found</code> – partnerRef unbekannt oder fremd</td></tr>
+    <tr><td><code>409</code></td><td><code>not_withdrawable</code> – Zurückziehen nach IN_REVIEW</td></tr>
+    <tr><td><code>413</code></td><td><code>body_too_large</code> – JSON größer als 64 KB</td></tr>
+    <tr><td><code>422</code></td><td><code>file_unavailable</code> · <code>file_size_mismatch</code> · <code>file_sha256_mismatch</code> · <code>customer_disabled</code></td></tr>
+    <tr><td><code>429</code></td><td><code>rate_limited</code> – Retry-After beachten</td></tr>
+    <tr><td><code>500</code></td><td><code>internal_error</code> – gleichen Aufruf wiederholen (idempotent)</td></tr>
+  </table>
+
+  <footer class="bottom"><span>Kurzreferenz Partner-API · dmp druckraum · ausführlich: druck-s.de/hilfe/partner</span><span>Stand November 2026 · Seite 1 von 1</span></footer>
+</div>
+
+</body>
+</html>

@@ -5,6 +5,8 @@
 
 import { startTransition, useCallback, useEffect, useMemo, useState, ViewTransition, type CSSProperties } from "react";
 import Link from "next/link";
+import { HilfeMenue } from "@/components/hilfe/HilfeMenue";
+import { PageTour } from "@/components/tour/PageTour";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -353,7 +355,7 @@ function Warteschlange({
 }) {
   return (
     <ViewTransition name="finder-queue" share="morph" default="none">
-      <Card>
+      <Card data-tour="staff-liste">
       <CardContent className="overflow-x-auto p-0">
         <table className="w-full border-collapse text-[13px]">
           <thead>
@@ -526,7 +528,7 @@ export default function StaffPage() {
         brotkrumen={[{ bezeichnung: "Start", href: "/" }, { bezeichnung: "Staff" }]}
         aktionen={
           <>
-            <div role="group" aria-label="Ansicht" className="flex rounded-2xl border border-border p-0.5">
+            <div role="group" aria-label="Ansicht" data-tour="staff-ansicht" className="flex rounded-2xl border border-border p-0.5">
               <button
                 type="button"
                 aria-pressed={sicht === "liste"}
@@ -544,16 +546,22 @@ export default function StaffPage() {
                 Assets
               </button>
             </div>
-            <Button render={<Link href="/staff/customers" />} variant="secondary">
-              Kunden & Links
-            </Button>
-            <Button render={<Link href="/staff/einstellungen" />} variant="secondary">
-              Einstellungen
-            </Button>
+            <div data-tour="staff-verwaltung" className="flex gap-2">
+              <Button render={<Link href="/staff/customers" />} variant="secondary">
+                Kunden & Links
+              </Button>
+              <Button render={<Link href="/staff/einstellungen" />} variant="secondary">
+                Einstellungen
+              </Button>
+            </div>
+            <HilfeMenue kurs="druckerei" />
+            <PageTour id="staff" bereit={rows !== null} />
           </>
         }
       />
-      <FilterLeiste filter={filter} setFilter={setFilter} />
+      <div data-tour="staff-filter">
+        <FilterLeiste filter={filter} setFilter={setFilter} />
+      </div>
       {sicht === "liste" && (
         <p className="hidden items-center gap-1.5 text-xs text-muted-foreground md:flex">
           <span className="kbd">j</span>

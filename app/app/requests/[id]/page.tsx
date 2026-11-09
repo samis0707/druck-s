@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge, toneVariant } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTour } from "@/components/tour/PageTour";
 import { StatusFolds } from "@/components/requests/StatusFolds";
 import { customerLine, detailRef, type RequestDetail } from "@/components/requests/request-detail";
 import {
@@ -224,15 +225,22 @@ export default function RequestPage({ params }: { params: Promise<{ id: string }
         beschreibung={kunde || undefined}
         brotkrumen={[{ bezeichnung: "Aufträge", href: "/requests" }, { bezeichnung: ref }]}
         aktionen={
-          <Badge variant={toneVariant(STATUS_TONE[status] ?? "gray")}>{CUSTOMER_STATUS[status] ?? status}</Badge>
+          <>
+            <span data-tour="auftrag-status">
+              <Badge variant={toneVariant(STATUS_TONE[status] ?? "gray")}>{CUSTOMER_STATUS[status] ?? status}</Badge>
+            </span>
+            <PageTour id="auftrag" bereit={!ergebnisOffen} />
+          </>
         }
       />
-      <StatusFolds
-        detail={detail}
-        audience="customer"
-        filesBase={`/api/requests/${detail.request.id}/files`}
-        freigabeExtra={freigabe}
-      />
+      <div data-tour="auftrag-stufen">
+        <StatusFolds
+          detail={detail}
+          audience="customer"
+          filesBase={`/api/requests/${detail.request.id}/files`}
+          freigabeExtra={freigabe}
+        />
+      </div>
       <Dialog open={ergebnisOffen} onOpenChange={setErgebnisOffen}>
         <DialogContent>
           <DialogHeader>

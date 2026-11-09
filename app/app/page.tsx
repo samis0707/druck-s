@@ -1,9 +1,30 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { CropMarks, RegisterDivider } from "@/components/brand/CropMarks";
 import { PreflightHero } from "@/components/brand/PreflightHero";
 import { LifecycleRail } from "@/components/brand/LifecycleRail";
+import { JsonLd } from "@/components/hilfe/JsonLd";
+import { FRAGEN } from "@/lib/hilfe/inhalte";
+import { faqSeite, graph, organisation, webanwendung, website } from "@/lib/hilfe/jsonld";
+
+export const metadata: Metadata = {
+  title: { absolute: "dmp druckraum — Druckdaten hochladen und vor dem Druck prüfen" },
+  description:
+    "Druckdaten online hochladen, automatisch prüfen lassen (Anschnitt, Schriften, Auflösung, Farbmodus, Virenscan) und per E-Mail-Code freigeben — der Druckdaten-Upload der digitale medien print gmbh, Heilbronn.",
+  alternates: { canonical: "/", types: { "text/plain": [{ url: "/llms.txt", title: "llms.txt" }] } },
+};
+
+/** Die Fragen, die Besucher der Startseite am häufigsten haben — Antworten aus der Hilfe. */
+const START_FRAGEN = FRAGEN.filter((f) =>
+  [
+    "Brauche ich ein Konto, um Druckdaten hochzuladen?",
+    "Welche Dateien kann ich hochladen und wie groß dürfen sie sein?",
+    "Was prüft die automatische Vorprüfung?",
+    "Wann wird mein Auftrag gedruckt?",
+  ].includes(f.frage),
+);
 
 const CHECKS = [
   {
@@ -26,6 +47,7 @@ const CHECKS = [
 export default function Home() {
   return (
     <main className="mx-auto max-w-6xl space-y-20 px-4 py-10 md:px-6 md:py-16">
+      <JsonLd daten={graph(organisation(), website(), webanwendung(), faqSeite(START_FRAGEN))} />
       <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="space-y-6">
           <p className="font-mono text-xs tracking-[0.12em] text-(--color-ink-mid) uppercase">
@@ -118,6 +140,33 @@ export default function Home() {
             </Button>
           </CardContent>
         </Card>
+      </section>
+
+      <section className="reveal space-y-6" aria-labelledby="fragen">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-2xl space-y-2">
+            <h2 id="fragen" className="text-2xl font-semibold tracking-[-0.02em] md:text-3xl">
+              Häufige Fragen
+            </h2>
+            <p className="text-(--color-ink-mid)">Mehr Antworten, Online-Schulung und Kurzanleitungen zum Ausdrucken finden Sie in der Hilfe.</p>
+          </div>
+          <Button variant="outline" render={<Link href="/hilfe" transitionTypes={["nav-forward"]} />}>
+            Zur Hilfe & Schulung
+          </Button>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {START_FRAGEN.map((f) => (
+            <details key={f.frage} className="group rounded-2xl border border-border bg-card open:shadow-(--shadow-e1)">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-medium">
+                {f.frage}
+                <span aria-hidden="true" className="text-muted-foreground transition-transform group-open:rotate-45">
+                  +
+                </span>
+              </summary>
+              <p className="px-4 pb-4 leading-relaxed text-(--color-ink-mid)">{f.antwort}</p>
+            </details>
+          ))}
+        </div>
       </section>
     </main>
   );

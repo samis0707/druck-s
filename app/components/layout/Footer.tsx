@@ -2,6 +2,7 @@ import Link from "next/link";
 import { company } from "@/lib/company";
 
 const rechtsLinks = [
+  { href: "/hilfe", label: "Hilfe & Schulung" },
   { href: "/kontakt", label: "Kontakt" },
   { href: "/impressum", label: "Impressum" },
   { href: "/datenschutz", label: "Datenschutz" },

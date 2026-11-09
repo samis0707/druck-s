@@ -49,6 +49,18 @@ in Coolify als Build-Variable markieren). Eine Änderung zur Laufzeit hat keine 
 Ändern neu bauen. Falls später eine Content-Security-Policy ergänzt wird, muss die Script-Domain
 in `script-src` und `connect-src` freigegeben werden (derzeit gibt es keine CSP).
 
+## Hilfe, Schulung, SEO und KI-Assistenten
+
+- Online-Schulung unter `/hilfe` (Kurse für Kunden, Druckerei und Partner, Lektionen mit Bildern, Quiz, Fortschritt),
+  geführte Touren auf `/upload`, `/requests/<id>` und `/staff`, PDF-Kurzanleitungen in `public/hilfe/`.
+- Für KI-Assistenten: `/llms.txt`, `/llms-full.txt` und jede Hilfeseite als Markdown (`.md` anhängen).
+- Suchmaschinen: `robots.txt` (öffentliche Seiten frei, auch für KI-Crawler; private Bereiche und API gesperrt),
+  `sitemap.xml`, Canonicals, JSON-LD (Organization, WebApplication, FAQPage, Course, HowTo), `noindex` für
+  `/staff`, `/requests`, `/konto`, `/login`, `/u`.
+- Alle Texte kommen aus `lib/hilfe/inhalte.ts`. Basis-URL ist `APP_BASE_URL` — **muss beim Build gesetzt sein**
+  (die Hilfeseiten werden vorgerendert; das Dockerfile reicht sie als Build-Arg durch).
+- Pflege, Screenshots und PDFs neu erzeugen: [docs/schulung/README.md](docs/schulung/README.md).
+
 ## Partner-Schnittstelle
 
 Partnersysteme (z. B. Seeräuber digital) liefern Druckaufträge per API ein (`POST /api/partner/requests`,

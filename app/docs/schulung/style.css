@@ -1,0 +1,63 @@
+/* Kurzanleitungen dmp druckraum — Farben und Schrift wie in der App (app/globals.css, Geist). */
+@font-face { font-family: 'Geist'; font-weight: 100 900; src: url('fonts/Geist-Variable.woff2') format('woff2'); }
+@font-face { font-family: 'Geist Mono'; font-weight: 100 900; src: url('fonts/GeistMono-Variable.woff2') format('woff2'); }
+:root { --ink: #16191c; --mid: #5b636b; --soft: #8c949c; --rule: #e5e8e1; --brand: #4f9122; --brand-dk: #2f5c14; --brand-50: #f3faec; --brand-200: #cfe6b8; --signal: #005e97; --signal-50: #f2f8fc; --warn: #a06a10; --warn-soft: #fbf2e0; --warn-line: #ecd9ac; --paper: #f7f8f5; }
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: 'Geist', 'DejaVu Sans', sans-serif; color: var(--ink); font-size: 9.6pt; line-height: 1.42; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page { width: 210mm; height: 297mm; padding: 0 13mm 10mm; position: relative; overflow: hidden; page-break-after: always; background: #fff; }
+.page:last-child { page-break-after: auto; }
+header.top { background: var(--ink); color: #fff; margin: 0 -13mm 6mm; padding: 7mm 13mm 6mm; border-bottom: .9mm solid var(--brand); display: flex; align-items: center; gap: 4mm; }
+.logo { width: 11mm; height: 11mm; border-radius: 3mm; background: var(--brand); color: #fff; font-weight: 700; font-size: 13pt; display: flex; align-items: center; justify-content: center; flex: none; letter-spacing: -.02em; }
+header.top .t { flex: 1; }
+header.top .k { font-family: 'Geist Mono', monospace; font-size: 7.6pt; letter-spacing: .12em; text-transform: uppercase; color: #a9d47f; font-weight: 600; }
+header.top h1 { margin: .8mm 0 0; font-size: 20pt; line-height: 1.08; font-weight: 650; letter-spacing: -.02em; }
+header.top .sub { font-size: 9pt; color: rgba(255,255,255,.78); margin-top: 1mm; }
+header.top .sub b { color: #fff; font-weight: 650; }
+header.top.small { padding: 4.5mm 13mm; margin-bottom: 5mm; }
+header.top.small h1 { font-size: 14pt; }
+header.top.small .logo { width: 8mm; height: 8mm; font-size: 10pt; border-radius: 2mm; }
+.qr { background: #fff; padding: 1.8mm; border-radius: 2mm; width: 23mm; text-align: center; flex: none; }
+.qr img { width: 19mm; height: 19mm; display: block; margin: 0 auto; }
+.qr span { display: block; color: var(--ink); font-size: 6pt; line-height: 1.15; margin-top: .8mm; font-weight: 650; }
+section.step { display: grid; grid-template-columns: 9mm 1fr; gap: 0 3mm; margin-bottom: 4.4mm; break-inside: avoid; }
+.num { width: 8mm; height: 8mm; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 750; font-size: 10.5pt; display: flex; align-items: center; justify-content: center; }
+h2 { margin: .8mm 0 1.6mm; font-size: 12.2pt; line-height: 1.2; font-weight: 700; letter-spacing: -.01em; }
+.row { display: grid; grid-template-columns: 1fr 72mm; gap: 5mm; align-items: start; }
+.row.wide { grid-template-columns: 1fr 86mm; }
+.row.full { grid-template-columns: 1fr; }
+ol, ul { margin: 0; padding-left: 4.6mm; }
+li { margin: 0 0 1.1mm; }
+li::marker { color: var(--mid); font-weight: 650; }
+p { margin: 0 0 1.4mm; }
+.shot { width: 100%; border: .3mm solid #d3d8cc; border-radius: 2mm; display: block; box-shadow: 0 .6mm 2mm rgba(22,25,28,.08); }
+.ui { display: inline-block; background: var(--brand); color: #fff; border-radius: 2mm; padding: 0 1.8mm; font-size: 8.4pt; font-weight: 600; line-height: 1.6; white-space: nowrap; }
+.ui.o { background: #fff; color: var(--ink); border: .3mm solid #d3d8cc; }
+.ui.s { background: #eef1ea; color: var(--ink); }
+.badge { display: inline-block; border-radius: 99px; padding: 0 1.6mm; font-size: 7.8pt; font-weight: 650; line-height: 1.6; white-space: nowrap; border: .3mm solid #d3d8cc; }
+.badge.g { background: var(--brand); color: #fff; border-color: var(--brand); }
+.badge.r { background: #fbe9e7; color: #c0392b; border-color: #f2c5bf; }
+.tip { margin-top: 2mm; background: var(--signal-50); border-left: 1mm solid var(--signal); border-radius: 0 1.6mm 1.6mm 0; padding: 1.8mm 3mm; font-size: 9pt; }
+.warn { margin-top: 2mm; background: var(--warn-soft); border-left: 1mm solid var(--warn); border-radius: 0 1.6mm 1.6mm 0; padding: 1.8mm 3mm; font-size: 9pt; }
+.tip b, .warn b { font-weight: 700; }
+.cycle { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.4mm; margin: 0 0 5mm; }
+.cycle div { background: var(--paper); border-radius: 2mm; padding: 1.8mm 2mm; font-size: 8pt; line-height: 1.28; border: .3mm solid var(--rule); }
+.cycle div.you { background: var(--brand-50); border-color: var(--brand-200); }
+.cycle div.you small { color: var(--brand-dk); }
+.cycle small { display: block; font-family: 'Geist Mono', monospace; font-size: 6.6pt; text-transform: uppercase; letter-spacing: .06em; color: var(--mid); font-weight: 700; margin-bottom: .6mm; }
+.cycle b { display: block; font-size: 8.8pt; margin-bottom: .3mm; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.box { border: .3mm solid var(--rule); border-radius: 2.5mm; padding: 3mm 3.6mm; break-inside: avoid; }
+.box h3 { margin: 0 0 1.6mm; font-size: 10.4pt; }
+.check li { list-style: none; position: relative; }
+.check { padding-left: 4.6mm; }
+.check li::before { content: '✓'; position: absolute; left: -4.4mm; color: var(--brand); font-weight: 800; }
+code, pre { font-family: 'Geist Mono', monospace; }
+code { font-size: 8.2pt; background: #eef1ea; border-radius: 1mm; padding: 0 1mm; }
+pre { margin: 1mm 0 0; background: #f4f6f1; border: .3mm solid var(--rule); border-radius: 2mm; padding: 2mm 2.6mm; font-size: 7.4pt; line-height: 1.38; white-space: pre-wrap; }
+table { border-collapse: collapse; width: 100%; font-size: 8.4pt; }
+th, td { text-align: left; padding: .9mm 1.6mm; border-bottom: .3mm solid var(--rule); vertical-align: top; }
+th { font-size: 7.4pt; text-transform: uppercase; letter-spacing: .05em; color: var(--mid); }
+footer.bottom { position: absolute; left: 13mm; right: 13mm; bottom: 6mm; display: flex; justify-content: space-between; font-size: 7.4pt; color: var(--soft); border-top: .3mm solid var(--rule); padding-top: 2mm; }
+.muted { color: var(--mid); }

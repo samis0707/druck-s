@@ -41,3 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /public/pdf.worker.min.mjs
+
+# Schulung: Vorschau-PNGs der Kurzanleitungen (werden von render.cjs erzeugt)
+/docs/schulung/preview-*.png

@@ -83,7 +83,7 @@ export function Fotoband({
         const koerperId = `${basis}-koerper-${p.id}`;
         const hinweisId = `${basis}-hinweis-${p.id}`;
         return (
-          <li key={p.id} className="fb-panel" data-zustand={zustand} style={{ ["--i" as string]: i } as CSSProperties}>
+          <li key={p.id} className="fb-panel" data-zustand={zustand} data-tour={`fb-${p.id}`} style={{ ["--i" as string]: i } as CSSProperties}>
             <h2 className="fb-titel">
               <button
                 type="button"

@@ -23,6 +23,12 @@ export const metadata: Metadata = {
   title: { default: "dmp druckraum", template: "%s · dmp druckraum" },
   description: "Druckdaten hochladen, automatisch vorprüfen lassen und freigeben — dmp druckraum von digitale medien print.",
   applicationName: "dmp druckraum",
+  authors: [{ name: "digitale medien print gmbh", url: "https://www.digitalemedien.de" }],
+  publisher: "digitale medien print gmbh",
+  openGraph: { siteName: "dmp druckraum", locale: "de_DE", type: "website" },
+  formatDetection: { telephone: false },
+  // Maschinenlesbare Hilfe für KI-Assistenten (llms.txt-Konvention).
+  alternates: { types: { "text/plain": [{ url: "/llms.txt", title: "llms.txt" }] } },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

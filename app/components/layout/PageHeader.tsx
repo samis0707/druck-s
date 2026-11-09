@@ -51,7 +51,7 @@ export function PageHeader({ titel, beschreibung, brotkrumen, aktionen }: PageHe
         <h1 className="text-2xl font-semibold tracking-tight">{titel}</h1>
         {beschreibung ? <p className="mt-1 text-muted-foreground">{beschreibung}</p> : null}
       </div>
-      {aktionen ? <div className="flex shrink-0 items-center gap-2">{aktionen}</div> : null}
+      {aktionen ? <div className="flex shrink-0 flex-wrap items-center gap-2">{aktionen}</div> : null}
     </div>
   );
 }

@@ -21,6 +21,7 @@ const links = [
   { href: "/upload", label: "Upload" },
   { href: "/requests", label: "Aufträge" },
   { href: "/konto", label: "Konto" },
+  { href: "/hilfe", label: "Hilfe" },
 ] as const;
 
 export function Header() {

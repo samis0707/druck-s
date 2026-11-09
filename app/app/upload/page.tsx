@@ -15,6 +15,7 @@ import { Fotoband } from "@/components/upload/Fotoband";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, CloudUploadIcon } from "@hugeicons/core-free-icons";
 import { PRODUCT_HINTS } from "@/lib/ui-text";
+import { PageTour } from "@/components/tour/PageTour";
 
 /** Serverregel (app/api/drafts/[id]/files/route.ts): leere Dateien und >100 MB werden abgelehnt. */
 const MAX_FILE_BYTES = 100 * 1024 * 1024;
@@ -168,6 +169,7 @@ export default function UploadPage() {
         titel="Druckdaten hochladen"
         beschreibung="Dateien hochladen, Auftrag beschreiben, per Code bestätigen."
         brotkrumen={[{ bezeichnung: "Start", href: "/" }, { bezeichnung: "Upload" }]}
+        aktionen={step === "form" ? <PageTour id="upload" /> : undefined}
       />
       {busy && (
         <Progress value={progress} aria-label="Upload-Fortschritt">

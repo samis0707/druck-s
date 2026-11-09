@@ -20,7 +20,14 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Kopiertes pdf.js-Worker-Bundle (scripts/copy-pdf-worker.mjs, nicht im Repo).
+    "public/pdf.worker.min.mjs",
   ]),
+  // Werkzeugskripte für Schulungs-Screenshots und PDFs laufen als CommonJS mit Node.
+  {
+    files: ["docs/schulung/**/*.cjs"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
 ]);
 
 export default eslintConfig;
