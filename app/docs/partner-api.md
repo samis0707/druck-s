@@ -39,7 +39,7 @@ Idempotent über `partnerRef` (je Partner eindeutig): **201** = neu angelegt, **
 geänderte Nutzlast überschreibt nichts).
 
 ```bash
-curl -sS https://druck-s.de/api/partner/requests \
+curl -sS https://www.druck-s.de/api/partner/requests \
   -H "Authorization: Bearer $DRUCK_S_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -94,7 +94,7 @@ Was druck-s daraus macht:
 ### `GET /api/partner/requests/{partnerRef}` – Status abrufen
 
 ```bash
-curl -sS https://druck-s.de/api/partner/requests/90000000-0000-4000-8000-000000000001 \
+curl -sS https://www.druck-s.de/api/partner/requests/90000000-0000-4000-8000-000000000001 \
   -H "Authorization: Bearer $DRUCK_S_API_KEY"
 ```
 
@@ -103,7 +103,7 @@ Nur eigene Aufträge; fremde oder unbekannte Referenzen → `404`.
 ### `POST /api/partner/requests/{partnerRef}/cancel` – zurückziehen
 
 ```bash
-curl -sS -X POST https://druck-s.de/api/partner/requests/90000000-0000-4000-8000-000000000001/cancel \
+curl -sS -X POST https://www.druck-s.de/api/partner/requests/90000000-0000-4000-8000-000000000001/cancel \
   -H "Authorization: Bearer $DRUCK_S_API_KEY"
 ```
 
@@ -196,7 +196,7 @@ docker compose exec app node scripts/partner-key.mjs create seeraeuber "Seeräub
 # gibt API-Key (dmp_…) und Webhook-Secret (whsec_…) EINMAL aus
 ```
 
-Bei Seeräuber digital setzen: `DRUCK_S_URL=https://druck-s.de`, `DRUCK_S_API_KEY=<dmp_…>`,
+Bei Seeräuber digital setzen: `DRUCK_S_URL=https://www.druck-s.de`, `DRUCK_S_API_KEY=<dmp_…>`,
 `DRUCK_S_WEBHOOK_SECRET=<whsec_…>`, dann `DRUCKEREI_ADAPTER=druck-s`.
 
 Weitere Befehle:

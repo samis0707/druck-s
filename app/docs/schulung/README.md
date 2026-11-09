@@ -13,7 +13,8 @@ Alles für Besucher (Menschen und KI-Assistenten) kommt aus **einer** Inhaltsque
 | Strukturierte Daten (JSON-LD) | Startseite, `/hilfe`, Kurse, Lektionen | `lib/hilfe/jsonld.ts` |
 | Suchmaschinen | `/robots.txt`, `/sitemap.xml`, Canonicals, `noindex` für private Bereiche | `app/robots.ts`, `app/sitemap.ts`, `app/*/layout.tsx` |
 
-Die Basis-URL für Canonicals, Sitemap, llms.txt und JSON-LD ist `APP_BASE_URL` (auf Railway: `https://druck-s.de`).
+Die Basis-URL für Canonicals, Sitemap, llms.txt und JSON-LD ist `APP_BASE_URL` (auf Railway: `https://www.druck-s.de`;
+`druck-s.de` ohne www leitet beim Domain-Anbieter auf www weiter — dauerhaft per 301).
 
 ## Texte ändern
 
@@ -53,7 +54,7 @@ node docs/schulung/render.cjs
 
 Das Skript meldet je Seite, ob Inhalt in die Fußzeile ragt (Exit 2). Dann Text kürzen oder Bild schmaler —
 nie Schrift unter 9 pt. Vorschau: `docs/schulung/preview-*.png` (nicht im Repo).
-QR-Codes (`qr-*.svg`) zeigen auf `https://druck-s.de/hilfe/<kurs>`; bei Domainwechsel neu erzeugen
+QR-Codes (`qr-*.svg`) zeigen auf `https://www.druck-s.de/hilfe/<kurs>`; bei Domainwechsel neu erzeugen
 (z. B. mit dem npm-Paket `qrcode`). Schrift: Geist (`fonts/`, SIL Open Font License).
 
 ## Touren

@@ -649,7 +649,7 @@ export const KURSE: Kurs[] = [
           {
             titel: "Auftrag anlegen (curl)",
             sprache: "bash",
-            inhalt: `curl -sS https://druck-s.de/api/partner/requests \\
+            inhalt: `curl -sS https://www.druck-s.de/api/partner/requests \\
   -H "Authorization: Bearer $DRUCK_S_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -695,7 +695,7 @@ export const KURSE: Kurs[] = [
           {
             titel: "Status abrufen",
             sprache: "bash",
-            inhalt: `curl -sS https://druck-s.de/api/partner/requests/bestellung-2026-0042 \\
+            inhalt: `curl -sS https://www.druck-s.de/api/partner/requests/bestellung-2026-0042 \\
   -H "Authorization: Bearer $DRUCK_S_API_KEY"`,
           },
         ],
