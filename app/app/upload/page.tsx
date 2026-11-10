@@ -309,7 +309,7 @@ export default function UploadPage() {
                 </div>
               ),
               aktion: (
-                <Button onClick={send} disabled={busy}>
+                <Button onClick={send} disabled={busy} data-umami-event="Anfrage gesendet">
                   {busy ? "Wird gesendet …" : "Anfrage senden"}
                 </Button>
               ),
@@ -341,7 +341,7 @@ export default function UploadPage() {
               <Label htmlFor="code">Code</Label>
               <Input id="code" inputMode="numeric" value={code} onChange={(e) => setCode(e.target.value)} />
             </div>
-            <Button onClick={verify} disabled={busy}>
+            <Button onClick={verify} disabled={busy} data-umami-event="Upload bestätigt">
               {busy ? "Wird geprüft …" : "Upload bestätigen"}
             </Button>
           </CardContent>

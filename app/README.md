@@ -35,19 +35,27 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Analytics
+## Besucherstatistik (Umami)
 
-Das Portal bindet optional [Plausible Analytics](https://plausible.io) ein (cookielos, keine personenbezogenen Daten).
-Die Einbindung ist aus, solange `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` nicht gesetzt ist.
+Das Portal zählt Seitenaufrufe optional mit [Umami](https://umami.is), selbst betrieben im Railway-Projekt „umami“
+(Region EU West, https://umami-production-fb4c.up.railway.app). Umami setzt keine Cookies und speichert keine IP-Adressen.
 
-- `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`: in Plausible angelegte Domain, z. B. `druckraum.example.de`.
-- `NEXT_PUBLIC_PLAUSIBLE_SRC` (optional): Script-URL, Standard `https://plausible.io/js/script.js`.
+- **Nur mit Einwilligung:** Beim ersten Besuch erscheint unten links ein kleiner Hinweis („Dürfen wir mitzählen?“) mit
+  zwei gleichwertigen Knöpfen. Erst nach „Ja, gerne“ wird das Skript geladen. „Do not track“ und „Global Privacy
+  Control“ gelten als „Nein“. Die Wahl liegt in `localStorage` (`drucks.statistik`) und wird nach 12 Monaten neu erfragt;
+  ändern über „Statistik-Einstellungen“ in der Fußzeile (`components/analytics/`, Logik in `lib/statistik.ts`).
+- **Nie gezählt:** `/staff`, `/konto`, `/login`, `/api`. Upload-Links (`/u/<token>`) und Aufträge (`/requests/<id>`)
+  werden vor dem Senden zu `/u/[token]` bzw. `/requests/[id]`; Suchparameter fallen weg.
+- **Ereignisse** über `data-umami-event` (ohne personenbezogene Daten): Anfrage gesendet, Upload bestätigt, Dateien über
+  Upload-Link gesendet, Freigabe gestartet/bestätigt, Änderungswunsch.
 
-`NEXT_PUBLIC_*`-Variablen werden beim `next build` in den Bundle eingebacken. Sie müssen daher zur
-**Build-Zeit** vorliegen: im Docker-Build als Build-Arg (`docker-compose.prod.yml` reicht sie durch,
-in Coolify als Build-Variable markieren). Eine Änderung zur Laufzeit hat keine Wirkung; nach dem
-Ändern neu bauen. Falls später eine Content-Security-Policy ergänzt wird, muss die Script-Domain
-in `script-src` und `connect-src` freigegeben werden (derzeit gibt es keine CSP).
+Laufzeit-Variablen (kein Neubau nötig; die Seiten lesen sie über `/api/statistik`):
+
+- `UMAMI_URL`: z. B. `https://umami-production-fb4c.up.railway.app`
+- `UMAMI_WEBSITE_ID`: Website-ID aus Umami (Einstellungen → Websites)
+
+Ohne beide Werte ist die Statistik aus und der Hinweis erscheint nicht. Falls später eine Content-Security-Policy
+ergänzt wird, muss die Umami-Adresse in `script-src` und `connect-src` freigegeben werden.
 
 ## Hilfe, Schulung, SEO und KI-Assistenten
 

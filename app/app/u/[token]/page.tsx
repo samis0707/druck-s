@@ -105,7 +105,7 @@ export default function LinkUploadPage({ params }: { params: Promise<{ token: st
             <Label>Produkt</Label>
             <Select value={hint} onValueChange={setHint} options={PRODUCT_HINTS} />
           </div>
-          <Button onClick={submit} disabled={busy}>
+          <Button onClick={submit} disabled={busy} data-umami-event="Dateien über Upload-Link gesendet">
             {busy ? "Wird gesendet …" : "Dateien senden"}
           </Button>
         </CardContent>

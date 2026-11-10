@@ -10,11 +10,6 @@ COPY . .
 # Wird beim Build in die statischen Seiten gebacken (Metadaten/OG-Bild-URL) — daher als Build-Arg.
 ARG APP_BASE_URL
 ENV APP_BASE_URL=$APP_BASE_URL
-# NEXT_PUBLIC_* wird beim Build in den Client-Bundle eingebacken (Plausible; leer = Analytics aus).
-ARG NEXT_PUBLIC_PLAUSIBLE_DOMAIN
-ARG NEXT_PUBLIC_PLAUSIBLE_SRC
-ENV NEXT_PUBLIC_PLAUSIBLE_DOMAIN=$NEXT_PUBLIC_PLAUSIBLE_DOMAIN
-ENV NEXT_PUBLIC_PLAUSIBLE_SRC=$NEXT_PUBLIC_PLAUSIBLE_SRC
 RUN npm run build
 
 FROM node:24-alpine AS runner

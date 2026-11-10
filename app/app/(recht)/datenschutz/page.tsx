@@ -14,7 +14,7 @@ const abschnitte = [
   { id: "virenpruefung", titel: "6. Prüfung auf Schadsoftware" },
   { id: "e-mail", titel: "7. E-Mail-Versand" },
   { id: "hosting", titel: "8. Hosting und Server-Logdateien" },
-  { id: "reichweitenmessung", titel: "9. Reichweitenmessung (Plausible Analytics)" },
+  { id: "reichweitenmessung", titel: "9. Reichweitenmessung (Umami, nur mit Einwilligung)" },
   { id: "empfaenger", titel: "10. Empfänger der Daten" },
   { id: "speicherdauer", titel: "11. Speicherdauer" },
   { id: "rechte", titel: "12. Ihre Rechte" },
@@ -97,8 +97,8 @@ export default function DatenschutzPage() {
           Systeme.
         </li>
         <li>
-          <strong>Reichweitenmessung</strong> (Abschnitt 9). Rechtsgrundlage: Art. 6 Abs. 1 lit. f
-          DSGVO.
+          <strong>Reichweitenmessung</strong> (Abschnitt 9), nur mit Ihrer Einwilligung.
+          Rechtsgrundlage: Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG.
         </li>
         <li>
           <strong>Erfüllung gesetzlicher Aufbewahrungs- und Nachweispflichten</strong>, insbesondere
@@ -129,7 +129,9 @@ export default function DatenschutzPage() {
           <strong>localStorage:</strong> Ihre Wahl zwischen hellem und dunklem Erscheinungsbild,
           ob Sie eine geführte Tour bereits gesehen haben, Ihr Lernfortschritt in der
           Online-Schulung unter „Hilfe“ (welche Lektionen Sie als erledigt markiert haben) sowie im
-          Mitarbeiterbereich die gewählte Ansicht der Auftragsliste.
+          Mitarbeiterbereich die gewählte Ansicht der Auftragsliste. Außerdem Ihre Entscheidung zur
+          Besucherstatistik (Abschnitt 9: „ja“ oder „nein“ mit Datum) und – nach einer Ablehnung oder
+          einem Widerruf – die Sperrmarke <code>umami.disabled</code>, die das Zählen sicher abschaltet.
         </li>
         <li>
           <strong>sessionStorage:</strong> eine Merkmarke, die nach dem Absenden eines Auftrags
@@ -229,28 +231,42 @@ export default function DatenschutzPage() {
         (Art. 6 Abs. 1 lit. f DSGVO).
       </p>
 
-      <h2 id="reichweitenmessung">9. Reichweitenmessung (Plausible Analytics)</h2>
+      <h2 id="reichweitenmessung">9. Reichweitenmessung (Umami, nur mit Einwilligung)</h2>
       <p>
-        Wir nutzen den Dienst Plausible Analytics der <strong>Plausible Insights OÜ, Estland</strong>{" "}
-        (Cloud-Angebot, Verarbeitung in der EU), um die Nutzung des Portals in aggregierter Form zu
-        verstehen und es zu verbessern. Plausible arbeitet <strong>ohne Cookies</strong> und ohne
-        Speicherung von Informationen auf Ihrem Endgerät. Es werden keine personenbezogenen Daten
-        gespeichert und keine Profile gebildet; eine geräteübergreifende Wiedererkennung findet
-        nicht statt. Erfasst werden nur statistische Angaben zum Seitenaufruf, etwa aufgerufene
-        Seite, Herkunft des Besuchs sowie grobe Angaben zu Browser, Betriebssystem und Gerätetyp.
+        Wenn Sie zustimmen, messen wir die Nutzung des Portals mit der Open-Source-Software{" "}
+        <strong>Umami</strong>, um es bedarfsgerecht zu verbessern. Umami betreiben wir selbst auf
+        Servern der <strong>Railway Corporation</strong> (USA) im Rechenzentrum EU West (Niederlande);
+        Railway ist unser Auftragsverarbeiter. Die Daten werden nicht an Dritte weitergegeben und
+        nicht für Werbung genutzt.
       </p>
       <p>
-        Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse liegt in der
-        bedarfsgerechten Gestaltung des Portals. Sie können der Reichweitenmessung jederzeit
-        widersprechen (siehe Abschnitt 13). Eine Einwilligung ist nicht erforderlich, weil weder auf
-        Informationen in Ihrem Endgerät zugegriffen noch solche dort gespeichert werden.
+        Umami setzt <strong>keine Cookies</strong> und speichert <strong>keine IP-Adressen</strong>.
+        Aus IP-Adresse und Browserangaben wird lediglich ein täglich wechselnder, nicht
+        rückrechenbarer Kennwert gebildet, sodass eine Wiedererkennung über den Tag hinaus nicht
+        möglich ist. Erfasst werden aufgerufene Seite (ohne Suchparameter; Upload-Links und
+        Auftragsnummern werden vor dem Senden unkenntlich gemacht), Herkunftsseite (bei fremden
+        Seiten nur die Adresse ohne Pfad), Browser, Betriebssystem, Gerätetyp, Bildschirmgröße,
+        Sprache und Land sowie einzelne Schritte im Bestellweg (z. B. „Anfrage gesendet“,
+        „Freigabe bestätigt“) – ohne Namen, E-Mail-Adressen oder Auftragsinhalte. Anmeldung,
+        Kundenkonto und der Mitarbeiterbereich werden nie erfasst.
+      </p>
+      <p>
+        Rechtsgrundlage ist Ihre Einwilligung (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG). Wir
+        fragen beim ersten Besuch mit einem Hinweis; ohne Ihr „Ja“ wird das Statistik-Skript gar
+        nicht erst geladen. Ist in Ihrem Browser „Do not track“ oder „Global Privacy Control“
+        aktiviert, werten wir das als Ablehnung. Ihre Wahl speichern wir in Ihrem Browser
+        (siehe Abschnitt 4) und fragen nach zwölf Monaten erneut. Sie können Ihre Einwilligung
+        jederzeit mit Wirkung für die Zukunft widerrufen – über{" "}
+        <strong>„Statistik-Einstellungen“</strong> in der Fußzeile jeder Seite. Die Rechtmäßigkeit
+        der bis zum Widerruf erfolgten Verarbeitung bleibt unberührt. Die Statistikdaten speichern
+        wir höchstens 24 Monate.
       </p>
 
       <h2 id="empfaenger">10. Empfänger der Daten</h2>
       <p>
         Innerhalb unseres Unternehmens erhalten nur die Mitarbeiter Zugriff, die Ihre Aufträge
         bearbeiten. Externe Empfänger sind unsere Auftragsverarbeiter (Hosting, E-Mail-Versand,
-        Mistral AI, Plausible Analytics) sowie im Einzelfall Versanddienstleister zur Zustellung
+        Mistral AI, Railway für Betrieb und Besucherstatistik) sowie im Einzelfall Versanddienstleister zur Zustellung
         Ihrer Ware, Steuerberater und Behörden, soweit wir gesetzlich verpflichtet sind. Eine
         Weitergabe zu Werbezwecken findet nicht statt.
       </p>
@@ -286,8 +302,9 @@ export default function DatenschutzPage() {
         <p>
           Soweit wir Daten auf Grundlage berechtigter Interessen (Art. 6 Abs. 1 lit. f DSGVO)
           verarbeiten, können Sie dieser Verarbeitung aus Gründen, die sich aus Ihrer besonderen
-          Situation ergeben, jederzeit widersprechen (Art. 21 DSGVO). Das gilt auch für die
-          Reichweitenmessung mit Plausible Analytics.
+          Situation ergeben, jederzeit widersprechen (Art. 21 DSGVO). Eine erteilte Einwilligung in die
+          Reichweitenmessung (Abschnitt 9) können Sie jederzeit über „Statistik-Einstellungen“ in der
+          Fußzeile widerrufen.
         </p>
       </div>
       <p>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { company } from "@/lib/company";
+import { StatistikEinstellungen } from "@/components/analytics/StatistikEinstellungen";
 
 const rechtsLinks = [
   { href: "/hilfe", label: "Hilfe & Schulung" },
@@ -21,6 +22,7 @@ export function Footer() {
               {link.label}
             </Link>
           ))}
+          <StatistikEinstellungen className="cursor-pointer text-muted-foreground hover:text-foreground" />
         </nav>
         <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} {company.name}</p>
       </div>
