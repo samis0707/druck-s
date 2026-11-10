@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { Plausible } from "@/components/analytics/Plausible";
+import { Statistik } from "@/components/analytics/Statistik";
 import { THEME_INIT_SCRIPT } from "@/components/brand/ThemeToggle";
 import "./globals.css";
 
@@ -48,7 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Footer />
         </TooltipProvider>
         <Toaster />
-        <Plausible />
+        <Statistik />
       </body>
     </html>
   );

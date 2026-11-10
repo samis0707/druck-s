@@ -29,8 +29,6 @@ services:
       context: .
       args:
         APP_BASE_URL: https://${DOMAIN}
-        NEXT_PUBLIC_PLAUSIBLE_DOMAIN: ${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-}
-        NEXT_PUBLIC_PLAUSIBLE_SRC: ${NEXT_PUBLIC_PLAUSIBLE_SRC:-}
     restart: unless-stopped
     mem_limit: 768m
     depends_on:
@@ -62,6 +60,8 @@ services:
       MISTRAL_API_BASE: https://api.eu.mistral.ai/v1
       MISTRAL_API_KEY: ${MISTRAL_API_KEY}
       MISTRAL_MODEL: ${MISTRAL_MODEL:-mistral-medium-3.5}
+      UMAMI_URL: ${UMAMI_URL:-}
+      UMAMI_WEBSITE_ID: ${UMAMI_WEBSITE_ID:-}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: https://${DOMAIN}
       BETTER_AUTH_TRUSTED_PROXIES: 172.30.0.2

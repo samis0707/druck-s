@@ -188,8 +188,8 @@ export default function RequestPage({ params }: { params: Promise<{ id: string }
         </p>
         {!approving ? (
           <div className="flex flex-wrap gap-2">
-            <Button onClick={startApprove}>Freigeben</Button>
-            <Button variant="outline" onClick={requestChanges}>
+            <Button onClick={startApprove} data-umami-event="Freigabe gestartet">Freigeben</Button>
+            <Button variant="outline" onClick={requestChanges} data-umami-event="Änderungswunsch">
               Änderungswunsch
             </Button>
           </div>
@@ -202,7 +202,7 @@ export default function RequestPage({ params }: { params: Promise<{ id: string }
               value={approveCode}
               onChange={(e) => setApproveCode(e.target.value)}
             />
-            <Button onClick={confirmApprove}>Freigabe bestätigen</Button>
+            <Button onClick={confirmApprove} data-umami-event="Freigabe bestätigt">Freigabe bestätigen</Button>
           </div>
         )}
         {mailto && (
