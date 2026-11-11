@@ -130,7 +130,7 @@ export default function StaffRequestPage({ params }: { params: Promise<{ id: str
   const st = detail.request.status;
   const ref = detailRef(detail);
   const kunde = customerLine(detail.customer, "staff");
-  const herkunft = originBadge(detail.request.trust, detail.partner?.name);
+  const herkunft = originBadge(detail.request.trust, detail.partner?.name, detail.request.origin);
   const shipDescription =
     tracking.trim() || deliverDate.trim()
       ? `Der Auftrag wird als versendet markiert und der Kunde per E-Mail informiert${

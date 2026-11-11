@@ -8,4 +8,4 @@ export function absolut(pfad: string): string {
 }
 
 /** Stand der Hilfe (sichtbar auf den Seiten, in llms.txt und als dateModified im JSON-LD). */
-export const HILFE_STAND = "2026-11-09";
+export const HILFE_STAND = "2026-11-11";

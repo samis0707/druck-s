@@ -17,6 +17,8 @@ export interface FinderRequest {
   freeText: string;
   status: string;
   trust: string;
+  /** Tür, durch die der Auftrag kam; „inquiry“ = Interessent ohne Kundenkonto. */
+  origin?: string | null;
   /** Partner-Aufträge: Name des Partners (z. B. „Seeräuber digital“), sonst null. */
   partnerName?: string | null;
   partnerRef?: string | null;

@@ -28,6 +28,8 @@ export const REQUEST_EVENTS = [
   "partner_submitted",
   /** Partner zieht den Auftrag zurück. */
   "withdrawn",
+  /** Offene Anfrage: Interessent hat per E-Mail-Code bestätigt (kein Kundenkonto). */
+  "inquiry_confirmed",
 ] as const;
 export type RequestEvent = (typeof REQUEST_EVENTS)[number];
 
@@ -46,9 +48,18 @@ export const TRANSITIONS: Record<RequestEvent, { from: RequestStatus[]; to: Requ
   shipped: { from: ["IN_PROGRESS"], to: "SHIPPED" },
   partner_submitted: { from: ["DRAFT"], to: "RECEIVED" },
   withdrawn: { from: ["RECEIVED", "IN_REVIEW"], to: "WITHDRAWN" },
+  inquiry_confirmed: { from: ["DRAFT"], to: "RECEIVED" },
 };
 
-export type RequestOrigin = "door_a" | "door_b" | "partner";
+export type RequestOrigin = "door_a" | "door_b" | "partner" | "inquiry";
+
+/** Kontakt einer offenen Anfrage, wie vor der Bestätigung angegeben. */
+export interface InquiryContact {
+  name: string;
+  email: string;
+  organisation: string | null;
+  phone: string | null;
+}
 
 export type Trust = "VERIFIED" | "VOUCHED";
 
@@ -68,6 +79,8 @@ export interface PrintRequest {
   /** Partner-Aufträge: Partner und dessen Referenz (sonst null). */
   partnerId: string | null;
   partnerRef: string | null;
+  /** Nur bei Anfragen über den offenen Weg gesetzt (auch nach der Bestätigung). */
+  inquiryContact: InquiryContact | null;
   createdAt: string;
   updatedAt: string;
 }

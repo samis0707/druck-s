@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/copy-pdf-worker.mjs",
+    "predev": "node scripts/copy-static-assets.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/copy-pdf-worker.mjs",
+    "prebuild": "node scripts/copy-static-assets.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -37,6 +37,7 @@
     "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "swagger-ui-dist": "^5.34.1",
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {

@@ -54,6 +54,8 @@ export interface RequestDetail {
     ref: string;
     status: string;
     trust: string;
+    /** Tür, durch die der Auftrag kam (door_a, door_b, partner, inquiry). */
+    origin?: string | null;
     productHint: string;
     referenceText?: string | null;
     freeText: string;

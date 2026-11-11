@@ -166,7 +166,7 @@ export const GLOSSAR: { begriff: string; erklaerung: string }[] = [
   { begriff: "Auftragsnummer", erklaerung: "Wird beim Eingang vergeben (Format TTMMJJ-NNN, z. B. 081126-004) und steht in jeder E-Mail und in „Meine Aufträge“." },
 ];
 
-const ALLGEMEIN_ZUGANG = `Hochladen können Kundinnen und Kunden, deren E-Mail-Adresse bei der Druckerei hinterlegt und freigeschaltet ist. Neu hier? Fragen Sie die Druckerei nach einem Zugang oder einem Einmal-Upload-Link.`;
+const ALLGEMEIN_ZUGANG = `Hochladen können Kundinnen und Kunden, deren E-Mail-Adresse bei der Druckerei hinterlegt und freigeschaltet ist. Neu hier? Stellen Sie unter „Anfrage ohne Kundenkonto“ (/anfrage) eine Anfrage; die Druckerei meldet sich und schaltet Sie frei.`;
 
 export const KURSE: Kurs[] = [
   {
@@ -436,7 +436,7 @@ export const KURSE: Kurs[] = [
         schritte: [
           "Suchen Sie im Feld „Suchen nach Auftragsnummer, Produkt, Text, E-Mail, Status …“.",
           "Sortieren Sie mit „Dringendste zuerst“, „Neueste zuerst“, „Älteste zuerst“ oder „Meiste Dateien zuerst“.",
-          "Filtern Sie nach Status und Herkunft („Verifiziert“, „Per Link“) oder schalten Sie „Nur: braucht Blick“ ein.",
+          "Filtern Sie nach Status und Herkunft („Verifiziert“, „Per Link / Interessent“) oder schalten Sie „Nur: braucht Blick“ ein.",
           "Wählen Sie einen Auftrag mit Klick oder mit den Tasten j/k; die Leertaste öffnet die Dateivorschau, Esc schließt die Details.",
           "Klicken Sie auf „Auftrag ansehen“, um alle Schritte bis zum Versand zu bearbeiten.",
         ],
@@ -524,14 +524,14 @@ export const KURSE: Kurs[] = [
         titel: "Kunden freischalten und Einmal-Links erstellen",
         kurz: "Unter „Kunden & Links“ Interessenten freischalten, Konten deaktivieren und Einmal-Upload-Links für neue Kunden erzeugen.",
         einleitung:
-          "Nur freigeschaltete Kunden können selbst hochladen. Für alle anderen erzeugen Sie einen Einmal-Upload-Link.",
+          "Nur freigeschaltete Kunden können selbst hochladen und freigeben. Wer neu ist, stellt eine Anfrage ohne Kundenkonto oder bekommt von Ihnen einen Einmal-Upload-Link.",
         schritte: [
           "Klicken Sie in „Aufträge“ oben auf „Kunden & Links“.",
           "Für einen Einmal-Link: E-Mail-Adresse unter „Einmal-Upload-Link“ eintragen und „Link erstellen“ klicken; den Link an den Kunden schicken.",
-          "Für einen festen Zugang: in der Kundenliste bei Status „Interessent“ auf „Freischalten“ klicken.",
+          "Für einen festen Zugang: in der Kundenliste bei Status „Interessent“ auf „Freischalten“ klicken. Anfragen dieser Adresse gehören danach zum Kundenkonto.",
           "Um einen Zugang zu sperren: „Deaktivieren“ klicken und „Konto wirklich deaktivieren?“ bestätigen.",
         ],
-        gutZuWissen: `Ein Einmal-Link gilt ${FAKTEN.einmalLinkTage} Tage und verfällt beim Senden. Aufträge über einen Link tragen in der Liste das Kennzeichen „Per Link“.`,
+        gutZuWissen: `Ein Einmal-Link gilt ${FAKTEN.einmalLinkTage} Tage und verfällt beim Senden. Aufträge über einen Link tragen in der Liste das Kennzeichen „Per Link“. Wer ohne Kundenkonto anfragt, erscheint nach der Bestätigung per E-Mail-Code von selbst als „Interessent“ in der Kundenliste; der Auftrag trägt dasselbe Kennzeichen, und Sie bekommen einen Hinweis per E-Mail. Sehen und freigeben kann der Interessent seine Aufträge erst nach dem Freischalten.`,
         bilder: [{ name: "druckerei-kunden", alt: "Seite „Kunden & Links“ mit Einmal-Upload-Link, Historien-Import und Kundenliste" }],
         ausprobieren: { href: "/staff/customers", label: "Zu „Kunden & Links“" },
         minuten: 2,
@@ -772,17 +772,22 @@ export const FRAGEN: Frage[] = [
   {
     thema: "Zugang",
     frage: "Brauche ich ein Konto, um Druckdaten hochzuladen?",
-    antwort: `Nein, ein Passwort oder eine Registrierung gibt es nicht. Ihre E-Mail-Adresse muss aber bei der Druckerei hinterlegt und freigeschaltet sein; nach dem Hochladen bestätigen Sie mit einem ${FAKTEN.codeStellen}-stelligen Code aus Ihrer E-Mail. Ohne Zugang hilft ein Einmal-Upload-Link der Druckerei.`,
+    antwort: `Nein, ein Passwort oder eine Registrierung gibt es nicht. Nach dem Hochladen bestätigen Sie mit einem ${FAKTEN.codeStellen}-stelligen Code aus Ihrer E-Mail. Ist Ihre Adresse bei der Druckerei freigeschaltet, sehen Sie den Auftrag danach unter „Meine Aufträge“. Sind Sie neu, geht Ihr Upload als Anfrage ohne Kundenkonto ein und die Druckerei meldet sich bei Ihnen.`,
   },
   {
     thema: "Zugang",
     frage: "Ich bekomme keinen Code. Was kann ich tun?",
-    antwort: `Prüfen Sie den Spam-Ordner und ob die E-Mail-Adresse richtig geschrieben ist. Der Code gilt ${FAKTEN.codeGueltigMin} Minuten — fordern Sie bei Bedarf mit „Code senden“ einen neuen an. Ist Ihre Adresse nicht freigeschaltet, wird kein Code verschickt; dann wenden Sie sich an die Druckerei.`,
+    antwort: `Prüfen Sie den Spam-Ordner und ob die E-Mail-Adresse richtig geschrieben ist. Der Code gilt ${FAKTEN.codeGueltigMin} Minuten — fordern Sie bei Bedarf einen neuen an. Für die Anmeldung unter „Meine Aufträge“ wird nur an freigeschaltete Adressen ein Code verschickt; sind Sie neu, stellen Sie eine Anfrage ohne Kundenkonto.`,
   },
   {
     thema: "Zugang",
     frage: "Wie bekomme ich einen Zugang?",
-    antwort: "Rufen Sie die digitale medien print gmbh an oder schreiben Sie eine E-Mail (siehe Kontakt). Die Druckerei schaltet Ihre Adresse frei oder schickt Ihnen einen Einmal-Upload-Link.",
+    antwort: "Stellen Sie eine Anfrage ohne Kundenkonto (/anfrage) oder rufen Sie die digitale medien print gmbh an (siehe Kontakt). Die Druckerei meldet sich, schaltet Ihre Adresse frei oder schickt Ihnen einen Einmal-Upload-Link.",
+  },
+  {
+    thema: "Zugang",
+    frage: "Kann ich anfragen, ohne Kunde zu sein?",
+    antwort: `Ja, unter „Anfrage ohne Kundenkonto“ (/anfrage). Sie beschreiben Ihr Vorhaben, hängen bei Bedarf Dateien an und bestätigen mit einem ${FAKTEN.codeStellen}-stelligen Code aus Ihrer E-Mail. Erst mit dem Code geht die Anfrage bei der Druckerei ein; sie meldet sich persönlich bei Ihnen. Ein Zugang zum Portal entsteht dadurch noch nicht.`,
   },
   {
     thema: "Hochladen",
@@ -837,7 +842,7 @@ export const FRAGEN: Frage[] = [
   {
     thema: "Für KI-Assistenten",
     frage: "Kann ein KI-Assistent (z. B. ChatGPT, Claude, Copilot) für mich Druckdaten hochladen?",
-    antwort: `Ein Assistent kann Sie durch das Hochladen führen und Ihre Daten vorbereiten. Bestätigen und freigeben müssen Sie selbst: Beides verlangt einen ${FAKTEN.codeStellen}-stelligen Code aus Ihrem E-Mail-Postfach. Eine öffentliche API für Endkunden gibt es nicht; Partnersysteme nutzen nach Vereinbarung die Partner-API.`,
+    antwort: `Ein Assistent kann Ihre Daten vorbereiten und über die Anfrage-Schnittstelle (/api/docs) einen Entwurf mit Beschreibung und Dateien anlegen. Bestätigen und freigeben müssen Sie selbst: Beides verlangt einen ${FAKTEN.codeStellen}-stelligen Code aus Ihrem E-Mail-Postfach. Der Assistent gibt Ihnen dazu einen Link, unter dem Sie die Anfrage ansehen und bestätigen. Partnersysteme nutzen nach Vereinbarung die Partner-API.`,
   },
   {
     thema: "Für KI-Assistenten",

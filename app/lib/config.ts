@@ -116,6 +116,19 @@ export const config = {
     webhookWorker: optional("PARTNER_WEBHOOK_WORKER", "on") !== "off",
     webhookIntervalSeconds: numberVar("PARTNER_WEBHOOK_INTERVAL_SECONDS", 15),
   },
+  /** Offene Anfrage ohne Kundenkonto (lib/inquiry, docs/anfrage-api.md). 0 = unbegrenzt. */
+  inquiry: {
+    /** Neue Entwürfe je IP-Adresse und Stunde. */
+    draftsPerIpPerHour: numberVar("INQUIRY_DRAFTS_PER_IP_PER_HOUR", 30),
+    /** Code-Mails je Entwurf (jede neue Mail macht den vorigen Code ungültig). */
+    codesPerDraft: numberVar("INQUIRY_CODES_PER_DRAFT", 5),
+    /** Code-Mails je E-Mail-Adresse und Stunde (Schutz vor Postfach-Flut). */
+    codesPerEmailPerHour: numberVar("INQUIRY_CODES_PER_EMAIL_PER_HOUR", 5),
+    /** Code-Mails je IP-Adresse und Stunde. */
+    codesPerIpPerHour: numberVar("INQUIRY_CODES_PER_IP_PER_HOUR", 20),
+    /** Fehlversuche je Code, danach ist ein neuer Code nötig. */
+    codeAttempts: numberVar("INQUIRY_CODE_ATTEMPTS", 5),
+  },
   ttl: {
     otpMinutes: numberVar("OTP_TTL_MINUTES", 10),
     sessionHours: numberVar("SESSION_TTL_HOURS", 24),

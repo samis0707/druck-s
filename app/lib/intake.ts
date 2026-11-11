@@ -15,14 +15,16 @@ export async function checkCustomerEligible(email: string): Promise<Identity> {
   if (!identity) {
     throw new BindError(
       "This email is not registered. Please contact the print firm to get access.",
+      "unknown_email",
     );
   }
   if (identity.status === "disabled") {
-    throw new BindError("This account is disabled. Please contact the print firm.");
+    throw new BindError("This account is disabled. Please contact the print firm.", "account_disabled");
   }
   if (identity.status !== "customer") {
     throw new BindError(
       "This account is not activated yet. Please ask the print firm to activate it.",
+      "not_activated",
     );
   }
   return identity;
@@ -60,7 +62,11 @@ export async function bindDraftToCustomer(input: {
 }
 
 export class BindError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    /** unknown_email und not_activated führen auf der Upload-Seite zur offenen Anfrage. */
+    public readonly code: "unknown_email" | "account_disabled" | "not_activated" | "bind_failed" = "bind_failed",
+  ) {
     super(message);
     this.name = "BindError";
   }

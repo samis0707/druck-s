@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -129,6 +130,17 @@ export default function UploadPage() {
         body: JSON.stringify({ email }),
       });
       const data = await res.json();
+      // Adresse noch nicht freigeschaltet: mit denselben Dateien als Anfrage ohne Kundenkonto weiter.
+      if (res.status === 403 && (data.code === "unknown_email" || data.code === "not_activated")) {
+        try {
+          sessionStorage.setItem("dam-anfrage-email", email.trim());
+        } catch {
+          /* Storage nicht verfügbar — Adresse wird auf der nächsten Seite neu eingegeben. */
+        }
+        toast.add({ description: "Diese Adresse kennen wir noch nicht. Ein paar Angaben genügen.", type: "success" });
+        router.push(`/anfrage/${draftId}`);
+        return;
+      }
       if (!res.ok) throw new Error(data.error ?? "Code konnte nicht gesendet werden");
       setStep("code");
       toast.add({ description: "Code wurde per E-Mail gesendet.", type: "success" });
@@ -171,6 +183,15 @@ export default function UploadPage() {
         brotkrumen={[{ bezeichnung: "Start", href: "/" }, { bezeichnung: "Upload" }]}
         aktionen={step === "form" ? <PageTour id="upload" /> : undefined}
       />
+      {step === "form" && (
+        <p className="text-sm text-muted-foreground">
+          Noch kein Kunde und noch keine Datei? Dann stellen Sie eine{" "}
+          <Link className="underline" href="/anfrage">
+            Anfrage ohne Kundenkonto
+          </Link>
+          .
+        </p>
+      )}
       {busy && (
         <Progress value={progress} aria-label="Upload-Fortschritt">
           <ProgressLabel>{phaseLabel(progress)}</ProgressLabel>
@@ -321,7 +342,8 @@ export default function UploadPage() {
         <Card>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Dateien erhalten. Geben Sie Ihre hinterlegte E-Mail-Adresse ein — wir senden Ihnen einen Code.
+              Dateien erhalten. Geben Sie Ihre E-Mail-Adresse ein — wir senden Ihnen einen Code. Neu bei uns? Dann fragen
+              wir im nächsten Schritt kurz nach Ihrem Namen.
             </p>
             <div className="space-y-1">
               <Label htmlFor="email">E-Mail</Label>

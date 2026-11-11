@@ -57,12 +57,14 @@ export const requests = pgTable(
     partnerId: uuid("partner_id").references(() => partners.id),
     partnerRef: text("partner_ref"),
     partnerMeta: jsonb("partner_meta"),
+    /** Offene Anfrage: Kontakt vor der Bestätigung ({ name, email, organisation, phone }). */
+    inquiryContact: jsonb("inquiry_contact"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
     check("requests_trust_check", sql`${t.trust} IN ('VERIFIED','VOUCHED')`),
-    check("requests_origin_check", sql`${t.origin} IN ('door_a','door_b','partner')`),
+    check("requests_origin_check", sql`${t.origin} IN ('door_a','door_b','partner','inquiry')`),
     index("requests_status_idx").on(t.status),
     index("requests_customer_idx").on(t.customerId),
     uniqueIndex("requests_partner_ref_unique")

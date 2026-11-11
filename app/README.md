@@ -69,6 +69,15 @@ ergänzt wird, muss die Umami-Adresse in `script-src` und `connect-src` freigege
   (die Hilfeseiten werden vorgerendert; das Dockerfile reicht sie als Build-Arg durch).
 - Pflege, Screenshots und PDFs neu erzeugen: [docs/schulung/README.md](docs/schulung/README.md).
 
+## Offene Anfrage und Schnittstellen
+
+Wer noch kein Kundenkonto hat, stellt unter `/anfrage` eine Anfrage und bestätigt sie mit einem Code aus
+der E-Mail; `/upload` leitet unbekannte Adressen mit denselben Dateien dorthin weiter. Dieselben vier
+Schritte gibt es als öffentliche Schnittstelle `/api/v1` (für Assistenten, ohne Schlüssel). Die
+Swagger-Oberfläche unter **`/api/docs`** beschreibt sie und die Partner-Schnittstelle zum Lesen und
+Ausprobieren (OpenAPI 3.1 unter `/api/v1/openapi.json`, Quelle `lib/openapi.ts`). Verhalten, Grenzen
+(`INQUIRY_*`) und Pflege: [docs/anfrage-api.md](docs/anfrage-api.md).
+
 ## Partner-Schnittstelle
 
 Partnersysteme (z. B. Seeräuber digital) liefern Druckaufträge per API ein (`POST /api/partner/requests`,
