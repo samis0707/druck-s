@@ -1,20 +1,32 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 /**
  * Offene Anfrage (Interessenten-Einstieg), Ende zu Ende über die Schnittstelle /api/v1.
  * Braucht wie tests/intake.test.ts die Compose-Infrastruktur und den Dev-Server:
  *   npm run test:int
+ *
+ * Jeder Test kommt von einer eigenen Absender-Adresse (x-forwarded-for), damit die Grenzen je
+ * IP-Adresse weder zwischen Tests noch zwischen Läufen innerhalb einer Stunde anschlagen.
  */
 const BASE = process.env.APP_TEST_URL ?? "http://localhost:3100";
 const MAILPIT = "http://localhost:8026";
 
 type Json = Record<string, unknown>;
+
+let ip = "";
+function freshIp(): string {
+  const n = () => 1 + Math.floor(Math.random() * 254);
+  return `10.${n()}.${n()}.${n()}`;
+}
+beforeEach(() => {
+  ip = freshIp();
+});
 type InquiryView = { id: string; status: string; number: string | null; confirmUrl: string; draft: null | { files: { name: string }[]; contact: { email: string } | null; codeSent: boolean } };
 
 async function post(path: string, body?: unknown): Promise<{ status: number; json: Json; headers: Headers }> {
   const res = await fetch(`${BASE}${path}`, {
     method: "POST",
-    headers: body === undefined ? {} : { "content-type": "application/json" },
+    headers: { "x-forwarded-for": ip, ...(body === undefined ? {} : { "content-type": "application/json" }) },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   return { status: res.status, json: (await res.json()) as Json, headers: res.headers };
@@ -264,6 +276,20 @@ describe("offene Anfrage: Grenzen und Fehler", () => {
     expect(blocked.status).toBe(429);
     expect(blocked.json.code).toBe("rate_limited");
     expect(blocked.headers.get("retry-after")).toBe("3600");
+  });
+
+  it("begrenzt neue Entwürfe und Code-Mails je Absender-Adresse", async () => {
+    // Standardwerte: 30 Entwürfe und 20 Code-Mails je IP-Adresse und Stunde.
+    const ids: string[] = [];
+    for (let i = 0; i < 30; i += 1) ids.push((await draft(`ip-${Date.now()}-${i}@example.com`)).id);
+    const blocked = await post("/api/v1/inquiries", { product: "flyer", description: "einer zu viel" });
+    expect(blocked.status).toBe(429);
+    expect(blocked.json.code).toBe("rate_limited");
+    for (let i = 0; i < 20; i += 1) expect((await post(`/api/v1/inquiries/${ids[i]}/code`)).status).toBe(202);
+    expect((await post(`/api/v1/inquiries/${ids[20]}/code`)).status).toBe(429);
+    // Eine andere Adresse ist davon nicht betroffen.
+    ip = freshIp();
+    expect((await post(`/api/v1/inquiries/${ids[21]}/code`)).status).toBe(202);
   });
 
   it("zeigt Einmal-Link- und Partner-Aufträge nicht über die offene Schnittstelle", async () => {
