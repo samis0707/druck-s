@@ -460,3 +460,130 @@ export function shippedMail(input: {
   });
   return { subject, text: lines.join("\n"), html };
 }
+
+/* ------------------------------------------------------------------ */
+/* Offene Anfrage (Interessenten ohne Kundenkonto)                     */
+/* ------------------------------------------------------------------ */
+
+/** Code zur Bestätigung einer Anfrage; der Link führt zur Seite, auf der man sie vorher ansieht. */
+export function inquiryCodeMail(input: { code: string; confirmUrl: string }): MailContent {
+  const validity = `Der Code ist ${config.ttl.otpMinutes} Minuten gültig und kann nur einmal verwendet werden.`;
+  const check = `Prüfen Sie Ihre Angaben und Dateien, bevor Sie bestätigen: ${input.confirmUrl}`;
+  const ignore = `Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren. Ohne den Code geht nichts bei uns ein.`;
+  const reason = `Sie erhalten diese E-Mail, weil mit Ihrer E-Mail-Adresse bei ${company.brand} eine Druckanfrage vorbereitet wurde.`;
+  const subject = `Ihr Bestätigungscode: ${input.code}`;
+  const text = [
+    `Ihr Bestätigungscode lautet: ${input.code}`,
+    ``,
+    `Mit diesem Code bestätigen Sie Ihre Druckanfrage bei ${company.brand}.`,
+    validity,
+    check,
+    ``,
+    ignore,
+    ``,
+    footerText(reason),
+  ].join("\n");
+  const html = layout({
+    title: subject,
+    preheader: `Ihr Code: ${input.code}. Gültig für ${config.ttl.otpMinutes} Minuten.`,
+    heading: "Bestätigen Sie Ihre Anfrage",
+    reason,
+    body: [
+      paragraph(`Mit diesem Code bestätigen Sie Ihre Druckanfrage.`),
+      codeBox(input.code),
+      paragraph(esc(validity)),
+      paragraph(`Prüfen Sie Ihre Angaben und Dateien, bevor Sie bestätigen:`),
+      button(input.confirmUrl, "Anfrage ansehen"),
+      paragraph(esc(ignore)),
+    ].join("\n"),
+  });
+  return { subject, text, html };
+}
+
+/** Eingangsbestätigung an den Interessenten: Nummer und wie es weitergeht. */
+export function inquiryReceivedMail(input: { requestRef: string; product: string; fileCount: number }): MailContent {
+  const ref = input.requestRef;
+  const next = `Wir sehen uns Ihre Anfrage an und melden uns persönlich bei Ihnen.`;
+  const contact = `Fragen? Rufen Sie uns an: ${company.phone}, oder antworten Sie auf ${company.email}. Nennen Sie dabei bitte die Nummer ${ref}.`;
+  const reason = `Sie erhalten diese E-Mail, weil Sie bei ${company.brand} eine Druckanfrage bestätigt haben.`;
+  const subject = `Ihre Anfrage ${ref} ist eingegangen`;
+  const files = input.fileCount === 0 ? "keine" : String(input.fileCount);
+  const text = [
+    `Vielen Dank, Ihre Anfrage ist bei uns eingegangen.`,
+    ``,
+    `Nummer: ${ref}`,
+    `Produkt: ${input.product}`,
+    `Dateien: ${files}`,
+    ``,
+    next,
+    contact,
+    ``,
+    footerText(reason),
+  ].join("\n");
+  const html = layout({
+    title: subject,
+    preheader: `Anfrage ${ref}: Wir melden uns persönlich bei Ihnen.`,
+    heading: "Ihre Anfrage ist eingegangen",
+    reason,
+    body: [
+      paragraph(`Vielen Dank. Ihre Anfrage liegt jetzt bei unserer Druckvorstufe.`),
+      summaryBox([
+        { label: "Nummer", value: ref, mono: true },
+        { label: "Produkt", value: input.product },
+        { label: "Dateien", value: files },
+      ]),
+      paragraph(esc(next)),
+      paragraph(esc(contact)),
+    ].join("\n"),
+  });
+  return { subject, text, html };
+}
+
+/** Hinweis an das Team: ein Interessent wartet auf Rückmeldung. */
+export function staffInquiryNotice(input: {
+  requestRef: string;
+  product: string;
+  name: string;
+  email: string;
+  organisation: string | null;
+  phone: string | null;
+  staffUrl: string;
+}): MailContent {
+  const ref = input.requestRef;
+  const who = [input.name, input.organisation].filter(Boolean).join(", ");
+  const reason = `Interne Benachrichtigung von ${company.brand}: Ein Interessent ohne Kundenkonto hat eine Anfrage bestätigt.`;
+  const subject = `Neue Anfrage ${ref} von ${who}`;
+  const text = [
+    `Neue Anfrage eines Interessenten (E-Mail-Adresse per Code bestätigt).`,
+    ``,
+    `Nummer: ${ref}`,
+    `Produkt: ${input.product}`,
+    `Kontakt: ${who}`,
+    `E-Mail: ${input.email}`,
+    `Telefon: ${input.phone ?? "nicht angegeben"}`,
+    ``,
+    `Im Backoffice öffnen: ${input.staffUrl}`,
+    `Freischalten unter „Kunden & Links“, damit der Interessent Aufträge ansehen und freigeben kann.`,
+    ``,
+    footerText(reason),
+  ].join("\n");
+  const html = layout({
+    title: subject,
+    preheader: `${who} wartet auf Rückmeldung.`,
+    heading: "Neue Anfrage eines Interessenten",
+    reason,
+    body: [
+      paragraph(`Die E-Mail-Adresse wurde per Code bestätigt. Ein Kundenkonto gibt es noch nicht.`),
+      summaryBox([
+        { label: "Nummer", value: ref, mono: true },
+        { label: "Produkt", value: input.product },
+        { label: "Kontakt", value: who },
+        { label: "E-Mail", value: input.email },
+        { label: "Telefon", value: input.phone ?? "nicht angegeben" },
+      ]),
+      button(input.staffUrl, "Im Backoffice öffnen"),
+      paragraph(`Freischalten unter „Kunden &amp; Links“, damit der Interessent Aufträge ansehen und freigeben kann.`),
+    ].join("\n"),
+  });
+  return { subject, text, html };
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { bundleFileName, mimeFromName } from "@/lib/bundleFiles";
-import { getIdentity } from "@/lib/identities";
+import { findIdentityByEmail, getIdentity } from "@/lib/identities";
 import { requestRef } from "@/lib/requestNumber";
 import { getRequestForViewer } from "@/lib/requestAccess";
 import { listFiles } from "@/lib/requests/store";
@@ -52,7 +52,12 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     "SELECT id, bundle_version AS \"bundleVersion\", bullets, history_state AS \"historyState\", suggested_category AS \"suggestedCategory\", created_at AS \"createdAt\" FROM assistant_notes WHERE request_id = $1 ORDER BY created_at DESC LIMIT 1",
     [id],
   );
-  const identity = request.customerId ? await getIdentity(request.customerId) : null;
+  // Gebundene Aufträge zeigen das Kundenkonto; Interessenten (prospect_email) ihren Datensatz, falls vorhanden.
+  const identity = request.customerId
+    ? await getIdentity(request.customerId)
+    : request.prospectEmail
+      ? await findIdentityByEmail(request.prospectEmail)
+      : null;
   const customer = {
     email: identity?.email ?? request.prospectEmail,
     displayName: identity?.displayName ?? null,

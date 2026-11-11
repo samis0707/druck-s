@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { badRequest, forbidden, notFound } from "@/lib/api";
+import { badRequest, notFound } from "@/lib/api";
 import { getRequest, listFiles } from "@/lib/requests/store";
 import { checkCustomerEligible, BindError } from "@/lib/intake";
 import { BaError, sendSignInCode } from "@/lib/auth/otpFlow";
@@ -35,7 +35,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     });
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (err) {
-    if (err instanceof BindError) return forbidden(err.message);
+    if (err instanceof BindError) {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 403 });
+    }
     if (err instanceof BaError) {
       const status = err.status === 429 ? 429 : 400;
       return NextResponse.json({ error: err.message }, { status });

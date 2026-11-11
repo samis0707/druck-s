@@ -42,13 +42,17 @@ export function istIntern(pfad: string): boolean {
 
 /**
  * Pfad für die Statistik: interne Bereiche → null (nicht senden). Geheime oder persönliche Teile werden ersetzt:
- * Upload-Links `/u/<token>` → `/u/[token]`, Aufträge `/requests/<id>` → `/requests/[id]`.
+ * Upload-Links `/u/<token>` → `/u/[token]`, Aufträge `/requests/<id>` → `/requests/[id]`,
+ * offene Anfragen `/anfrage/<id>` → `/anfrage/[id]`.
  * Suchparameter fallen immer weg (können E-Mail-Adressen, Codes oder Tokens enthalten).
  */
 export function pfadBereinigen(pfad: string): string | null {
   const p = pfad.split(/[?#]/)[0] || "/";
   if (istIntern(p)) return null;
-  return p.replace(/^\/u\/[^/]+/, "/u/[token]").replace(/^\/requests\/[^/]+/, "/requests/[id]");
+  return p
+    .replace(/^\/u\/[^/]+/, "/u/[token]")
+    .replace(/^\/requests\/[^/]+/, "/requests/[id]")
+    .replace(/^\/anfrage\/[^/]+/, "/anfrage/[id]");
 }
 
 /**

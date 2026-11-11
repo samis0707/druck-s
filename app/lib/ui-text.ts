@@ -32,13 +32,16 @@ export const STATUS_TONE: Record<string, "gray" | "blue" | "yellow" | "green"> =
 
 /**
  * Herkunfts-Badge im Staff-Bereich: Partner-Aufträge zeigen den Partnernamen
- * („Über Seeräuber digital“), sonst Vertrauensstufe (verifiziert / per Link).
+ * („Über Seeräuber digital“), offene Anfragen „Interessent“, sonst Vertrauensstufe (verifiziert / per Link).
  */
 export function originBadge(
   trust: string,
   partnerName?: string | null,
+  origin?: string | null,
 ): { label: string; tone: "green" | "yellow" | "blue" } {
   if (partnerName) return { label: `Über ${partnerName}`, tone: "blue" };
+  // Offene Anfrage: E-Mail-Adresse per Code bestätigt, aber noch kein Kundenkonto.
+  if (origin === "inquiry") return { label: "Interessent", tone: "yellow" };
   return trust === "VERIFIED" ? { label: "Verifiziert", tone: "green" } : { label: "Per Link", tone: "yellow" };
 }
 

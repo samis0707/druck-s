@@ -20,8 +20,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Kopiertes pdf.js-Worker-Bundle (scripts/copy-pdf-worker.mjs, nicht im Repo).
+    // Kopiertes pdf.js-Worker-Bundle (scripts/copy-static-assets.mjs, nicht im Repo).
     "public/pdf.worker.min.mjs",
+    // Kopierte Swagger-Oberfläche für /api/docs (ebenfalls nicht im Repo).
+    "public/swagger/**",
   ]),
   // Werkzeugskripte für Schulungs-Screenshots und PDFs laufen als CommonJS mit Node.
   {

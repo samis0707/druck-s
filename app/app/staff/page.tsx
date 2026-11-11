@@ -40,8 +40,8 @@ const SICHT_KEY = "dam-finder-sicht";
 
 type Sicht = "liste" | "assets";
 
-function OriginBadge({ trust, partnerName }: { trust: string; partnerName?: string | null }) {
-  const o = originBadge(trust, partnerName);
+function OriginBadge({ trust, partnerName, origin }: { trust: string; partnerName?: string | null; origin?: string | null }) {
+  const o = originBadge(trust, partnerName, origin);
   return <Badge variant={toneVariant(o.tone)}>{o.label}</Badge>;
 }
 
@@ -153,7 +153,7 @@ function FilterLeiste({
                 : "border-border bg-card text-muted-foreground hover:border-ring"
             }`}
           >
-            {trust === "VERIFIED" ? "Verifiziert" : "Per Link"}
+            {trust === "VERIFIED" ? "Verifiziert" : "Per Link / Interessent"}
           </button>
         ))}
         <button
@@ -223,7 +223,7 @@ function Inspektor({ requestId }: { requestId: string }) {
             <Badge variant={toneVariant(STATUS_TONE[detail.request.status] ?? "gray")}>
               {STAFF_STATUS[detail.request.status] ?? detail.request.status}
             </Badge>
-            <OriginBadge trust={detail.request.trust} partnerName={detail.partner?.name} />
+            <OriginBadge trust={detail.request.trust} partnerName={detail.partner?.name} origin={detail.request.origin} />
           </div>
           {kunde && <p className="text-sm font-medium">{kunde}</p>}
           <p className="text-sm text-muted-foreground">Hinweis: {productLabel(detail.request.productHint)}</p>
@@ -613,7 +613,7 @@ export default function StaffPage() {
                   <Badge variant={toneVariant(STATUS_TONE[r.status] ?? "gray")}>
                     {STAFF_STATUS[r.status] ?? r.status}
                   </Badge>
-                  <OriginBadge trust={r.trust} partnerName={r.partnerName} />
+                  <OriginBadge trust={r.trust} partnerName={r.partnerName} origin={r.origin} />
                   <span className="ml-auto">
                     <Button render={<Link href={`/staff/requests/${r.id}`} />} variant="outline" size="sm">
                       Ansehen

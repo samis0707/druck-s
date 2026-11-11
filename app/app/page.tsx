@@ -70,6 +70,12 @@ export default function Home() {
               Meine Aufträge
             </Button>
           </div>
+          <p className="text-sm text-(--color-ink-mid)">
+            Noch kein Kunde?{" "}
+            <Link className="underline" href="/anfrage" transitionTypes={["nav-forward"]}>
+              Anfrage ohne Kundenkonto stellen
+            </Link>
+          </p>
           <p className="text-sm text-(--color-ink-soft)">Kein Konto nötig · Bestätigung per E-Mail-Code · Virenprüfung inklusive</p>
         </div>
         <CropMarks className="mx-auto w-full max-w-[380px]">

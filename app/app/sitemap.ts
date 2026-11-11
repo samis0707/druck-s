@@ -10,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const seiten: MetadataRoute.Sitemap = [
     { url: absolut("/"), lastModified: hilfe, changeFrequency: "monthly", priority: 1 },
     { url: absolut("/upload"), lastModified: hilfe, changeFrequency: "monthly", priority: 0.9 },
+    { url: absolut("/anfrage"), lastModified: hilfe, changeFrequency: "monthly", priority: 0.9 },
     { url: absolut("/hilfe"), lastModified: hilfe, changeFrequency: "monthly", priority: 0.9 },
   ];
   for (const kurs of KURSE) {
