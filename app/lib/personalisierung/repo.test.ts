@@ -227,7 +227,7 @@ describe("Druckdaten an einer Anfrage", () => {
 });
 
 describe("Routen: Rollen und Zugang", () => {
-  const ctx = (o: Record<string, string>) => ({ params: Promise.resolve(o) });
+  const ctx = (o: { ref: string; id?: string }) => ({ params: Promise.resolve(o as { ref: string; id: string }) });
   const json = (body: unknown) => new Request("http://x/api", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
   it("Staff-Routen: 401 ohne Sitzung, 403 für Kunden, 200 für Mitarbeiter", async () => {

@@ -118,7 +118,7 @@ export function bilde(snapshot, designMasse = {}) {
     hinweis(quelle, `Farbe #${h} steht nicht in der retorix-Farbtabelle; als Prozessfarbe „Import #${h}“ umgerechnet (ohne Farbprofil).`);
     return farbe(`Import #${h}`, rgbZuCmyk(h), null, `retorix:rgb:${h}`);
   };
-  const farbeFuerCode = (hex, quelle) => {
+  const farbeFuerCode = (hex, _quelle) => {
     const c = barcodeFarbe(hex);
     if (!c) return "Schwarz";
     if (c[3] === 100 && c[0] + c[1] + c[2] === 0) return "Schwarz";

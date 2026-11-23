@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
-// @ts-expect-error reines JS-Modul ohne Typen
-import { barcodeFarbe, bilde, ersetzeDateiRefs, htmlZuText, parseCmyk, schluesselAus } from "../../scripts/retorix-mapping.mjs";
+import * as mapping from "../../scripts/retorix-mapping.mjs";
 import { parseVorlage } from "./schema";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Reines JS-Modul: Typen absichtlich locker.
+const { barcodeFarbe, bilde, ersetzeDateiRefs, htmlZuText, parseCmyk, schluesselAus } = mapping as unknown as Record<string, (...a: any[]) => any>;
 
 const UUID = "11111111-1111-4111-8111-111111111111";
 
@@ -82,7 +85,7 @@ describe("retorix-Abbildung", () => {
     // fill_bottom_up=true: Box-UNTERkante bei y=20 -> y_neu = 55 - 20 - hoehe
     expect(adr.vertikal).toBe("unten");
     expect(adr.y + adr.hoehe).toBeCloseTo(35, 1);
-    const qr = v.vorlage.felder.find((f: { id: string }) => f.typ === "qr" && f.id === "qr_5");
+    const qr = v.vorlage.felder.find((f: { id: string }) => f.id === "qr_5");
     expect(qr.y).toBe(55 - 30 - 15);
   });
 
