@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { STAFF_STATUS, STATUS_TONE, originBadge } from "@/lib/ui-text";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { StatusFolds } from "@/components/requests/StatusFolds";
+import { RichtpreisKarte } from "@/components/staff/RichtpreisKarte";
 import { ConfirmAction } from "@/components/requests/ConfirmAction";
 import { customerLine, detailRef, type RequestDetail } from "@/components/requests/request-detail";
 
@@ -256,6 +257,7 @@ export default function StaffRequestPage({ params }: { params: Promise<{ id: str
           </CardContent>
         </Card>
       )}
+      <RichtpreisKarte requestId={detail.request.id} />
       <StatusFolds
         detail={detail}
         audience="staff"

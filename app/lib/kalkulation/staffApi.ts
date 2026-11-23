@@ -9,23 +9,30 @@
  *   POST /v1/artikel/{id}/richtpreis   Ad-hoc-Kalkulation mit Richtpreis und Rechenweg
  *   GET|PUT /einstellungen             Preis-Einstellungen
  *   POST /import/vorschau|/import      Import einer werkbank-sicherung mit Vorschau
+ *   GET /stand                         Stand der Stammdaten (Version, Änderung, Anzahl je Bereich)
+ *   GET|POST /anfragen/{id}/richtpreis Richtpreis-Snapshots einer Anfrage lesen bzw. anlegen
  *
  * Jede Anfrage braucht eine Mitarbeiter-Sitzung (requireStaff); schreibende Anfragen prüfen
  * zusätzlich den Ursprung (CSRF).
  */
 import { createHash } from "node:crypto";
+import { z } from "zod";
 import { appendAudit } from "../auditLog";
 import { clientIp, requireStaff } from "../guards";
+import { query } from "../db";
+import { bereich } from "./bereiche";
 import { ladeDaten } from "./daten";
 import { ladePreisEinstellungen, speicherePreisEinstellungen } from "./einstellungen";
 import { RUMPF_MAX, RUMPF_MAX_WERKBANK, gleicherUrsprung, kalkJson, leseJson, leseRumpf } from "./http";
-import { uebernehmeImport, vorschauImport } from "./import";
+import { uebernehmeImport, vorschauImport, zaehlungen } from "./import";
 import { RICHTPREIS_HINWEIS } from "./richtpreis";
-import { berechneIntern } from "./richtpreisService";
+import { berechneIntern, berechneUndSpeichere, ladeSnapshots } from "./richtpreisService";
 import { API_VERSION, KalkulierenSchema, anfrage } from "./schnittstelle";
-import { DATEI_MAX, dateiLesen, dateiSpeichern } from "./store";
+import { DATEI_MAX, alleBereiche, dateiLesen, dateiSpeichern, dateienUmfang } from "./store";
 import { werkbankAnfrage } from "./werkbank-api";
 import { heuteIso } from "./zeit";
+
+const SnapshotSchema = KalkulierenSchema.extend({ artikel: z.string().min(1).max(80) });
 
 type Mitarbeiter = { id: string; email: string; name: string | null };
 const wer = (u: Mitarbeiter) => (u.name?.trim() || u.email).slice(0, 60);
@@ -69,6 +76,40 @@ export async function staffKalkulation(req: Request, teile: string[]): Promise<R
     if (b.bestaetigt !== true || typeof b.pruefsumme !== "string") return fehler(400, "Import muss bestätigt werden (Vorschau zuerst)");
     const r = await uebernehmeImport(b.sicherung, { pruefsumme: b.pruefsumme, von: wer(user), akteur: { typ: "staff", id: user.id }, ip: clientIp(req), quelle: "oberflaeche" });
     return r.ok ? kalkJson({ importiert: r.bereiche }) : kalkJson({ fehler: "Import abgelehnt", details: r.meldungen }, 422);
+  }
+
+  if (teile[0] === "stand" && teile.length === 1 && methode === "GET") {
+    const bereiche = await alleBereiche();
+    return kalkJson({
+      bereiche: bereiche.map((b) => ({
+        schluessel: b.schluessel,
+        name: bereich(b.schluessel)?.name ?? b.schluessel,
+        version: b.version,
+        geaendertAm: b.geaendertAm,
+        geaendertVon: b.geaendertVon,
+        zaehlungen: zaehlungen(b.json),
+      })),
+      dateien: await dateienUmfang(),
+    });
+  }
+
+  if (teile[0] === "anfragen" && teile[2] === "richtpreis" && teile.length === 3) {
+    const requestId = teile[1];
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)) return fehler(404, "Anfrage nicht gefunden");
+    if (methode === "GET") return kalkJson({ richtpreise: await ladeSnapshots(requestId) });
+    if (methode === "POST") {
+      const j = await leseJson(req);
+      if (!j.ok) return fehler(j.status, j.meldung);
+      const e = SnapshotSchema.safeParse(j.wert);
+      if (!e.success) return fehler(400, "Anfrage ungültig", e.error.issues.map((i) => ({ pfad: i.path.join("."), meldung: i.message })));
+      const exists = await query("SELECT 1 FROM requests WHERE id = $1", [requestId]);
+      if (exists.rowCount === 0) return fehler(404, "Anfrage nicht gefunden");
+      const r = await berechneUndSpeichere(requestId, e.data.artikel, e.data.antworten ?? {}, e.data.auflagen);
+      if (!r.ok) return fehler(r.status, r.meldung);
+      await appendAudit({ action: "richtpreis_saved", actorType: "staff", actorId: user.id, requestId, ip: clientIp(req), detail: { artikel: e.data.artikel, auflagen: e.data.auflagen } });
+      return kalkJson({ richtpreis: r.snapshot }, 201);
+    }
+    return fehler(405, "Methode nicht erlaubt");
   }
 
   if (teile[0] !== "v1") return fehler(404, "Unbekannter Pfad");

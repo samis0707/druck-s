@@ -232,7 +232,6 @@ export function pruefeAntworten(
       if (!/^\d{1,6}$/.test(wert) || Number(wert) < 1) details.push({ pfad, meldung: "Bitte eine ganze Zahl ab 1 angeben" });
       else antworten[schluessel] = String(Number(wert));
     } else {
-      // eslint-disable-next-line no-control-regex
       if (wert.trim() === "" || wert.length > 80 || /[\u0000-\u001f]/.test(wert)) details.push({ pfad, meldung: "Bitte einen kurzen Text (höchstens 80 Zeichen) angeben" });
       else antworten[schluessel] = wert.trim();
     }
@@ -351,7 +350,7 @@ export async function berechneUndSpeichere(
   const einst = await ladePreisEinstellungen();
   const r = berechneIntern(g.daten, a, auflagen, antworten, einst);
   if (!r.ok) return { ok: false, status: r.status, meldung: r.meldung };
-  const snapshot = await speichereSnapshot(requestId, a.id, antworten, [...auflagen], { auflagen: r.auflagen, offen: r.offen, hinweise: r.hinweise }, einst);
+  const snapshot = await speichereSnapshot(requestId, a.id, antworten, [...auflagen], { artikel: r.artikel, auflagen: r.auflagen, offen: r.offen, hinweise: r.hinweise }, einst);
   return { ok: true, snapshot: { ...snapshot, artikelTitel: a.titel } };
 }
 
@@ -399,7 +398,7 @@ export async function ladeSnapshots(requestId: string): Promise<RichtpreisSnapsh
     id: z.id,
     requestId: z.request_id,
     artikelId: z.artikel_id,
-    artikelTitel: null,
+    artikelTitel: (z.ergebnis as { artikel?: { titel?: string } }).artikel?.titel ?? null,
     antworten: z.antworten,
     auflagen: z.auflagen,
     ergebnis: z.ergebnis,
