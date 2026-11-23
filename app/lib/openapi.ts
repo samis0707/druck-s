@@ -7,6 +7,7 @@
 import { company } from "./company";
 import { config } from "./config";
 import { INQUIRY_LIMITS, PRODUCT_VALUES } from "./inquiry/validate";
+import { persPaths, persTags } from "./personalisierung/openapi";
 import { kalkulationPaths, kalkulationSchemas, kalkulationSecuritySchemes, kalkulationTags } from "./kalkulation/openapi";
 
 /** Fehlercodes der Anfrage-Schnittstelle (lib/inquiry). */
@@ -95,6 +96,7 @@ export function openApiDocument() {
           "Server-zu-Server-Schnittstelle für Partnersysteme, nur mit API-Schlüssel nach Vereinbarung. Webhooks, Signatur und alle Fehlercodes stehen in docs/partner-api.md.",
       },
       ...kalkulationTags,
+      ...persTags,
     ],
     paths: {
       "/api/v1/products": {
@@ -344,6 +346,7 @@ export function openApiDocument() {
         },
       },
       ...kalkulationPaths,
+      ...persPaths,
     },
     components: {
       securitySchemes: {

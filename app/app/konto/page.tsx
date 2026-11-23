@@ -29,6 +29,38 @@ interface Row {
   createdAt: string;
 }
 
+/** Zugeordnete Vorlagen der Personalisierung („Meine Vorlagen“); ohne Vorlagen erscheint nichts. */
+function MeineVorlagen() {
+  const [vorlagen, setVorlagen] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    fetch("/api/personalisierung/konto")
+      .then(async (res) => (res.ok ? ((await res.json()) as { vorlagen: { id: string; name: string }[] }).vorlagen : []))
+      .then(setVorlagen)
+      .catch(() => undefined);
+  }, []);
+  if (vorlagen.length === 0) return null;
+  return (
+    <section className="space-y-3" aria-label="Meine Vorlagen" data-tour="konto-vorlagen">
+      <h2 className="text-lg font-semibold">Meine Vorlagen</h2>
+      <p className="text-sm text-muted-foreground">Visitenkarten, Namensschilder und mehr mit Ihren eigenen Daten: Vorlage öffnen, Daten eingeben, absenden.</p>
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {vorlagen.map((v) => (
+          <li key={v.id}>
+            <Card>
+              <CardContent className="flex items-center justify-between gap-3">
+                <span className="min-w-0 truncate font-medium">{v.name}</span>
+                <Button size="sm" render={<Link href={`/personalisieren/${v.id}`} />} data-umami-event="Konto: Vorlage ausfüllen">
+                  Ausfüllen
+                </Button>
+              </CardContent>
+            </Card>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 const helper = columnHelper<Row>();
 const columns = helper.columns([
   helper.accessor((row) => requestRef(row), {
@@ -123,6 +155,7 @@ export default function KontoPage() {
           </dl>
         </CardContent>
       </Card>
+      <MeineVorlagen />
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Ihre Aufträge</h2>
         {rows === null ? (

@@ -83,9 +83,32 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     );
     if (p.rows[0]) partner = { name: p.rows[0].name, ref: request.partnerRef ?? "", rows: partnerMetaRows(p.rows[0].meta) };
   }
+  // Personalisierung (nur Staff): aus welcher Vorlage/Version stammen Druck-PDF und Datentabelle?
+  let personalisierung: {
+    templateId: string | null;
+    templateName: string | null;
+    version: number;
+    records: number;
+    nutzen: number;
+    pages: number;
+    mode: string;
+    pdfFileId: string | null;
+    dataFileId: string | null;
+  } | null = null;
+  if (access.isStaff) {
+    const o = await query<NonNullable<typeof personalisierung>>(
+      `SELECT o.template_id AS "templateId", t.name AS "templateName", o.template_version AS version, o.record_count AS records,
+              o.nutzen_count AS nutzen, o.page_count AS pages, o.mode, o.pdf_file_id AS "pdfFileId", o.data_file_id AS "dataFileId"
+         FROM pers_request_outputs o LEFT JOIN pers_templates t ON t.id = o.template_id
+        WHERE o.request_id = $1 ORDER BY o.created_at DESC LIMIT 1`,
+      [id],
+    );
+    personalisierung = o.rows[0] ?? null;
+  }
   return NextResponse.json({
     request: { ...request, ref: requestRef(request) },
     partner,
+    personalisierung,
     customer,
     files: filesWithReports,
     bundles,

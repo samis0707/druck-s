@@ -67,10 +67,36 @@ async function loescheObjekt(key: string): Promise<void> {
   }
 }
 
-async function virenpruefung(bytes: Uint8Array): Promise<void> {
-  if (config.clamav.mode !== "daemon") return; // Batch-Modus: kein synchroner Scan (docs/virenscan.md)
+export type ScanStatus = "PENDING" | "CLEAN" | "INFECTED" | "UNAVAILABLE";
+
+/**
+ * Virenprüfung beim Hochladen. Daemon-Modus: synchron (INFECTED lehnt ab, Scanner nicht erreichbar =
+ * UNAVAILABLE, fail-open wie überall). Batch-Modus: PENDING; scripts/scan-pending.mjs prüft später und
+ * setzt scan_status. Bis dahin darf Personal die Datei im Editor benutzen, die Vorlage lässt sich aber nicht
+ * veröffentlichen (pruefeDateiScan), und INFECTED wird nie geliefert oder verwendet.
+ */
+async function virenpruefung(bytes: Uint8Array): Promise<{ status: ScanStatus; detail: string | null }> {
+  if (config.clamav.mode !== "daemon") return { status: "PENDING", detail: null };
   const r = await scanBuffer(Buffer.from(bytes));
   if (r.status === "INFECTED") throw new PersFehler("Die Datei wurde vom Virenscanner abgelehnt.", 400, "malware");
+  if (r.status === "UNAVAILABLE") return { status: "UNAVAILABLE", detail: r.detail.slice(0, 200) };
+  return { status: "CLEAN", detail: null };
+}
+
+/**
+ * Vor dem Veröffentlichen: alle Dateien und Schriften der Vorlage müssen geprüft und unbedenklich sein.
+ * PENDING (Batch-Scan läuft noch) blockiert mit freundlichem Hinweis; INFECTED blockiert hart.
+ * UNAVAILABLE (Scanner dauerhaft nicht erreichbar) blockiert nicht (fail-open wie bei allen Uploads).
+ */
+export async function pruefeDateiScan(v: Vorlage): Promise<void> {
+  const dateiIds = [v.design.dateiId, v.ausgabe.ueberlagerung?.dateiId ?? null, ...v.felder.map((f) => (f.typ === "bild" ? f.dateiId : null))].filter((x): x is string => !!x);
+  const familien = [...new Set(v.felder.flatMap((f) => ("schrift" in f && f.schrift.familie !== "Helvetica" ? [f.schrift.familie] : [])))];
+  const d = dateiIds.length ? await query<{ file_name: string; scan_status: ScanStatus }>("SELECT file_name, scan_status FROM pers_files WHERE id = ANY($1::uuid[])", [dateiIds]) : { rows: [] };
+  const f = familien.length ? await query<{ family: string; scan_status: ScanStatus }>("SELECT family, scan_status FROM pers_fonts WHERE family = ANY($1)", [familien]) : { rows: [] };
+  const befallen = [...d.rows.filter((r) => r.scan_status === "INFECTED").map((r) => r.file_name), ...f.rows.filter((r) => r.scan_status === "INFECTED").map((r) => r.family)];
+  if (befallen.length) throw new PersFehler(`Der Virenscan hat in „${befallen[0]}“ Schadsoftware gefunden. Bitte die Datei ersetzen.`, 400, "malware");
+  const offen = d.rows.filter((r) => r.scan_status === "PENDING").length + f.rows.filter((r) => r.scan_status === "PENDING").length;
+  if (offen) throw new PersFehler("Die Virenprüfung der hochgeladenen Dateien läuft noch (meist wenige Minuten). Danach lässt sich die Vorlage veröffentlichen.", 409, "scan_ausstehend");
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -88,10 +114,11 @@ export interface PersDatei {
   breiteMm: number | null;
   hoeheMm: number | null;
   createdAt: string;
+  scanStatus: ScanStatus;
 }
 
 const DATEI_COLS = `id, kind AS "art", file_name AS "name", mime_type AS mime, size_bytes::int AS groesse, pages AS seiten,
-  width_mm::float AS "breiteMm", height_mm::float AS "hoeheMm", created_at AS "createdAt"`;
+  width_mm::float AS "breiteMm", height_mm::float AS "hoeheMm", created_at AS "createdAt", scan_status AS "scanStatus"`;
 
 function sicherDateiname(name: string): string {
   return name.replace(/[^\p{L}\p{N}._ -]/gu, "_").slice(0, 120) || "datei";
@@ -113,13 +140,13 @@ export async function speichereDatei(art: DateiArt, name: string, bytes: Uint8Ar
     breite = info.breiteMm;
     hoehe = info.hoeheMm;
   }
-  await virenpruefung(bytes);
+  const scan = await virenpruefung(bytes);
   const key = `personalisierung/dateien/${randomUUID()}`;
   await putRequestFile(key, Buffer.from(bytes), mime);
   const res = await query<PersDatei>(
-    `INSERT INTO pers_files (kind, storage_key, file_name, mime_type, size_bytes, sha256, pages, width_mm, height_mm, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING ${DATEI_COLS}`,
-    [art, key, sicherDateiname(name), mime, bytes.length, sha256Bytes(Buffer.from(bytes)), seiten, breite, hoehe, userId],
+    `INSERT INTO pers_files (kind, storage_key, file_name, mime_type, size_bytes, sha256, pages, width_mm, height_mm, created_by, scan_status, scan_detail)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING ${DATEI_COLS}`,
+    [art, key, sicherDateiname(name), mime, bytes.length, sha256Bytes(Buffer.from(bytes)), seiten, breite, hoehe, userId, scan.status, scan.detail],
   );
   return { datei: res.rows[0], pdf: info ?? undefined };
 }
@@ -132,8 +159,9 @@ export async function holeDatei(id: string): Promise<PersDatei | null> {
 
 export async function dateiBytes(id: string): Promise<Uint8Array | null> {
   if (!istUuid(id)) return null;
-  const r = await query<{ storage_key: string }>("SELECT storage_key FROM pers_files WHERE id = $1", [id]);
-  return r.rows[0] ? lade(r.rows[0].storage_key) : null;
+  const r = await query<{ storage_key: string; scan_status: ScanStatus }>("SELECT storage_key, scan_status FROM pers_files WHERE id = $1", [id]);
+  // Als befallen erkannte Dateien werden nie geliefert oder verwendet.
+  return r.rows[0] && r.rows[0].scan_status !== "INFECTED" ? lade(r.rows[0].storage_key) : null;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -145,8 +173,9 @@ export interface PersSchrift {
   schnitt: SchriftSchnitt;
   name: string;
   groesse: number;
+  scanStatus: ScanStatus;
 }
-const SCHRIFT_COLS = `id, family AS familie, style AS schnitt, file_name AS name, size_bytes::int AS groesse`;
+const SCHRIFT_COLS = `id, family AS familie, style AS schnitt, file_name AS name, size_bytes::int AS groesse, scan_status AS "scanStatus"`;
 
 export async function speichereSchrift(
   bytes: Uint8Array,
@@ -157,17 +186,18 @@ export async function speichereSchrift(
   const schnitt = opt.schnitt ?? info.schnitt;
   if (!familie) throw new PersFehler("Die Schriftfamilie darf nicht leer sein.");
   if (familie === "Helvetica") throw new PersFehler("„Helvetica“ ist die eingebaute Standardschrift und kann nicht ersetzt werden.");
-  await virenpruefung(bytes);
+  const scan = await virenpruefung(bytes);
   const key = `personalisierung/schriften/${randomUUID()}`;
   await putRequestFile(key, Buffer.from(bytes), "font/ttf");
   const alt = await query<{ storage_key: string }>("SELECT storage_key FROM pers_fonts WHERE family = $1 AND style = $2", [familie, schnitt]);
   const res = await query<PersSchrift>(
-    `INSERT INTO pers_fonts (family, style, file_name, storage_key, size_bytes, sha256, created_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO pers_fonts (family, style, file_name, storage_key, size_bytes, sha256, created_by, scan_status, scan_attempts, scan_detail)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9)
      ON CONFLICT (family, style) DO UPDATE SET file_name = EXCLUDED.file_name, storage_key = EXCLUDED.storage_key,
-       size_bytes = EXCLUDED.size_bytes, sha256 = EXCLUDED.sha256, created_by = EXCLUDED.created_by, created_at = now()
+       size_bytes = EXCLUDED.size_bytes, sha256 = EXCLUDED.sha256, created_by = EXCLUDED.created_by, created_at = now(),
+       scan_status = EXCLUDED.scan_status, scan_attempts = 0, scan_detail = EXCLUDED.scan_detail
      RETURNING ${SCHRIFT_COLS}`,
-    [familie, schnitt, sicherDateiname(opt.dateiname), key, bytes.length, sha256Bytes(Buffer.from(bytes)), opt.userId],
+    [familie, schnitt, sicherDateiname(opt.dateiname), key, bytes.length, sha256Bytes(Buffer.from(bytes)), opt.userId, scan.status, scan.detail],
   );
   if (alt.rows[0]) await loescheObjekt(alt.rows[0].storage_key);
   return res.rows[0];
@@ -273,6 +303,8 @@ export interface VorlagenStamm {
 }
 
 export interface VorlageDetail extends VorlagenStamm {
+  /** Geladene Version (bei Entwürfen die Version, an der sie hängen; `aktuelleVersion` ist die neueste) */
+  version: number;
   vorlage: Vorlage;
   /** Farben, wie sie in dieser Version gelten (Schnappschuss) */
   farben: Farbe[];
@@ -326,7 +358,10 @@ export async function erstelleVorlage(
   const v = pruefeEingabe(eingabe);
   await pruefeDateiVerweise(v);
   const status = opt.status ?? "entwurf";
-  if (status === "aktiv") pruefeAktivierung(v);
+  if (status === "aktiv") {
+    pruefeAktivierung(v);
+    await pruefeDateiScan(v);
+  }
   const farben = await farbSchnappschuss(v);
   const id = await withTx(async (c) => {
     const t = await c.query<{ id: string }>(
@@ -355,12 +390,91 @@ export async function holeVorlage(id: string, version?: number): Promise<Vorlage
   const row = r.rows[0];
   if (!row) return null;
   const { spec, colors, ...stamm } = row;
-  return { ...stamm, vorlage: vorlageAusSpec(spec), farben: colors };
+  return { ...stamm, version: version ?? stamm.aktuelleVersion, vorlage: vorlageAusSpec(spec), farben: colors };
 }
 
-export async function listeVorlagen(opt: { archivierte?: boolean } = {}): Promise<VorlagenStamm[]> {
-  const r = await query<VorlagenStamm>(`SELECT ${STAMM_COLS} FROM pers_templates t WHERE ($1::boolean OR t.archived_at IS NULL) ORDER BY t.name`, [opt.archivierte ?? false]);
+export interface VorlagenKarte extends VorlagenStamm {
+  /** Design-PDF (Vorschaubild der Vorderseite) und Endformat des aktuellen Bearbeitungsstands */
+  designDateiId: string | null;
+  /** Seite (ab 1) der Vorderseite im Design-PDF */
+  designVorne: number;
+  endformat: { breite: number; hoehe: number } | null;
+  kundenAnzahl: number;
+  /** Es gibt Änderungen in der Arbeitskopie, die noch nicht veröffentlicht sind. */
+  ungespeichert: boolean;
+  /** Letzte Änderung der Arbeitskopie bzw. der Vorlage */
+  geaendertAm: string;
+}
+
+/** Vorlagenübersicht für Karten: neuester Bearbeitungsstand (Arbeitskopie vor Version). */
+export async function listeVorlagen(opt: { archivierte?: boolean } = {}): Promise<VorlagenKarte[]> {
+  const r = await query<VorlagenKarte>(
+    `SELECT t.id, COALESCE(t.working_spec->>'name', t.name) AS name, t.status, t.visibility AS sichtbarkeit, t.current_version AS "aktuelleVersion",
+            (t.archived_at IS NOT NULL) AS archiviert, t.created_at AS "createdAt", t.updated_at AS "updatedAt",
+            COALESCE(t.working_spec, v.spec)->'design'->>'dateiId' AS "designDateiId",
+            COALESCE((COALESCE(t.working_spec, v.spec)->'design'->>'vorne')::int, 1) AS "designVorne",
+            CASE WHEN COALESCE(t.working_spec, v.spec)->'endformat' IS NOT NULL
+                 THEN jsonb_build_object('breite', (COALESCE(t.working_spec, v.spec)->'endformat'->>'breite')::float, 'hoehe', (COALESCE(t.working_spec, v.spec)->'endformat'->>'hoehe')::float) END AS endformat,
+            (SELECT count(*)::int FROM pers_template_customers c WHERE c.template_id = t.id) AS "kundenAnzahl",
+            (t.working_spec IS NOT NULL) AS ungespeichert,
+            GREATEST(t.updated_at, COALESCE(t.working_updated_at, t.updated_at)) AS "geaendertAm"
+       FROM pers_templates t
+       JOIN pers_template_versions v ON v.template_id = t.id AND v.version = t.current_version
+      WHERE ($1::boolean OR t.archived_at IS NULL)
+      ORDER BY GREATEST(t.updated_at, COALESCE(t.working_updated_at, t.updated_at)) DESC`,
+    [opt.archivierte ?? false],
+  );
   return r.rows;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Arbeitskopie: der Editor speichert laufend hier, ohne neue Version und ohne Prüfung der Vollständigkeit
+
+export interface Arbeitskopie {
+  spec: unknown;
+  geaendertAm: string;
+}
+
+export async function holeArbeitskopie(id: string): Promise<Arbeitskopie | null> {
+  if (!istUuid(id)) return null;
+  const r = await query<{ spec: unknown; at: string }>("SELECT working_spec AS spec, working_updated_at AS at FROM pers_templates WHERE id = $1 AND working_spec IS NOT NULL", [id]);
+  return r.rows[0] ? { spec: r.rows[0].spec, geaendertAm: r.rows[0].at } : null;
+}
+
+const MAX_ARBEITSKOPIE_BYTES = 512 * 1024;
+
+/**
+ * Zwischenstand speichern. Absichtlich nur grob geprüft (Objekt mit Namen, Größe), damit Autospeichern
+ * auch bei halbfertigen Vorlagen klappt; streng wird erst beim Veröffentlichen geprüft.
+ */
+export async function speichereArbeitskopie(id: string, spec: unknown): Promise<boolean> {
+  if (!istUuid(id)) return false;
+  if (typeof spec !== "object" || spec === null || Array.isArray(spec)) throw new PersFehler("Die Vorlage muss ein Objekt sein.");
+  const roh = JSON.stringify(spec);
+  if (Buffer.byteLength(roh) > MAX_ARBEITSKOPIE_BYTES) throw new PersFehler("Die Vorlage ist zu groß.", 413, "zu_gross");
+  const name = (spec as { name?: unknown }).name;
+  if (typeof name !== "string" || name.trim().length < 1 || name.length > 120) throw new PersFehler("Bitte einen Namen (höchstens 120 Zeichen) vergeben.");
+  const r = await query("UPDATE pers_templates SET working_spec = $2::jsonb, working_updated_at = now() WHERE id = $1 AND archived_at IS NULL", [id, roh]);
+  return (r.rowCount ?? 0) > 0;
+}
+
+/** Änderungen verwerfen: zurück auf den veröffentlichten bzw. gespeicherten Stand. */
+export async function verwerfeArbeitskopie(id: string): Promise<boolean> {
+  if (!istUuid(id)) return false;
+  const r = await query("UPDATE pers_templates SET working_spec = NULL, working_updated_at = NULL WHERE id = $1", [id]);
+  return (r.rowCount ?? 0) > 0;
+}
+
+/**
+ * Veröffentlichen: strenge Prüfung der Arbeitskopie, danach aktiv. Aktive Vorlagen erhalten dabei eine neue,
+ * unveränderliche Version; laufende Entwürfe bleiben an der alten Version.
+ */
+export async function veroeffentlicheVorlage(id: string, opt: { sichtbarkeit?: Sichtbarkeit; userId: string | null }): Promise<VorlageDetail | null> {
+  const arbeit = await holeArbeitskopie(id);
+  const aktuell = await holeVorlage(id);
+  if (!aktuell) return null;
+  const vorlage = arbeit ? arbeit.spec : aktuell.vorlage;
+  return aktualisiereVorlage(id, { vorlage, status: "aktiv", sichtbarkeit: opt.sichtbarkeit }, opt.userId);
 }
 
 /**
@@ -398,12 +512,16 @@ export async function aktualisiereVorlage(
     }
     if (zielStatus === "aktiv") {
       const spec = await c.query<{ spec: unknown }>("SELECT spec FROM pers_template_versions WHERE template_id = $1 AND version = $2", [id, version]);
-      pruefeAktivierung(vorlageAusSpec(spec.rows[0].spec));
+      const aktiv = vorlageAusSpec(spec.rows[0].spec);
+      pruefeAktivierung(aktiv);
+      await pruefeDateiScan(aktiv);
     }
     await c.query(
       `UPDATE pers_templates SET name = COALESCE($2, name), status = $3, visibility = COALESCE($4, visibility),
-         current_version = $5, updated_at = now() WHERE id = $1`,
-      [id, neu?.name ?? null, zielStatus, aenderung.sichtbarkeit ?? null, version],
+         current_version = $5, updated_at = now(),
+         working_spec = CASE WHEN $6::boolean THEN NULL ELSE working_spec END,
+         working_updated_at = CASE WHEN $6::boolean THEN NULL ELSE working_updated_at END WHERE id = $1`,
+      [id, neu?.name ?? null, zielStatus, aenderung.sichtbarkeit ?? null, version, neu !== null],
     );
     return true;
   });
@@ -533,7 +651,7 @@ export function kundenAnsicht(d: VorlageDetail): KundenAnsicht {
     id: d.id,
     name: d.vorlage.name,
     beschreibung: d.vorlage.beschreibung,
-    version: d.aktuelleVersion,
+    version: d.version,
     endformat: d.vorlage.endformat,
     beschnitt: d.vorlage.beschnitt,
     hatRueckseite: d.vorlage.design.hinten !== null,
@@ -559,7 +677,7 @@ export async function ladeRessourcen(d: Pick<VorlageDetail, "vorlage" | "farben"
   const familien = [...new Set(v.felder.flatMap((f) => ("schrift" in f ? [f.schrift.familie] : [])))].filter((f) => f !== "Helvetica");
   const schriften: Ressourcen["schriften"] = [];
   if (familien.length) {
-    const r = await query<{ family: string; style: SchriftSchnitt; storage_key: string }>("SELECT family, style, storage_key FROM pers_fonts WHERE family = ANY($1)", [familien]);
+    const r = await query<{ family: string; style: SchriftSchnitt; storage_key: string }>("SELECT family, style, storage_key FROM pers_fonts WHERE family = ANY($1) AND scan_status <> 'INFECTED'", [familien]);
     for (const row of r.rows) schriften.push({ familie: row.family, schnitt: row.style, bytes: await lade(row.storage_key) });
   }
   return { design, ueberlagerung, schriften, bilder, farben: d.farben };
@@ -576,10 +694,12 @@ export interface Entwurf {
   einstellungen: Record<string, unknown>;
   expiresAt: string;
   updatedAt: string;
+  /** Offene Anfrage, die auf die Bestätigung per Code wartet (Absenden als Gast) */
+  requestId: string | null;
 }
 
 const ENTWURF_COLS = `id, template_id AS "templateId", template_version AS "templateVersion", records AS datensaetze,
-  settings AS einstellungen, expires_at AS "expiresAt", updated_at AS "updatedAt"`;
+  settings AS einstellungen, expires_at AS "expiresAt", updated_at AS "updatedAt", request_id AS "requestId"`;
 
 function pruefeDatensaetze(eingabe: unknown): Datensatz[] {
   if (!Array.isArray(eingabe)) throw new PersFehler("Die Datensätze müssen eine Liste sein.");
@@ -657,4 +777,9 @@ export async function sweepAbgelaufeneEntwuerfe(): Promise<number> {
     await query(`INSERT INTO audit_log (action, actor_type, detail) VALUES ('pers_drafts_swept', 'system', $1)`, [JSON.stringify({ sweptDrafts: n })]);
   }
   return n;
+}
+
+/** Entwurf an die offene Anfrage binden, die per Code bestätigt wird. */
+export async function bindeEntwurfAnAnfrage(id: string, requestId: string | null): Promise<void> {
+  await query("UPDATE pers_drafts SET request_id = $2 WHERE id = $1", [id, requestId]);
 }

@@ -64,6 +64,18 @@ export interface RequestDetail {
   customer: DetailCustomer;
   /** Nur Staff, nur Partner-Aufträge: Partnername, Partner-Referenz, lesbare Angaben. */
   partner?: { name: string; ref: string; rows: { label: string; value: string }[] } | null;
+  /** Nur Staff: Auftrag aus der Personalisierung (Vorlage, Version, Mengen). */
+  personalisierung?: {
+    templateId: string | null;
+    templateName: string | null;
+    version: number;
+    records: number;
+    nutzen: number;
+    pages: number;
+    mode: string;
+    pdfFileId: string | null;
+    dataFileId: string | null;
+  } | null;
   files: DetailFile[];
   bundles: DetailBundle[];
   shipment: DetailShipment | null;

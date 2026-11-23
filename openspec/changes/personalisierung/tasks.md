@@ -16,8 +16,9 @@
 - [x] 3.3 Routen `/api/personalisierung/staff/*` und `/api/personalisierung/z/[ref]/*`
 - [x] 3.4 Retorix-Importer mit Mapping-Tests
 
-## 4. Nächster Schritt (UI, nicht Teil dieses Changes)
-- [ ] 4.1 Staff-Editor (Seite `/staff/personalisierung`), siehe design.md
-- [ ] 4.2 Kundenablauf (Seite `/personalisieren/[ref]`), Bestätigung per E-Mail-Code, Anfrage in druck-s
-- [ ] 4.3 Hilfe-Lektionen und Tour (lib/hilfe), Datenschutzerklärung (Aufbewahrung der Entwürfe)
-- [ ] 4.4 Virenscan für `pers_files` im Batch-Modus, OpenAPI-Eintrag der öffentlichen Routen
+## 4. Oberfläche
+- [x] 4.1 Staff-Bereich `/staff/personalisierung`: Übersicht (Karten, Suche, Duplizieren, Link kopieren, Archivieren), Assistent in vier Schritten (Design, visueller Feld-Editor mit Einrasten/Undo/Beispielvorschau aus der Engine im Browser, Druckbogen mit Skizze, Freigabe), Autospeichern in die Arbeitskopie, Veröffentlichen als neue Version, Schriften & Farben
+- [x] 4.2 Kundenablauf `/personalisieren/[ref]` (Einzeln/Tabelle, Prüfen, Absenden mit E-Mail-Code, Direktweg für Kunden und Mitarbeiter), „Für Kunden ausfüllen“, „Meine Vorlagen“ im Konto, Kennzeichen am Auftrag
+- [ ] 4.3 Hilfe-Lektionen und Tour (lib/hilfe; Anker `data-tour="pers-…"` sind gesetzt), Datenschutzerklärung (Aufbewahrung der Entwürfe: 24 Stunden nach der letzten Änderung)
+- [x] 4.4 Virenscan für `pers_files`/`pers_fonts` im Batch-Modus (Migration 013, `scripts/scan-pending.mjs`, Sperre beim Veröffentlichen, docs/virenscan.md), OpenAPI-Eintrag der öffentlichen Routen
+- [ ] 4.5 Offen: Löschfrist für Anfragedateien (Datentabelle mit Personendaten), Beispielvorschau für lange Texte („Langtext-Datensatz“), Test mit echten Kundendateien

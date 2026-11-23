@@ -3,7 +3,7 @@ import { begrenzeJeIp, zaehle } from "@/lib/personalisierung/dienst";
 import { PersFehler } from "@/lib/personalisierung/dateien";
 import { leseUpload, persFailure, persJson } from "@/lib/personalisierung/http";
 import { leseTabelle, ordneSpalten, TabellenFehler, tabelleZuDatensaetzen, type Spaltenzuordnung } from "@/lib/personalisierung/tabelle";
-import { loeseZugang } from "@/lib/personalisierung/zugang";
+import { detailFuerAufruf, loeseZugang } from "@/lib/personalisierung/zugang";
 
 /**
  * Tabelle (CSV/XLSX) einlesen. multipart: `datei`, optional `zuordnung` (JSON { schluessel: Spaltenindex|null, auflage }).
@@ -13,6 +13,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ ref: string }>
   try {
     const z = await loeseZugang(req, (await ctx.params).ref);
     if (z instanceof Response) return z;
+    const vlg = (await detailFuerAufruf(req, z)).vorlage;
     await begrenzeJeIp("pers_table", z.ip, config.personalisierung.tablesPerIpPerHour);
     const { bytes, form } = await leseUpload(req, "datei", config.personalisierung.maxTableBytes);
     await zaehle("pers_table", z.ip, z.akteur, { templateId: z.detail.id });
@@ -26,7 +27,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ ref: string }>
     if (tabelle.zeilen.length > config.personalisierung.maxDatensaetze) {
       throw new PersFehler(`Die Tabelle hat ${tabelle.zeilen.length} Datenzeilen; erlaubt sind höchstens ${config.personalisierung.maxDatensaetze}.`, 413, "zu_viele");
     }
-    let zuordnung: Spaltenzuordnung = ordneSpalten(tabelle.kopf, z.detail.vorlage.variablen);
+    let zuordnung: Spaltenzuordnung = ordneSpalten(tabelle.kopf, vlg.variablen);
     const manuell = form.get("zuordnung");
     if (typeof manuell === "string" && manuell.trim()) {
       let m: { variablen?: Record<string, unknown>; auflage?: unknown };
@@ -37,7 +38,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ ref: string }>
       }
       const gueltig = (v: unknown): v is number | null => v === null || (Number.isInteger(v) && (v as number) >= 0 && (v as number) < tabelle.kopf.length);
       const variablen: Record<string, number | null> = {};
-      for (const v of z.detail.vorlage.variablen) {
+      for (const v of vlg.variablen) {
         const w = m.variablen?.[v.schluessel] ?? null;
         if (!gueltig(w)) throw new PersFehler(`Ungültige Spalte für „${v.bezeichnung}“.`);
         variablen[v.schluessel] = w;
@@ -48,7 +49,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ ref: string }>
         variablen,
         auflage,
         unbenutzt: tabelle.kopf.map((_k, i) => i).filter((i) => !Object.values(variablen).includes(i) && i !== auflage),
-        fehlend: z.detail.vorlage.variablen.filter((v) => variablen[v.schluessel] === null).map((v) => ({ schluessel: v.schluessel, bezeichnung: v.bezeichnung, pflicht: v.pflicht })),
+        fehlend: vlg.variablen.filter((v) => variablen[v.schluessel] === null).map((v) => ({ schluessel: v.schluessel, bezeichnung: v.bezeichnung, pflicht: v.pflicht })),
       };
     }
     const { datensaetze, warnungen } = tabelleZuDatensaetzen(tabelle, zuordnung);

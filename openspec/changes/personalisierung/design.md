@@ -39,3 +39,11 @@ retorix (`/home/user/retorix`, Django) liefert den Funktionsumfang: Produkt mit 
 4. Vorschau: Blättern durch die Datensätze (Vorder-/Rückseite), PDF.js.
 5. Absenden: Kontaktdaten, Code per E-Mail wie bei der offenen Anfrage; dann Anfrage in druck-s mit `erzeugeDruckdatenFuerAnfrage`; Entwurf löschen.
 - Zwischenstände im Entwurf (`/entwuerfe`), Hinweis „wird nach 24 Stunden ohne Änderung gelöscht“.
+
+## Umsetzung der Oberfläche (Entscheidungen)
+
+- **Arbeitskopie statt Versionsflut:** Der Editor speichert alle 1,2 s in `pers_templates.working_spec` (nur grob geprüft, halbfertige Stände sind erlaubt). „Veröffentlichen“ prüft streng (Schema, Aktivierung, Virenscan) und legt bei aktiven Vorlagen eine neue unveränderliche Version an; Entwürfe an der alten Version bleiben gültig und werden mit ihr abgeschlossen (Vorschau, Prüfung und Absenden nutzen die Version des Entwurfs).
+- **Editor-Logik rein:** `lib/personalisierung/ui/editor.ts` (Verlauf, Einrasten, Größe, Platzhalter, Warnungen) ist unabhängig von React und getestet.
+- **Vorschau:** Mitarbeiter sehen im Browser die echte Ausgabe der Engine (Design als Hintergrund, optional mit Beispieldaten). Gäste und Kunden bekommen nur serverseitig erzeugte PDFs; Schriftdateien verlassen den Server nie.
+- **Absenden:** Gast: Kontakt → Code (wie offene Anfrage) → Bestätigung → erst dann Druckdaten (serverseitig aus dem Entwurf, nie aus Browserdaten). Kunde mit Konto und Mitarbeiter („für Kunden ausfüllen“) senden direkt; die Anfrage gehört dem Konto. Das Team wird immer mit dem Hinweis „Personalisierung“ benachrichtigt.
+- **Links:** Die Adresse eines öffentlichen Links ist nur beim Erzeugen bekannt (gespeichert wird nur der Hash). „Link kopieren“ in der Übersicht erzeugt deshalb einmal je Sitzung einen Link.

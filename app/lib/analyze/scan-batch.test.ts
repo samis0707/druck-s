@@ -280,6 +280,36 @@ describe("Scan-Job: Auswahl und Statuswechsel", () => {
     expect(summary).toMatchObject({ clean: 0, skipped: 1 });
     expect(client.query.mock.calls.some((c) => String(c[0]).includes("audit_log"))).toBe(false);
   });
+
+  it("Personalisierung: Design-PDFs und Schriften landen in pers_files/pers_fonts, nicht in analysis_reports", async () => {
+    const row = (fileId: string, source: string, attempts = 0) => ({ fileId, requestId: null, storageKey: `personalisierung/${fileId}`, sizeBytes: "10", sha256: null, source, security: { reasons: [], scan: { attempts } } });
+    const rows = [row(ID1, "pers_files"), row(ID2, "pers_fonts"), row(ID3, "pers_files", 4)];
+    const calls: { sql: string; params?: unknown[] }[] = [];
+    const client = {
+      query: vi.fn(async (sql: string, params?: unknown[]) => {
+        calls.push({ sql, params });
+        return { rowCount: sql.startsWith("UPDATE") ? 1 : 0, rows: [] };
+      }),
+    };
+    const download = async (r: { fileId: string }, dest: string) => {
+      if (r.fileId === ID3) throw Object.assign(new Error("x"), { name: "NoSuchKey" });
+      await fs.writeFile(dest, "d");
+    };
+    const scan = async (dir: string) => ({ code: 1, stdout: `${dir}/${ID1}: OK\n${dir}/${ID2}: Evil.Font FOUND\n`, stderr: "" });
+    const summary = await processBatch(rows, { client, download, scan, settings: { ...settings, maxAttempts: 5 }, log: () => {} });
+    expect(summary).toMatchObject({ clean: 1, infected: 1, unavailable: 1 });
+    const upd = calls.filter((c) => c.sql.startsWith("UPDATE"));
+    expect(upd.every((u) => !u.sql.includes("analysis_reports"))).toBe(true);
+    const byId = new Map(upd.map((u) => [u.params![0], u]));
+    expect(byId.get(ID1)!.sql).toContain("UPDATE pers_files");
+    expect(byId.get(ID1)!.params!.slice(1)).toEqual(["CLEAN", 0, null]);
+    expect(byId.get(ID2)!.sql).toContain("UPDATE pers_fonts");
+    expect(byId.get(ID2)!.params!.slice(1)).toEqual(["INFECTED", 0, "Evil.Font"]);
+    expect(byId.get(ID3)!.params![1]).toBe("UNAVAILABLE");
+    const audits = calls.filter((c) => c.sql.includes("INSERT INTO audit_log"));
+    expect(audits.map((a) => a.params![0]).sort()).toEqual(["malware_detected", "malware_scan_unavailable"]);
+    expect(String(audits[0].params![1])).toContain("pers_");
+  });
 });
 
 

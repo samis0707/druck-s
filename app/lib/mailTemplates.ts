@@ -575,14 +575,22 @@ export function staffInquiryNotice(input: {
   phone: string | null;
   staffUrl: string;
   richtpreis?: RichtpreisMailZeile[] | null;
+  /** Besondere Art der Anfrage, z. B. "Personalisierung (Vorlage Visitenkarte, 12 Datensätze)". */
+  hinweis?: string;
+  /** Anfrage einer Kundin/eines Kunden mit Konto (nur zusammen mit `hinweis`). */
+  kunde?: boolean;
 }): MailContent {
   const rp = input.richtpreis && input.richtpreis.length > 0 ? input.richtpreis : null;
   const ref = input.requestRef;
   const who = [input.name, input.organisation].filter(Boolean).join(", ");
-  const reason = `Interne Benachrichtigung von ${company.brand}: Ein Interessent ohne Kundenkonto hat eine Anfrage bestätigt.`;
-  const subject = `Neue Anfrage ${ref} von ${who}`;
+  const kunde = !!input.kunde;
+  const reason = kunde
+    ? `Interne Benachrichtigung von ${company.brand}: Eine Anfrage eines Kunden ist eingegangen.`
+    : `Interne Benachrichtigung von ${company.brand}: Ein Interessent ohne Kundenkonto hat eine Anfrage bestätigt.`;
+  const subject = `Neue Anfrage ${ref}${input.hinweis ? " (Personalisierung)" : ""} von ${who}`;
   const text = [
-    `Neue Anfrage eines Interessenten (E-Mail-Adresse per Code bestätigt).`,
+    kunde ? `Neue Anfrage eines Kunden.` : `Neue Anfrage eines Interessenten (E-Mail-Adresse per Code bestätigt).`,
+    ...(input.hinweis ? [``, `Art: ${input.hinweis}`] : []),
     ``,
     `Nummer: ${ref}`,
     `Produkt: ${input.product}`,
@@ -592,20 +600,21 @@ export function staffInquiryNotice(input: {
     ...(rp ? [``, `Richtpreis, den der Interessent gesehen hat (unverbindlich, aus den Stammdaten neu berechnet):`, ...richtpreisTextZeilen(rp)] : []),
     ``,
     `Im Backoffice öffnen: ${input.staffUrl}`,
-    `Freischalten unter „Kunden & Links“, damit der Interessent Aufträge ansehen und freigeben kann.`,
+    ...(kunde ? [] : [`Freischalten unter „Kunden & Links“, damit der Interessent Aufträge ansehen und freigeben kann.`]),
     ``,
     footerText(reason),
   ].join("\n");
   const html = layout({
     title: subject,
     preheader: `${who} wartet auf Rückmeldung.`,
-    heading: "Neue Anfrage eines Interessenten",
+    heading: kunde ? "Neue Anfrage eines Kunden" : "Neue Anfrage eines Interessenten",
     reason,
     body: [
-      paragraph(`Die E-Mail-Adresse wurde per Code bestätigt. Ein Kundenkonto gibt es noch nicht.`),
+      paragraph(kunde ? `Die Anfrage ist dem Kundenkonto zugeordnet.` : `Die E-Mail-Adresse wurde per Code bestätigt. Ein Kundenkonto gibt es noch nicht.`),
       summaryBox([
         { label: "Nummer", value: ref, mono: true },
         { label: "Produkt", value: input.product },
+        ...(input.hinweis ? [{ label: "Art", value: input.hinweis }] : []),
         { label: "Kontakt", value: who },
         { label: "E-Mail", value: input.email },
         { label: "Telefon", value: input.phone ?? "nicht angegeben" },
@@ -614,7 +623,7 @@ export function staffInquiryNotice(input: {
         ? [paragraph(`<strong>Richtpreis, den der Interessent gesehen hat</strong> (unverbindlich, aus den Stammdaten neu berechnet)`), richtpreisBox(rp)]
         : []),
       button(input.staffUrl, "Im Backoffice öffnen"),
-      paragraph(`Freischalten unter „Kunden &amp; Links“, damit der Interessent Aufträge ansehen und freigeben kann.`),
+      ...(kunde ? [] : [paragraph(`Freischalten unter „Kunden &amp; Links“, damit der Interessent Aufträge ansehen und freigeben kann.`)]),
     ].join("\n"),
   });
   return { subject, text, html };
