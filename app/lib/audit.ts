@@ -40,6 +40,16 @@ export const AUDIT_ACTIONS = [
   "kalkulation_key_revoked",
   "richtpreis_requested",
   "richtpreis_saved",
+  // Personalisierung (lib/personalisierung): Zählgrundlage der Gast-Grenzen, nie mit Datensatzwerten.
+  "pers_preview",
+  "pers_check",
+  "pers_table",
+  "pers_draft_created",
+  "pers_link_created",
+  "pers_link_revoked",
+  "pers_generated",
+  "pers_drafts_swept",
+  "pers_template_saved",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

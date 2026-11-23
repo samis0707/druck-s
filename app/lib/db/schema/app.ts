@@ -5,6 +5,7 @@ import {
   date,
   index,
   integer,
+  numeric,
   jsonb,
   pgTable,
   text,
@@ -333,4 +334,144 @@ export const requestQuotes = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("request_quotes_request_idx").on(t.requestId, t.createdAt)],
+);
+
+// ---------------------------------------------------------------------------------------------
+// Personalisierung (Migration 011, lib/personalisierung, openspec/changes/personalisierung)
+
+export const persFiles = pgTable("pers_files", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  kind: text("kind").notNull(),
+  storageKey: text("storage_key").notNull(),
+  fileName: text("file_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+  sha256: text("sha256").notNull(),
+  pages: integer("pages"),
+  widthMm: numeric("width_mm", { precision: 8, scale: 2 }),
+  heightMm: numeric("height_mm", { precision: 8, scale: 2 }),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  importSource: text("import_source").unique(),
+});
+
+export const persFonts = pgTable(
+  "pers_fonts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    family: text("family").notNull(),
+    style: text("style").notNull(),
+    fileName: text("file_name").notNull(),
+    storageKey: text("storage_key").notNull(),
+    sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
+    sha256: text("sha256").notNull(),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    importSource: text("import_source").unique(),
+  },
+  (t) => [uniqueIndex("pers_fonts_family_style_key").on(t.family, t.style)],
+);
+
+export const persColors = pgTable("pers_colors", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  c: numeric("c", { precision: 5, scale: 2 }).notNull(),
+  m: numeric("m", { precision: 5, scale: 2 }).notNull(),
+  y: numeric("y", { precision: 5, scale: 2 }).notNull(),
+  k: numeric("k", { precision: 5, scale: 2 }).notNull(),
+  spotName: text("spot_name"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  importSource: text("import_source").unique(),
+});
+
+export const persTemplates = pgTable("pers_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  status: text("status").notNull().default("entwurf"),
+  visibility: text("visibility").notNull().default("mitarbeiter"),
+  currentVersion: integer("current_version").notNull().default(1),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  importSource: text("import_source").unique(),
+});
+
+export const persTemplateVersions = pgTable(
+  "pers_template_versions",
+  {
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => persTemplates.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    spec: jsonb("spec").notNull(),
+    colors: jsonb("colors").notNull().default([]),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("pers_template_versions_pk").on(t.templateId, t.version)],
+);
+
+export const persTemplateCustomers = pgTable(
+  "pers_template_customers",
+  {
+    templateId: uuid("template_id")
+      .notNull()
+      .references(() => persTemplates.id, { onDelete: "cascade" }),
+    customerId: text("customer_id")
+      .notNull()
+      .references(() => authUser.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("pers_template_customers_pk").on(t.templateId, t.customerId)],
+);
+
+export const persAccessLinks = pgTable("pers_access_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  templateId: uuid("template_id")
+    .notNull()
+    .references(() => persTemplates.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  label: text("label").notNull().default(""),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+});
+
+export const persDrafts = pgTable(
+  "pers_drafts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    templateId: uuid("template_id").notNull(),
+    templateVersion: integer("template_version").notNull(),
+    linkId: uuid("link_id").references(() => persAccessLinks.id, { onDelete: "set null" }),
+    accessHash: text("access_hash").notNull(),
+    records: jsonb("records").notNull().default([]),
+    settings: jsonb("settings").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [index("pers_drafts_expires_idx").on(t.expiresAt)],
+);
+
+export const persRequestOutputs = pgTable(
+  "pers_request_outputs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => requests.id, { onDelete: "cascade" }),
+    templateId: uuid("template_id").references(() => persTemplates.id, { onDelete: "set null" }),
+    templateVersion: integer("template_version").notNull(),
+    pdfFileId: uuid("pdf_file_id").references(() => requestFiles.id, { onDelete: "set null" }),
+    dataFileId: uuid("data_file_id").references(() => requestFiles.id, { onDelete: "set null" }),
+    mode: text("mode").notNull(),
+    recordCount: integer("record_count").notNull(),
+    nutzenCount: integer("nutzen_count").notNull(),
+    pageCount: integer("page_count").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("pers_request_outputs_request_idx").on(t.requestId)],
 );

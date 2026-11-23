@@ -1,3 +1,4 @@
+import { sweepPersonalisierung } from "./personalisierung/sweep";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { query, withTx } from "./db";
 import { config } from "./config";
@@ -99,5 +100,7 @@ export async function sweepExpiredDrafts(): Promise<number> {
   if (removed > 0) {
     await appendAudit({ action: "drafts_swept", detail: { sweptDrafts: removed } });
   }
+  // Personalisierung: abgelaufene Gast-Entwürfe (Datensätze) im selben Durchgang löschen.
+  await sweepPersonalisierung();
   return removed;
 }

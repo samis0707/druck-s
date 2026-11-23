@@ -1,0 +1,4 @@
+Open Sans (Regular, Bold) - Copyright 2020 The Open Sans Project Authors
+(https://github.com/googlefonts/opensans). Lizenz: SIL Open Font License 1.1
+(https://openfontlicense.org). Bezogen aus dem npm-Paket @expo-google-fonts/open-sans.
+Nur als Test-Fixture; die Schriften werden nicht ausgeliefert.
