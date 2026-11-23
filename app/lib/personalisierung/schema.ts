@@ -245,8 +245,8 @@ export const DesignSchema = z.object({
 });
 export type Design = z.infer<typeof DesignSchema>;
 
-export const VorlageSchema = z
-  .object({
+/** Struktur ohne Querprüfungen (Editor: halbfertige Arbeitskopien müssen ladbar sein). */
+export const VorlageBasisSchema = z.object({
     schemaVersion: z.literal(SCHEMA_VERSION).default(SCHEMA_VERSION),
     name: z.string().trim().min(1).max(120),
     beschreibung: text(1000).default(""),
@@ -263,7 +263,9 @@ export const VorlageSchema = z
       abstand: { spalten: 0, zeilen: 0 },
       ueberlagerung: null,
     }),
-  })
+  });
+
+export const VorlageSchema = VorlageBasisSchema
   .superRefine((v, ctx) => {
     const schluessel = new Set<string>();
     v.variablen.forEach((va, i) => {

@@ -61,6 +61,7 @@ export const PRODUCT_HINTS = [
 /** Slug → deutsches Label; unbekannte Werte fallen auf den Rohwert zurück. */
 export function productLabel(value: string | null | undefined): string {
   if (!value) return "—";
+  if (value === "personalisierung") return "Personalisierung";
   return PRODUCT_HINTS.find((h) => h.value === value)?.label ?? value;
 }
 

@@ -242,6 +242,14 @@ function contactBlock(contact: InquiryContact): string {
   ].join("\n");
 }
 
+/** Erweiterungen für Anfragen, die mehr als eine Beschreibung mitbringen (Personalisierung). */
+export interface ConfirmOptions {
+  /** Läuft nach der Bestätigung, vor den Mails (z. B. Druckdaten erzeugen, damit die Dateien gezählt werden). */
+  nachBestaetigung?: (request: PrintRequest) => Promise<void>;
+  /** Hinweis in der Team-Mail; setzt voraus, dass das Team immer benachrichtigt wird (auch bei Kunden mit Konto). */
+  hinweis?: string;
+}
+
 export interface ConfirmResult {
   inquiry: InquiryView;
   /** true: an ein bestehendes Kundenkonto gebunden; false: Interessent. */
@@ -249,7 +257,7 @@ export interface ConfirmResult {
 }
 
 /** Mit dem Code bestätigen: DRAFT → RECEIVED, Nummer vergeben, danach Analyse und Mails. */
-export async function confirmInquiry(id: string, code: string, ctx: { ip?: string | null }): Promise<ConfirmResult> {
+export async function confirmInquiry(id: string, code: string, ctx: { ip?: string | null }, opts: ConfirmOptions = {}): Promise<ConfirmResult> {
   await requireOpenDraft(id);
 
   const outcome = await withTx(async (client) => {
@@ -334,12 +342,20 @@ export async function confirmInquiry(id: string, code: string, ctx: { ip?: strin
     ip: ctx.ip ?? null,
     detail: { email: contact.email, customer },
   });
-  await notifyAfterConfirm(request, contact, customer);
+  if (opts.nachBestaetigung) {
+    try {
+      await opts.nachBestaetigung(request);
+    } catch (err) {
+      // Ein Fehler hier macht die bestätigte Anfrage nicht ungültig; das Team sieht es an der Notiz im Auftrag.
+      console.error(`[inquiry] Nachbearbeitung ${requestRef(request)} fehlgeschlagen:`, err instanceof Error ? err.name : "Fehler");
+    }
+  }
+  await notifyAfterConfirm(request, contact, customer, opts.hinweis);
   return { inquiry: await toView(request), customer };
 }
 
 /** Eingangsbestätigung und Team-Hinweis. Ein Mailfehler macht die bestätigte Anfrage nicht ungültig. */
-async function notifyAfterConfirm(request: PrintRequest, contact: InquiryContact, customer: boolean): Promise<void> {
+async function notifyAfterConfirm(request: PrintRequest, contact: InquiryContact, customer: boolean, hinweis?: string): Promise<void> {
   const ref = requestRef(request);
   const product = productLabel(request.productHint);
   try {
@@ -349,9 +365,11 @@ async function notifyAfterConfirm(request: PrintRequest, contact: InquiryContact
   } catch (err) {
     console.error(`[inquiry] Eingangsbestätigung ${ref} fehlgeschlagen:`, err instanceof Error ? err.message : err);
   }
-  if (customer) return;
+  if (customer && !hinweis) return;
   try {
     const notice = staffInquiryNotice({
+      hinweis,
+      kunde: customer,
       requestRef: ref,
       product,
       name: contact.name,

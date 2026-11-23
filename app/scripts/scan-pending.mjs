@@ -4,7 +4,8 @@
  *
  * Läuft als Cron-Service (Railway: alle 10 Minuten, Image Dockerfile.scan) und beendet sich danach:
  *   1. Sperre holen (pg_try_advisory_lock) — ein zweiter Lauf parallel beendet sich sofort.
- *   2. Älteste Berichte mit security.scan.status = 'PENDING' holen (SCAN_BATCH_SIZE, SCAN_BATCH_MAX_MB).
+ *   2. Älteste Berichte mit security.scan.status = 'PENDING' holen (SCAN_BATCH_SIZE, SCAN_BATCH_MAX_MB);
+ *      dazu Design-PDFs, Bilder und Schriften der Personalisierung (pers_files / pers_fonts mit scan_status = 'PENDING').
  *   3. Nur wenn es etwas gibt oder keine Signaturen da sind: freshclam, höchstens alle
  *      FRESHCLAM_INTERVAL_HOURS (Zeitstempel-Datei auf dem Volume); scheitert es, mit vorhandenen
  *      Signaturen weiter, ohne Signaturen Abbruch (Exit 1).
@@ -197,8 +198,42 @@ const SELECT_PENDING = `SELECT ar.file_id AS "fileId", f.request_id AS "requestI
   ORDER BY ar.measured_at ASC, ar.file_id ASC
   LIMIT $1`;
 
+/** Personalisierung: Quellen außerhalb der Auftragsdateien (feste Tabellennamen, nie aus Daten). */
+const PERS_TABLES = { pers_files: "pers_files", pers_fonts: "pers_fonts" };
+
+const SELECT_PENDING_PERS = (table) => `SELECT id AS "fileId", NULL::uuid AS "requestId", storage_key AS "storageKey",
+    size_bytes AS "sizeBytes", sha256, scan_attempts AS attempts, '${table}' AS source
+  FROM ${table} WHERE scan_status = 'PENDING' ORDER BY created_at ASC, id ASC LIMIT $1`;
+
+/** Ergebnis für eine Personalisierungs-Datei (Design, Bild, Schrift) in die eigene Tabelle schreiben. */
+async function writePersResult(client, row, resolved) {
+  const table = PERS_TABLES[row.source];
+  const scan = resolved.security.scan;
+  const detail = (scan.signature ?? scan.error ?? null);
+  await client.query("BEGIN");
+  try {
+    const res = await client.query(
+      `UPDATE ${table} SET scan_status = $2, scan_attempts = $3, scan_detail = $4 WHERE id = $1 AND scan_status = 'PENDING'`,
+      [row.fileId, resolved.final ?? "PENDING", scan.attempts ?? 0, detail ? String(detail).slice(0, 300) : null],
+    );
+    if (res.rowCount > 0 && (resolved.final === "INFECTED" || resolved.final === "UNAVAILABLE")) {
+      const d = { fileId: row.fileId, source: "batch-scan", kind: row.source, ...(resolved.final === "INFECTED" ? { signature: scan.signature } : { attempts: scan.attempts }) };
+      await client.query(
+        `INSERT INTO audit_log (action, actor_type, actor_id, detail) VALUES ($1, 'system', 'scan-pending', $2::jsonb)`,
+        [resolved.final === "INFECTED" ? "malware_detected" : "malware_scan_unavailable", JSON.stringify(d)],
+      );
+    }
+    await client.query("COMMIT");
+    return res.rowCount > 0;
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw err;
+  }
+}
+
 /** Ergebnis schreiben — nur, solange der Bericht noch PENDING ist (keine Neuanalyse überschreiben). */
 export async function writeResult(client, row, resolved) {
+  if (row.source && PERS_TABLES[row.source]) return writePersResult(client, row, resolved);
   await client.query("BEGIN");
   try {
     const res = await client.query(
@@ -416,6 +451,13 @@ export async function main(env = process.env, log = (m) => console.log(m)) {
       return 0;
     }
     const pending = await client.query(SELECT_PENDING, [settings.batchSize]);
+    // Personalisierung: Design-PDFs, Bilder, Schriften (Tabellen ab Migration 013).
+    const persRows = [];
+    for (const table of Object.keys(PERS_TABLES)) {
+      const r = await client.query(SELECT_PENDING_PERS(table), [settings.batchSize]);
+      for (const row of r.rows) persRows.push({ ...row, security: { reasons: [], scan: { attempts: row.attempts } } });
+    }
+    pending.rows.push(...persRows);
     const rows = selectBatch(pending.rows, settings);
     const haveSignatures = (await signatureFiles(settings.dbDir)).length > 0;
     if (rows.length === 0 && haveSignatures) {

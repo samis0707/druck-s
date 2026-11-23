@@ -353,6 +353,9 @@ export const persFiles = pgTable("pers_files", {
   createdBy: text("created_by"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   importSource: text("import_source").unique(),
+  scanStatus: text("scan_status").notNull().default("CLEAN"),
+  scanAttempts: integer("scan_attempts").notNull().default(0),
+  scanDetail: text("scan_detail"),
 });
 
 export const persFonts = pgTable(
@@ -368,6 +371,9 @@ export const persFonts = pgTable(
     createdBy: text("created_by"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     importSource: text("import_source").unique(),
+    scanStatus: text("scan_status").notNull().default("CLEAN"),
+    scanAttempts: integer("scan_attempts").notNull().default(0),
+    scanDetail: text("scan_detail"),
   },
   (t) => [uniqueIndex("pers_fonts_family_style_key").on(t.family, t.style)],
 );
@@ -395,6 +401,8 @@ export const persTemplates = pgTable("pers_templates", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   importSource: text("import_source").unique(),
+  workingSpec: jsonb("working_spec"),
+  workingUpdatedAt: timestamp("working_updated_at", { withTimezone: true }),
 });
 
 export const persTemplateVersions = pgTable(
@@ -452,6 +460,7 @@ export const persDrafts = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    requestId: uuid("request_id"),
   },
   (t) => [index("pers_drafts_expires_idx").on(t.expiresAt)],
 );

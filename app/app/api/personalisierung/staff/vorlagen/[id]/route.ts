@@ -1,6 +1,6 @@
 import { istObjekt, alsStaff, leseJson, persError, persJson } from "@/lib/personalisierung/http";
 import { PersFehler } from "@/lib/personalisierung/dateien";
-import { aktualisiereVorlage, archiviereVorlage, holeVorlage, listeKunden, listeLinks } from "@/lib/personalisierung/repo";
+import { aktualisiereVorlage, archiviereVorlage, holeArbeitskopie, holeVorlage, listeKunden, listeLinks } from "@/lib/personalisierung/repo";
 import { appendAudit } from "@/lib/auditLog";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -12,7 +12,8 @@ export async function GET(req: Request, ctx: Ctx) {
     const v = Number(new URL(req.url).searchParams.get("version") ?? "") || undefined;
     const d = await holeVorlage(id, v);
     if (!d) return persError(404, "nicht_gefunden", "Vorlage nicht gefunden.");
-    return persJson({ ...d, kunden: await listeKunden(id), links: await listeLinks(id) });
+    const arbeit = await holeArbeitskopie(id);
+    return persJson({ ...d, arbeitskopie: arbeit?.spec ?? null, arbeitskopieAm: arbeit?.geaendertAm ?? null, kunden: await listeKunden(id), links: await listeLinks(id) });
   });
 }
 
