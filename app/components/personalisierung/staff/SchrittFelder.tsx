@@ -358,6 +358,7 @@ export function SchrittFelder({
             {vorlage.variablen.map((v) => (
               <VariableBearbeiten
                 key={v.schluessel}
+                idPrefix="liste-"
                 vorlage={vorlage}
                 variable={v}
                 onBezeichnung={(bz) => aendere((x) => setzeBezeichnung(x, v.schluessel, bz), `bez-${v.schluessel}`)}

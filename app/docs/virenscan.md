@@ -56,6 +56,27 @@ Das Image startet als root, übergibt nur das Volume `/var/lib/clamav` an den Nu
 (Railway hängt Volumes root-eigen ein) und führt dann freshclam, Node und clamscan als `clamav` aus
 (`scripts/scan-entrypoint.sh`). `RAILWAY_RUN_UID` ist deshalb nicht nötig.
 
+### Personalisierung: Design-PDFs, Bilder und Schriften
+
+Hochgeladene Dateien der Personalisierung (`pers_files`: Design, Überlagerung, Bilder; `pers_fonts`: Schriften) haben
+ab Migration 013 einen eigenen Scan-Status (`scan_status`: PENDING, CLEAN, INFECTED, UNAVAILABLE). Im Daemon-Modus
+prüft die App synchron (INFECTED lehnt den Upload ab). Im Batch-Modus setzt sie PENDING; derselbe Job
+(`scripts/scan-pending.mjs`) prüft diese Zeilen im selben `clamscan`-Lauf und schreibt das Ergebnis in die jeweilige
+Tabelle (Audit `malware_detected` bzw. `malware_scan_unavailable` ohne Auftragsbezug).
+
+Warum so: Mitarbeiter sollen nach dem Hochladen sofort weiterarbeiten können, daher bleibt eine Datei im Editor
+nutzbar, solange sie PENDING ist. Gesperrt wird dort, wo sie nach außen wirkt:
+
+- **Veröffentlichen** (und Aktivieren) einer Vorlage scheitert mit einem freundlichen Hinweis („Virenprüfung läuft
+  noch, meist wenige Minuten“), solange eine verwendete Datei oder Schrift PENDING ist. Kunden und Gäste sehen nur
+  Vorlagen, die diese Prüfung bestanden haben, und nie die Dateien selbst, nur serverseitig erzeugte PDFs.
+- **INFECTED** wird nie ausgeliefert oder gerendert (Download, Editor-Vorschau, Erzeugung) und verhindert das
+  Veröffentlichen.
+- **UNAVAILABLE** (Scanner dauerhaft nicht erreichbar) blockiert nicht (fail-open wie bei allen Uploads); das
+  Audit-Log hält es fest.
+
+Altbestand (Retorix-Import, Dateien vor Migration 013) gilt als CLEAN.
+
 ### Variablen des Scan-Jobs
 
 | Variable | Pflicht | Standard | Bedeutung |
