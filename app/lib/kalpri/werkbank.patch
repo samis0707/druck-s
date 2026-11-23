@@ -1,0 +1,175 @@
+diff --git a/apps/werkbank/src/lib/server-sync.ts b/apps/werkbank/src/lib/server-sync.ts
+index c3f3a33..042cb8c 100644
+--- a/apps/werkbank/src/lib/server-sync.ts
++++ b/apps/werkbank/src/lib/server-sync.ts
+@@ -27,6 +27,23 @@ export const SYNC_BEREICHE: readonly { schluessel: string; name: string }[] = [
+   { schluessel: 'werkbank.stanze.v1', name: 'Stanze (Eingaben)' },
+ ];
+ 
++/**
++ * Eingebettet in druck-s (Build mit VITE_SERVER_ADRESSE): feste Adresse der Mitarbeiter-
++ * Schnittstelle, Anmeldung über das Sitzungs-Cookie des Mitarbeiterbereichs – kein API-Schlüssel,
++ * keine Verbindungseinstellungen.
++ */
++const FESTE_ADRESSE: string | null =
++  (import.meta as { env?: { VITE_SERVER_ADRESSE?: string } }).env?.VITE_SERVER_ADRESSE?.trim() ||
++  null;
++export const EINGEBETTET = FESTE_ADRESSE !== null;
++
++function kopf(
++  v: { schluessel: string },
++  extra: Record<string, string> = {},
++): Record<string, string> {
++  return v.schluessel === '' ? extra : { 'x-api-key': v.schluessel, ...extra };
++}
++
+ export type Verbindung = { adresse: string; schluessel: string };
+ export type SyncZustand =
+   | { art: 'aus' }
+@@ -68,6 +85,7 @@ export class ServerSync {
+   ) {}
+ 
+   verbindung(): Verbindung | null {
++    if (FESTE_ADRESSE !== null) return { adresse: FESTE_ADRESSE, schluessel: '' };
+     const v = jsonLesen<Verbindung | null>(this.speicher, VERBINDUNG, null);
+     return v !== null && typeof v.adresse === 'string' && typeof v.schluessel === 'string'
+       ? v
+@@ -109,7 +127,8 @@ export class ServerSync {
+   ): Promise<{ status: number; body: unknown }> {
+     const r = await this.holen(`${v.adresse.replace(/\/+$/, '')}${pfad}`, {
+       method: init?.method ?? 'GET',
+-      headers: { 'x-api-key': v.schluessel, 'content-type': 'application/json' },
++      headers: kopf(v, { 'content-type': 'application/json' }),
++      credentials: 'same-origin',
+       ...(init?.body === undefined ? {} : { body: JSON.stringify(init.body) }),
+     });
+     let body: unknown = null;
+@@ -295,7 +314,8 @@ export class ServerSync {
+     try {
+       const r = await this.holen(`${v.adresse.replace(/\/+$/, '')}/v1/werkbank/dateien${q}`, {
+         method: 'POST',
+-        headers: { 'x-api-key': v.schluessel, 'content-type': 'application/octet-stream' },
++        headers: kopf(v, { 'content-type': 'application/octet-stream' }),
++        credentials: 'same-origin',
+         body: inhalt,
+       });
+       let body: unknown = null;
+@@ -327,7 +347,8 @@ export class ServerSync {
+       const r = await this.holen(
+         `${v.adresse.replace(/\/+$/, '')}/v1/werkbank/dateien/${encodeURIComponent(id)}`,
+         {
+-          headers: { 'x-api-key': v.schluessel },
++          headers: kopf(v),
++          credentials: 'same-origin',
+         },
+       );
+       if (r.status !== 200)
+@@ -355,6 +376,7 @@ export class ServerSync {
+   }
+ 
+   trennen(): void {
++    if (EINGEBETTET) return; // feste Verbindung zum Mitarbeiterbereich
+     this.speicher.removeItem(VERBINDUNG);
+     this.speicher.removeItem(VERSIONEN);
+     this.offenSetzen([]);
+@@ -375,6 +397,8 @@ function bereichName(schluessel: string): string {
+ 
+ function fehlerText(r: { status: number; body: unknown }): string {
+   const b = r.body as { fehler?: string; details?: unknown } | null;
++  if (EINGEBETTET && (r.status === 401 || r.status === 403))
++    return 'Anmeldung abgelaufen – bitte im Mitarbeiterbereich neu anmelden';
+   if (r.status === 401) return 'Schlüssel falsch';
+   const details = Array.isArray(b?.details) ? ` (${(b.details as string[]).join('; ')})` : '';
+   return `${b?.fehler ?? `Fehler ${r.status}`}${details}`;
+diff --git a/apps/werkbank/src/reiter/ServerStatus.tsx b/apps/werkbank/src/reiter/ServerStatus.tsx
+index 41c6c88..cece8e5 100644
+--- a/apps/werkbank/src/reiter/ServerStatus.tsx
++++ b/apps/werkbank/src/reiter/ServerStatus.tsx
+@@ -3,7 +3,7 @@
+  */
+ import { useState, useSyncExternalStore } from 'react';
+ import { heuteIso } from '../lib/kalkulation-formular';
+-import { serverSync, type SyncZustand } from '../lib/server-sync';
++import { EINGEBETTET, serverSync, type SyncZustand } from '../lib/server-sync';
+ import { sicherungErstellen } from '../lib/sicherung';
+ 
+ const AUS: SyncZustand = { art: 'aus' };
+@@ -104,7 +104,14 @@ export function ServerEinstellungen() {
+   return (
+     <section className="karte server-einstellungen" id="server-einstellungen">
+       <h3>Datenbank (Server)</h3>
+-      {verbunden === null ? (
++      {EINGEBETTET ? (
++        <p className="feld-hinweis">
++          Die Werkbank ist mit der Datenbank der Druckerei verbunden und speichert automatisch.
++          Mehrere Mitarbeiter können gleichzeitig arbeiten: Hat jemand anderes inzwischen
++          gespeichert, meldet die Werkbank einen Konflikt und nichts geht verloren.
++        </p>
++      ) : null}
++      {verbunden === null && !EINGEBETTET ? (
+         <>
+           <p className="feld-hinweis">
+             Läuft die Datenbank (<code>./kalpri.sh</code> startet sie mit), speichert die Werkbank
+@@ -145,10 +152,11 @@ export function ServerEinstellungen() {
+             </button>
+           </div>
+         </>
+-      ) : (
++      ) : verbunden === null ? null : (
+         <>
+           <p id="server-zustand">
+-            <strong>{TEXT[z.art]}</strong> · {verbunden.adresse}
++            <strong>{TEXT[z.art]}</strong> ·{' '}
++            {EINGEBETTET ? 'Mitarbeiterbereich' : verbunden.adresse}
+             {'meldung' in z ? <span className="hinweis-orange"> – {z.meldung}</span> : null}
+           </p>
+           <p className="feld-hinweis">
+@@ -198,17 +206,19 @@ export function ServerEinstellungen() {
+                 Sicherung aus der Datenbank herunterladen
+               </button>
+             )}
+-            <button
+-              type="button"
+-              className="knopf-grund"
+-              id="server-trennen"
+-              onClick={() => {
+-                sync.trennen();
+-                setMeldung('Getrennt – die Werkbank speichert wieder nur im Browser.');
+-              }}
+-            >
+-              Trennen
+-            </button>
++            {EINGEBETTET ? null : (
++              <button
++                type="button"
++                className="knopf-grund"
++                id="server-trennen"
++                onClick={() => {
++                  sync.trennen();
++                  setMeldung('Getrennt – die Werkbank speichert wieder nur im Browser.');
++                }}
++              >
++                Trennen
++              </button>
++            )}
+           </div>
+           {z.art === 'konflikt' ? (
+             <p className="feld-hinweis">
+diff --git a/apps/werkbank/vite.config.ts b/apps/werkbank/vite.config.ts
+index 0bdeb09..b19ebbc 100644
+--- a/apps/werkbank/vite.config.ts
++++ b/apps/werkbank/vite.config.ts
+@@ -3,7 +3,13 @@ import { defineConfig } from 'vite';
+ 
+ // T107: immer dieselbe Adresse (http://localhost:5173). Ist der Port belegt, bricht der Start ab,
+ // statt still auf einen anderen auszuweichen – die Daten im Browser hängen an der Adresse.
++// druck-s: Die Werkbank wird unter /staff/kalkulation/werkbank/ ausgeliefert (WERKBANK_BASE) und
++// synchronisiert gegen die Mitarbeiter-Schnittstelle derselben Adresse (VITE_SERVER_ADRESSE).
++const umgebung =
++  (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
++
+ export default defineConfig({
++  base: umgebung['WERKBANK_BASE'] ?? '/',
+   plugins: [react()],
+   server: { port: 5173, strictPort: true },
+   preview: { port: 5173, strictPort: true },

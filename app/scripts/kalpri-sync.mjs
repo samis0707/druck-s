@@ -6,6 +6,7 @@
 //
 // Aufruf: node scripts/kalpri-sync.mjs <pfad-zum-kalpri-repo> [--werkbank]
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -39,6 +40,10 @@ for (const p of PAKETE) {
   fs.cpSync(path.join(repo, "packages", p, "src"), z, { recursive: true });
 }
 
+const patchPfad = path.join(ziel, "werkbank.patch");
+const patchHash = fs.existsSync(patchPfad)
+  ? createHash("sha256").update(fs.readFileSync(patchPfad)).digest("hex")
+  : null;
 let hash = "unbekannt";
 let sauber = false;
 try {
@@ -55,6 +60,7 @@ fs.writeFileSync(
       commit: hash,
       saubererStand: sauber,
       pakete: PAKETE,
+      werkbankPatchSha256: patchHash,
       datum: new Date().toISOString(),
     },
     null,
@@ -75,9 +81,14 @@ if (mitWerkbank) {
     if (fs.existsSync(patch)) {
       execFileSync("git", ["apply", "--whitespace=nowarn", patch], { cwd: tmp, stdio: "inherit" });
     }
-    const run = (cmd, args) => execFileSync(cmd, args, { cwd: tmp, stdio: "inherit" });
-    run("pnpm", ["install", "--frozen-lockfile"]);
-    run("pnpm", ["--filter", "werkbank", "exec", "vite", "build"]);
+    const run = (cmd, args, env = {}) =>
+      execFileSync(cmd, args, { cwd: tmp, stdio: "inherit", env: { ...process.env, ...env } });
+    run("pnpm", ["install", "--frozen-lockfile", "--filter", "werkbank..."]);
+    // Basis-Pfad unter dem Mitarbeiterbereich; feste Adresse der Mitarbeiter-Schnittstelle
+    run("pnpm", ["--filter", "werkbank", "exec", "vite", "build"], {
+      WERKBANK_BASE: "/staff/kalkulation/werkbank/",
+      VITE_SERVER_ADRESSE: "/api/staff/kalkulation",
+    });
     const dist = path.join(tmp, "apps", "werkbank", "dist");
     const out = path.join(appDir, "vendor", "kalpri-werkbank");
     fs.rmSync(out, { recursive: true, force: true });

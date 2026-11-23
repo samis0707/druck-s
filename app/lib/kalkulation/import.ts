@@ -38,6 +38,8 @@ export const LISTEN_NAMEN: Record<string, string> = {
   partner: "Partner",
   artikel: "Artikel",
   kalkulationen: "Kalkulationen",
+  bestaende: "Bestände",
+  preise: "Preise",
   aufschlagArten: "Aufschlag-Arten",
 };
 
