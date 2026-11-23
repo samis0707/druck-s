@@ -51,6 +51,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await query("DELETE FROM app_settings WHERE key = 'kalkulation.preis'");
   await query("DELETE FROM audit_log WHERE action IN ('richtpreis_requested', 'richtpreis_saved', 'kalkulation_einstellungen_geaendert') AND (ip LIKE '10.99.%' OR ip IS NULL)");
 });
 

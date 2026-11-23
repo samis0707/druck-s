@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { Table, THead, TRow, TH, TD } from "@/components/ui/table";
-import { euroText, euroTextZehntelcent, type PreisEinstellungen, type RichtpreisErgebnis } from "@/lib/kalkulation/richtpreis";
+import { euroText, euroTextZehntelcent, teileGerundet, type PreisEinstellungen, type RichtpreisErgebnis } from "@/lib/kalkulation/richtpreis";
 
 export type ErgebnisZeile = {
   titel: string;
@@ -90,7 +90,7 @@ export function ErgebnisTabelle({ e }: { e: Ergebnis }) {
               return (
                 <TRow key={a.auflage}>
                   <TD className="font-medium">{a.auflage.toLocaleString("de-DE")}</TD>
-                  <TD className="text-right tabular-nums">{euroTextZehntelcent(a.kostenZehntelcent)}</TD>
+                  <TD className="text-right tabular-nums">{euroText(teileGerundet(a.kostenZehntelcent, 10))}</TD>
                   {r.status === "preis" ? (
                     <>
                       <TD className="text-right font-semibold tabular-nums">

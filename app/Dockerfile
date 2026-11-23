@@ -22,6 +22,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/db ./db
 # Partner der Partner-Schnittstelle verwalten (docs/partner-api.md): node scripts/partner-key.mjs …
 COPY --from=builder /app/scripts/partner-key.mjs ./scripts/partner-key.mjs
+# API-Schlüssel der Kalkulation: node scripts/kalkulation-key.mjs …
+COPY --from=builder /app/scripts/kalkulation-key.mjs ./scripts/kalkulation-key.mjs
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME="0.0.0.0"
