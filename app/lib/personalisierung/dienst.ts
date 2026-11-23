@@ -112,14 +112,14 @@ export async function erzeugeDruckdatenFuerAnfrage(
   await query(
     `INSERT INTO pers_request_outputs (request_id, template_id, template_version, pdf_file_id, data_file_id, mode, record_count, nutzen_count, page_count)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-    [requestId, d.id, d.aktuelleVersion, pdf.id, daten.id, modus, opt.datensaetze.length, ergebnis.nutzen, ergebnis.seiten],
+    [requestId, d.id, d.version, pdf.id, daten.id, modus, opt.datensaetze.length, ergebnis.nutzen, ergebnis.seiten],
   );
   await appendAudit({
     action: "pers_generated",
     actorType: opt.actor?.type ?? "system",
     actorId: opt.actor?.id ?? null,
     requestId,
-    detail: { templateId: d.id, version: d.aktuelleVersion, records: opt.datensaetze.length, pages: ergebnis.seiten, mode: modus },
+    detail: { templateId: d.id, version: d.version, records: opt.datensaetze.length, pages: ergebnis.seiten, mode: modus },
   });
   return { pdfDateiId: pdf.id, datenDateiId: daten.id, seiten: ergebnis.seiten, nutzen: ergebnis.nutzen, boegen: ergebnis.boegen, meldungen: ergebnis.meldungen };
 }

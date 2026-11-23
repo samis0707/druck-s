@@ -7,7 +7,7 @@
 import { getSessionUser, isStaff } from "../auth/session";
 import { clientIp } from "../guards";
 import { persError } from "./http";
-import { holeVorlage, istUuid, loeseLinkAuf, type VorlageDetail, type ZugriffsLink } from "./repo";
+import { holeEntwurf, holeVorlage, istUuid, loeseLinkAuf, type VorlageDetail, type ZugriffsLink } from "./repo";
 import { query } from "../db";
 
 export interface Zugang {
@@ -40,4 +40,21 @@ export async function loeseZugang(req: Request, ref: string): Promise<Zugang | R
   }
   if (!erlaubt) return NICHT_GEFUNDEN();
   return { detail, link: null, ip, akteur: { type: "customer", id: user.id } };
+}
+
+/**
+ * Version der Vorlage für diesen Aufruf: Hängt der Entwurf (Query `entwurf`, Header `x-entwurf-token`) an einer
+ * älteren Version, gilt diese – so passen Formular, Prüfung, Vorschau und Absenden zusammen.
+ */
+export async function detailFuerAufruf(req: Request, z: Zugang): Promise<VorlageDetail> {
+  const id = new URL(req.url).searchParams.get("entwurf");
+  const token = req.headers.get("x-entwurf-token");
+  if (id && token) {
+    const e = await holeEntwurf(id, token);
+    if (e && e.templateId === z.detail.id && e.templateVersion !== z.detail.version) {
+      const d = await holeVorlage(z.detail.id, e.templateVersion);
+      if (d) return d;
+    }
+  }
+  return z.detail;
 }

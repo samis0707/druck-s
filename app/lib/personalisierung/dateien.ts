@@ -22,7 +22,12 @@ export interface PdfInfo {
   breiteMm: number;
   hoeheMm: number;
   /** Maße je Seite (mm), damit die UI „mit Beschnitt“ vorschlagen kann */
-  seitenMasse: { breiteMm: number; hoeheMm: number }[];
+  seitenMasse: {
+    breiteMm: number;
+    hoeheMm: number;
+    /** Endformat laut TrimBox, wenn das PDF eine kleinere TrimBox als die MediaBox enthält (mm) */
+    trim?: { breiteMm: number; hoeheMm: number; beschnittMm: number | null };
+  }[];
 }
 
 export const MAX_PDF_SEITEN = 50;
@@ -40,8 +45,17 @@ export async function pruefePdf(bytes: Uint8Array, maxBytes: number): Promise<Pd
   if (n < 1) throw new PersFehler("Das PDF hat keine Seiten.");
   if (n > MAX_PDF_SEITEN) throw new PersFehler(`Das PDF hat zu viele Seiten (höchstens ${MAX_PDF_SEITEN}).`);
   const seitenMasse = doc.getPages().map((p) => {
-    const { width, height } = p.getMediaBox();
-    return { breiteMm: Math.round((width / MM) * 100) / 100, hoeheMm: Math.round((height / MM) * 100) / 100 };
+    const { x, y, width, height } = p.getMediaBox();
+    const mm = (v: number) => Math.round((v / MM) * 100) / 100;
+    const out: PdfInfo["seitenMasse"][number] = { breiteMm: mm(width), hoeheMm: mm(height) };
+    const t = p.getTrimBox();
+    const kleiner = t.width < width - 0.5 * MM || t.height < height - 0.5 * MM;
+    if (kleiner && t.width > 0 && t.height > 0) {
+      const rand = [t.x - x, y + height - (t.y + t.height), x + width - (t.x + t.width), t.y - y].map(mm);
+      const gleich = rand.every((r) => Math.abs(r - rand[0]) <= 0.3 && r >= 0);
+      out.trim = { breiteMm: mm(t.width), hoeheMm: mm(t.height), beschnittMm: gleich ? Math.round(rand[0] * 10) / 10 : null };
+    }
+    return out;
   });
   return { seiten: n, breiteMm: seitenMasse[0].breiteMm, hoeheMm: seitenMasse[0].hoeheMm, seitenMasse };
 }

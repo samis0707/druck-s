@@ -303,6 +303,8 @@ export interface VorlagenStamm {
 }
 
 export interface VorlageDetail extends VorlagenStamm {
+  /** Geladene Version (bei Entwürfen die Version, an der sie hängen; `aktuelleVersion` ist die neueste) */
+  version: number;
   vorlage: Vorlage;
   /** Farben, wie sie in dieser Version gelten (Schnappschuss) */
   farben: Farbe[];
@@ -388,12 +390,14 @@ export async function holeVorlage(id: string, version?: number): Promise<Vorlage
   const row = r.rows[0];
   if (!row) return null;
   const { spec, colors, ...stamm } = row;
-  return { ...stamm, vorlage: vorlageAusSpec(spec), farben: colors };
+  return { ...stamm, version: version ?? stamm.aktuelleVersion, vorlage: vorlageAusSpec(spec), farben: colors };
 }
 
 export interface VorlagenKarte extends VorlagenStamm {
   /** Design-PDF (Vorschaubild der Vorderseite) und Endformat des aktuellen Bearbeitungsstands */
   designDateiId: string | null;
+  /** Seite (ab 1) der Vorderseite im Design-PDF */
+  designVorne: number;
   endformat: { breite: number; hoehe: number } | null;
   kundenAnzahl: number;
   /** Es gibt Änderungen in der Arbeitskopie, die noch nicht veröffentlicht sind. */
@@ -408,6 +412,7 @@ export async function listeVorlagen(opt: { archivierte?: boolean } = {}): Promis
     `SELECT t.id, COALESCE(t.working_spec->>'name', t.name) AS name, t.status, t.visibility AS sichtbarkeit, t.current_version AS "aktuelleVersion",
             (t.archived_at IS NOT NULL) AS archiviert, t.created_at AS "createdAt", t.updated_at AS "updatedAt",
             COALESCE(t.working_spec, v.spec)->'design'->>'dateiId' AS "designDateiId",
+            COALESCE((COALESCE(t.working_spec, v.spec)->'design'->>'vorne')::int, 1) AS "designVorne",
             CASE WHEN COALESCE(t.working_spec, v.spec)->'endformat' IS NOT NULL
                  THEN jsonb_build_object('breite', (COALESCE(t.working_spec, v.spec)->'endformat'->>'breite')::float, 'hoehe', (COALESCE(t.working_spec, v.spec)->'endformat'->>'hoehe')::float) END AS endformat,
             (SELECT count(*)::int FROM pers_template_customers c WHERE c.template_id = t.id) AS "kundenAnzahl",
@@ -646,7 +651,7 @@ export function kundenAnsicht(d: VorlageDetail): KundenAnsicht {
     id: d.id,
     name: d.vorlage.name,
     beschreibung: d.vorlage.beschreibung,
-    version: d.aktuelleVersion,
+    version: d.version,
     endformat: d.vorlage.endformat,
     beschnitt: d.vorlage.beschnitt,
     hatRueckseite: d.vorlage.design.hinten !== null,

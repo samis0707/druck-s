@@ -3,7 +3,7 @@ import { begrenzeJeIp, vorschau, zaehle } from "@/lib/personalisierung/dienst";
 import { DatensatzSchema } from "@/lib/personalisierung/schema";
 import { istObjekt, leseJson, persFailure, persJson } from "@/lib/personalisierung/http";
 import { PersFehler } from "@/lib/personalisierung/dateien";
-import { loeseZugang } from "@/lib/personalisierung/zugang";
+import { detailFuerAufruf, loeseZugang } from "@/lib/personalisierung/zugang";
 
 /**
  * Vorschau für einen Datensatz (ohne Datensatz: Beispielwerte). Antwort: PDF (Vorder- und Rückseite, Endformat
@@ -23,7 +23,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ ref: string }>
       datensatz = p.data;
     }
     await zaehle("pers_preview", z.ip, z.akteur, { templateId: z.detail.id });
-    const r = await vorschau(z.detail, datensatz);
+    const r = await vorschau(await detailFuerAufruf(req, z), datensatz);
     if (new URL(req.url).searchParams.get("format") === "json") {
       return persJson({ pdf: Buffer.from(r.pdf!).toString("base64"), meldungen: r.meldungen });
     }

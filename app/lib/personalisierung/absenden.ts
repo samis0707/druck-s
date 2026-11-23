@@ -13,6 +13,7 @@
 import { appendAudit } from "../auditLog";
 import { query } from "../db";
 import { confirmInquiry, createInquiry, InquiryError, sendInquiryCode, type ConfirmResult } from "../inquiry/intake";
+import { inquiryMessage } from "../inquiry/messages";
 import { validateContact } from "../inquiry/validate";
 import { requestRef } from "../requestNumber";
 import { appendEventTx } from "../requests/events";
@@ -31,7 +32,6 @@ const MAX_ANMERKUNG = 2000;
 
 function bereinige(text: unknown): string {
   if (typeof text !== "string") return "";
-  // eslint-disable-next-line no-control-regex
   return text.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim().slice(0, MAX_ANMERKUNG);
 }
 
@@ -64,6 +64,16 @@ async function ladeBereiteDaten(z: Zugang, entwurfId: unknown, token: string): P
   return { entwurf, detail };
 }
 
+/** InquiryError (englisch) in eine deutsche, für Kunden verständliche Meldung übersetzen. */
+function deutsch(e: InquiryError): PersFehler {
+  const status = (e.status === 429 || e.status === 403 || e.status === 404 || e.status === 409 ? e.status : 400) as 400 | 403 | 404 | 409 | 429;
+  let text = inquiryMessage(e.code, "Das hat nicht geklappt. Bitte versuchen Sie es noch einmal.");
+  const rest = e.message.match(/\((\d+) attempts? left\)/);
+  if (e.code === "invalid_code" && rest) text = `Der Code stimmt nicht. Noch ${rest[1]} ${rest[1] === "1" ? "Versuch" : "Versuche"}.`;
+  if (e.code === "code_expired") text = "Der Code ist nicht mehr gültig. Bitte fordern Sie einen neuen an.";
+  return new PersFehler(text, status, e.code);
+}
+
 export interface CodeVersand {
   anfrageId: string;
   sentTo: string;
@@ -76,7 +86,7 @@ export async function startGastAbsenden(z: Zugang, eingabe: { entwurfId: unknown
   const kontakt = validateContact(eingabe.kontakt);
   if (!kontakt.ok) throw new PersFehler("Bitte Name und eine gültige E-Mail-Adresse angeben.", 400, "kontakt");
   const { entwurf, detail } = await ladeBereiteDaten(z, eingabe.entwurfId, eingabe.token);
-  const text = beschreibung(detail.vorlage.name, detail.aktuelleVersion, entwurf.datensaetze, bereinige(eingabe.anmerkung));
+  const text = beschreibung(detail.vorlage.name, detail.version, entwurf.datensaetze, bereinige(eingabe.anmerkung));
   let anfrageId: string | null = null;
   if (entwurf.requestId) {
     try {
@@ -95,9 +105,7 @@ export async function startGastAbsenden(z: Zugang, eingabe: { entwurfId: unknown
     const sent = await sendInquiryCode(anfrageId, kontakt.value, { ip: z.ip });
     return { anfrageId, ...sent };
   } catch (e) {
-    if (e instanceof InquiryError) {
-      throw new PersFehler(e.message, e.status === 429 ? 429 : e.status === 403 ? 403 : e.status === 502 ? 400 : 400, e.code);
-    }
+    if (e instanceof InquiryError) throw deutsch(e);
     throw e;
   }
 }
@@ -116,7 +124,7 @@ export async function bestaetigeGastAbsenden(z: Zugang, eingabe: { entwurfId: un
       hinweis: `Personalisierung (Vorlage „${detail.vorlage.name}“, ${entwurf.datensaetze.length} Datensätze)`,
       nachBestaetigung: async (request) => {
         try {
-          const ergebnis = await erzeugeDruckdatenFuerAnfrage(request.id, { templateId: detail.id, version: detail.aktuelleVersion, datensaetze: entwurf.datensaetze, actor: { type: "customer", id: request.customerId } });
+          const ergebnis = await erzeugeDruckdatenFuerAnfrage(request.id, { templateId: detail.id, version: detail.version, datensaetze: entwurf.datensaetze, actor: { type: "customer", id: request.customerId } });
           seiten = ergebnis.seiten;
           await loescheEntwurf(entwurf.id, eingabe.token);
         } catch (err) {
@@ -128,7 +136,7 @@ export async function bestaetigeGastAbsenden(z: Zugang, eingabe: { entwurfId: un
     });
     return { ...r, seiten };
   } catch (e) {
-    if (e instanceof InquiryError) throw new PersFehler(e.message, e.status === 429 ? 429 : e.status === 404 || e.status === 409 || e.status === 410 || e.status === 403 ? (e.status as 404 | 409 | 403) : 400, e.code);
+    if (e instanceof InquiryError) throw deutsch(e);
     throw e;
   }
 }
@@ -157,10 +165,10 @@ export async function sendeDirekt(z: Zugang, eingabe: { entwurfId: unknown; toke
     throw new PersFehler("Bitte den Weg mit Bestätigungscode verwenden.", 400, "gast");
   }
   const { entwurf, detail } = await ladeBereiteDaten(z, eingabe.entwurfId, eingabe.token);
-  const text = beschreibung(detail.vorlage.name, detail.aktuelleVersion, entwurf.datensaetze, bereinige(eingabe.anmerkung));
+  const text = beschreibung(detail.vorlage.name, detail.version, entwurf.datensaetze, bereinige(eingabe.anmerkung));
   const anfrage = await createDraft({ productHint: PRODUKT, freeText: text, origin: "door_a", trust: "VERIFIED", customerId: kundeId });
   try {
-    const erg = await erzeugeDruckdatenFuerAnfrage(anfrage.id, { templateId: detail.id, version: detail.aktuelleVersion, datensaetze: entwurf.datensaetze, actor: { type: z.akteur.type, id: z.akteur.id } });
+    const erg = await erzeugeDruckdatenFuerAnfrage(anfrage.id, { templateId: detail.id, version: detail.version, datensaetze: entwurf.datensaetze, actor: { type: z.akteur.type, id: z.akteur.id } });
     // Eingang: DRAFT → RECEIVED (Nummer), im Namen des Kunden bzw. des Mitarbeiters.
     await withTx((c) => appendEventTx(c, { requestId: anfrage.id, event: "submitted", actorType: z.akteur.type === "staff" ? "staff" : "customer", actorId: z.akteur.id, detail: { personalisierung: true, imNamenDesKunden: z.akteur.type === "staff" } }));
     void submitDraft;

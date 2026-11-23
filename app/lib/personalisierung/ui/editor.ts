@@ -526,3 +526,18 @@ export function veroeffentlichungsProbleme(v: Vorlage): string[] {
   for (const x of feldWarnungen(v)) if (x.schwere === "fehler") p.push(x.text);
   return p;
 }
+
+/** Leere Vorlage für den Assistenten (Schritt 1 füllt Name, Design und Format). */
+export function leereVorlage(): Vorlage {
+  return {
+    schemaVersion: 1,
+    name: "",
+    beschreibung: "",
+    endformat: { breite: 85, hoehe: 55 },
+    beschnitt: 3,
+    design: { dateiId: null, vorne: 1, hinten: null, mitBeschnitt: false },
+    variablen: [],
+    felder: [],
+    ausgabe: { modus: "einzeln", bogen: { breite: 320, hoehe: 450 }, rand: { oben: 5, unten: 5, links: 5, rechts: 5 }, abstand: { spalten: 0, zeilen: 0 }, ueberlagerung: null },
+  };
+}
