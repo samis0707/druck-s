@@ -40,6 +40,7 @@ export function RichtpreisKarte({ requestId }: { requestId: string }) {
             <CardDescription className="flex flex-wrap items-center gap-2">
               <span className="font-medium text-foreground">{s.artikelTitel ?? s.artikelId}</span>
               <span>· berechnet am {new Date(s.createdAt).toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" })}</span>
+              {(s.ergebnis as { quelle?: string }).quelle === "anfrage" && <Badge variant="outline">vom Kunden angezeigt</Badge>}
               {i === 0 && liste.length > 1 && <Badge variant="secondary">neuester</Badge>}
             </CardDescription>
             <ErgebnisTabelle e={{ ...s.ergebnis, einstellungen: s.preisEinstellungen, artikel: s.ergebnis.artikel ?? { id: s.artikelId, titel: s.artikelTitel ?? s.artikelId, einheit: "" } }} />

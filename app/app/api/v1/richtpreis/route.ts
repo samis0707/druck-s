@@ -1,5 +1,6 @@
 import { zaehleBerechnung } from "@/lib/kalkulation/begrenzung";
 import { kalkJson, leseJson } from "@/lib/kalkulation/http";
+import { kundenRichtpreisAktiv } from "@/lib/kalkulation/kundenRichtpreis";
 import { berechneOeffentlich } from "@/lib/kalkulation/richtpreisService";
 
 /**
@@ -9,6 +10,9 @@ import { berechneOeffentlich } from "@/lib/kalkulation/richtpreisService";
  */
 export async function POST(req: Request) {
   try {
+    if (!(await kundenRichtpreisAktiv())) {
+      return kalkJson({ error: "Der Richtpreis ist derzeit nicht aktiv.", code: "nicht_aktiv" }, 403);
+    }
     const j = await leseJson(req);
     if (!j.ok) return kalkJson({ error: j.status === 413 ? "Die Anfrage ist zu groß." : "Der Rumpf ist kein gültiges JSON.", code: j.status === 413 ? "zu_gross" : "ungueltiges_json" }, j.status);
     if (!(await zaehleBerechnung(req))) {

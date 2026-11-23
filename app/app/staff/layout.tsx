@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Abmelden } from "@/components/staff/Abmelden";
 
 /** Persönlicher Bereich: nicht in Suchmaschinen und KI-Indizes aufnehmen. */
 export const metadata: Metadata = {
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function Layout({ children }: { children: ReactNode }) {
-  return children;
+  return (
+    <>
+      <Abmelden />
+      {children}
+    </>
+  );
 }

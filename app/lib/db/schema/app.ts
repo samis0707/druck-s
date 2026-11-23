@@ -59,6 +59,8 @@ export const requests = pgTable(
     partnerMeta: jsonb("partner_meta"),
     /** Offene Anfrage: Kontakt vor der Bestätigung ({ name, email, organisation, phone }). */
     inquiryContact: jsonb("inquiry_contact"),
+    /** Offene Anfrage: Richtpreis-Angaben ({ artikel, antworten, auflagen }) bis zur Bestätigung. */
+    inquiryQuote: jsonb("inquiry_quote"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

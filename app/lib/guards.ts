@@ -1,3 +1,5 @@
+import { ermittleClientIp } from "./clientIp";
+import { config } from "./config";
 import { forbidden, unauthorized } from "./api";
 import { getSessionUser, isStaff } from "./auth/session";
 import { authentifiziereKey } from "./kalkulation/keys";
@@ -18,8 +20,9 @@ export async function requireCustomer(req: Request) {
   return { user } as const;
 }
 
+/** Client-Adresse hinter den eigenen Proxys (Regeln und Begründung in lib/clientIp.ts). */
 export function clientIp(req: Request): string {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  return ermittleClientIp(req.headers, config.clientIp);
 }
 
 /**

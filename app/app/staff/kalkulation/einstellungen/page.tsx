@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EinstellungenForm } from "@/components/kalkulation/EinstellungenForm";
+import { KundenRichtpreisKarte } from "@/components/kalkulation/KundenRichtpreisKarte";
 import { KalkulationNav } from "@/components/kalkulation/KalkulationNav";
 
 /** Backoffice: Einstellungen der Preisschicht (Zuschläge, Mindestpreis, Rundung, Spanne, MwSt). */
@@ -13,6 +14,7 @@ export default function KalkulationEinstellungenPage() {
       />
       <KalkulationNav aktiv="einstellungen" />
       <EinstellungenForm />
+      <KundenRichtpreisKarte />
     </main>
   );
 }

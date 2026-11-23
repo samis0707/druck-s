@@ -137,6 +137,7 @@ export function openApiDocument() {
                   description: "500 Flyer DIN A5, beidseitig 4/4-farbig, 135 g Bilderdruck matt. Abholung bis 20.11.",
                   reference: "Sommerfest 2026",
                   contact: { name: "Anna Beispiel", email: "anna@example.org", organisation: "Quartierszentrum Böckingen", phone: "07131 1234" },
+                  quote: { artikel: "A-FLYER", antworten: { endformat: "1", "teil:T1:druck": "1" }, auflagen: [500, 1000] },
                 },
               },
             },
@@ -396,6 +397,11 @@ export function openApiDocument() {
             },
             reference: { type: ["string", "null"], maxLength: INQUIRY_LIMITS.reference, description: "Eigene Bezeichnung oder Bezug, z. B. „wie letztes Mal“." },
             contact: { $ref: "#/components/schemas/Contact" },
+            quote: {
+              description:
+                "Optional: Angaben für einen **unverbindlichen Richtpreis** (Artikel, Antworten auf dessen Fragen, 1–3 Auflagen), Form wie `POST /api/v1/richtpreis`. Artikel und Fragen: `GET /api/v1/richtpreis/artikel` (der Artikel muss zum gewählten `product` gehören). Die Druckerei rechnet beim Bestätigen selbst neu; Preise vom Client gibt es nicht. Solange der Richtpreis für Kunden ausgeschaltet ist, wird `quote` ohne Fehlermeldung ignoriert.",
+              allOf: [{ $ref: "#/components/schemas/RichtpreisAnfrage" }],
+            },
           },
         },
         Inquiry: {

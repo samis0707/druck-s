@@ -242,7 +242,7 @@ export function pruefeAntworten(
 const GENERISCH = "Für diese Angaben nennen wir den Preis gern auf Anfrage.";
 
 /** Artikelliste für den öffentlichen Richtpreis: nur Freigegebenes, ohne interne Angaben. */
-export async function oeffentlicheArtikel(): Promise<OeffentlicheAntwort> {
+export async function oeffentlicheArtikel(zuordnung: Record<string, string[]> = {}): Promise<OeffentlicheAntwort> {
   const g = await ladeDaten();
   if (!g.ok) return { status: 503, body: { error: "Der Richtpreis-Rechner ist gerade nicht verfügbar.", code: "nicht_verfuegbar" } };
   const artikel = g.daten.artikel.filter(shopFreigegeben).map((a) => ({
@@ -250,9 +250,11 @@ export async function oeffentlicheArtikel(): Promise<OeffentlicheAntwort> {
     titel: a.titel,
     einheit: a.einheit,
     text: a.shopText ?? null,
+    /** Produkte der Anfrage (z. B. „flyer“), zu denen die Druckerei den Artikel zugeordnet hat. */
+    produkte: Object.entries(zuordnung).filter(([, ids]) => ids.includes(a.id)).map(([slug]) => slug),
     fragen: oeffentlicheFragen(a, g.daten),
   }));
-  return { status: 200, body: { artikel, maxAuflagen: MAX_AUFLAGEN } };
+  return { status: 200, body: { aktiv: true, artikel, maxAuflagen: MAX_AUFLAGEN } };
 }
 
 /** POST /api/v1/richtpreis (nach der Begrenzung je IP, die der Route-Handler macht). */

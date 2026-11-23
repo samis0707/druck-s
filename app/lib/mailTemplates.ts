@@ -107,6 +107,24 @@ function paragraph(html: string): string {
   return `<p style="margin:0 0 16px 0;font-family:${fontSans};font-size:16px;line-height:1.6;color:${color.ink};" class="tx">${html}</p>`;
 }
 
+export interface RichtpreisMailZeile {
+  auflage: number;
+  text: string;
+  jeStueck: string | null;
+}
+
+const RICHTPREIS_MAIL_HINWEIS = "Unverbindlicher Richtpreis auf Basis Ihrer Angaben. Der verbindliche Preis kommt mit unserem Angebot.";
+
+function richtpreisTextZeilen(zeilen: RichtpreisMailZeile[]): string[] {
+  return zeilen.map((z) => `  ${z.auflage.toLocaleString("de-DE")} Stück: ${z.text}${z.jeStueck ? `, ${z.jeStueck}` : ""}`);
+}
+
+function richtpreisBox(zeilen: RichtpreisMailZeile[]): string {
+  return summaryBox(
+    zeilen.map((z) => ({ label: `${z.auflage.toLocaleString("de-DE")} Stück`, value: `${z.text}${z.jeStueck ? ` · ${z.jeStueck}` : ""}` })),
+  );
+}
+
 /** Beschnitt-Box: gestrichelter Rahmen wie ein Schnittrahmen, darin Label/Wert-Zeilen. */
 function summaryBox(rows: { label: string; value: string; mono?: boolean }[]): string {
   const body = rows
@@ -501,7 +519,13 @@ export function inquiryCodeMail(input: { code: string; confirmUrl: string }): Ma
 }
 
 /** Eingangsbestätigung an den Interessenten: Nummer und wie es weitergeht. */
-export function inquiryReceivedMail(input: { requestRef: string; product: string; fileCount: number }): MailContent {
+export function inquiryReceivedMail(input: {
+  requestRef: string;
+  product: string;
+  fileCount: number;
+  richtpreis?: RichtpreisMailZeile[] | null;
+}): MailContent {
+  const rp = input.richtpreis && input.richtpreis.length > 0 ? input.richtpreis : null;
   const ref = input.requestRef;
   const next = `Wir sehen uns Ihre Anfrage an und melden uns persönlich bei Ihnen.`;
   const contact = `Fragen? Rufen Sie uns an: ${company.phone}, oder antworten Sie auf ${company.email}. Nennen Sie dabei bitte die Nummer ${ref}.`;
@@ -514,6 +538,7 @@ export function inquiryReceivedMail(input: { requestRef: string; product: string
     `Nummer: ${ref}`,
     `Produkt: ${input.product}`,
     `Dateien: ${files}`,
+    ...(rp ? [``, `Ungefährer Preis (unverbindlich):`, ...richtpreisTextZeilen(rp), RICHTPREIS_MAIL_HINWEIS] : []),
     ``,
     next,
     contact,
@@ -532,6 +557,7 @@ export function inquiryReceivedMail(input: { requestRef: string; product: string
         { label: "Produkt", value: input.product },
         { label: "Dateien", value: files },
       ]),
+      ...(rp ? [paragraph(`<strong>Ungefährer Preis (unverbindlich)</strong>`), richtpreisBox(rp), paragraph(esc(RICHTPREIS_MAIL_HINWEIS))] : []),
       paragraph(esc(next)),
       paragraph(esc(contact)),
     ].join("\n"),
@@ -548,7 +574,9 @@ export function staffInquiryNotice(input: {
   organisation: string | null;
   phone: string | null;
   staffUrl: string;
+  richtpreis?: RichtpreisMailZeile[] | null;
 }): MailContent {
+  const rp = input.richtpreis && input.richtpreis.length > 0 ? input.richtpreis : null;
   const ref = input.requestRef;
   const who = [input.name, input.organisation].filter(Boolean).join(", ");
   const reason = `Interne Benachrichtigung von ${company.brand}: Ein Interessent ohne Kundenkonto hat eine Anfrage bestätigt.`;
@@ -561,6 +589,7 @@ export function staffInquiryNotice(input: {
     `Kontakt: ${who}`,
     `E-Mail: ${input.email}`,
     `Telefon: ${input.phone ?? "nicht angegeben"}`,
+    ...(rp ? [``, `Richtpreis, den der Interessent gesehen hat (unverbindlich, aus den Stammdaten neu berechnet):`, ...richtpreisTextZeilen(rp)] : []),
     ``,
     `Im Backoffice öffnen: ${input.staffUrl}`,
     `Freischalten unter „Kunden & Links“, damit der Interessent Aufträge ansehen und freigeben kann.`,
@@ -581,6 +610,9 @@ export function staffInquiryNotice(input: {
         { label: "E-Mail", value: input.email },
         { label: "Telefon", value: input.phone ?? "nicht angegeben" },
       ]),
+      ...(rp
+        ? [paragraph(`<strong>Richtpreis, den der Interessent gesehen hat</strong> (unverbindlich, aus den Stammdaten neu berechnet)`), richtpreisBox(rp)]
+        : []),
       button(input.staffUrl, "Im Backoffice öffnen"),
       paragraph(`Freischalten unter „Kunden &amp; Links“, damit der Interessent Aufträge ansehen und freigeben kann.`),
     ].join("\n"),

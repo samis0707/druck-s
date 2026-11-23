@@ -58,6 +58,8 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: ${APP_BASE_URL}
       BETTER_AUTH_TRUSTED_PROXIES: ${BETTER_AUTH_TRUSTED_PROXIES:-}
+      CLIENT_IP_TRUSTED_PROXIES: ${CLIENT_IP_TRUSTED_PROXIES:-1}
+      WEBSITE_PROXY_SECRET: ${WEBSITE_PROXY_SECRET:-}
       CLAMAV_HOST: clamav
       CLAMAV_PORT: 3310
       # Partner-Schnittstelle (docs/partner-api.md); Standardwerte reichen meist.

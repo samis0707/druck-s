@@ -38,6 +38,7 @@ export const AUDIT_ACTIONS = [
   "kalkulation_einstellungen_geaendert",
   "kalkulation_key_created",
   "kalkulation_key_revoked",
+  "kalkulation_kunden_richtpreis_geaendert",
   "richtpreis_requested",
   "richtpreis_saved",
 ] as const;

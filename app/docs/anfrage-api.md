@@ -43,6 +43,38 @@ Ein Interessent hat keinen Zugang: `/api/login/otp` und Door A lehnen ihn ab, di
 antwortet 404. Staff schaltet ihn unter „Kunden & Links“ frei; die bestehende Freischaltung bindet
 seine Anfragen an das Konto. In der Staff-Liste tragen solche Aufträge das Kennzeichen „Interessent“.
 
+## Ungefährer Preis (Richtpreis)
+
+Optional kann der Entwurf Angaben für einen **unverbindlichen Richtpreis** mitbringen:
+
+```json
+"quote": { "artikel": "A-0001", "antworten": { "endformat": "1" }, "auflagen": [500, 1000] }
+```
+
+Artikel und Fragen liefert `GET /api/v1/richtpreis/artikel`, die Live-Berechnung (ohne Anfrage)
+`POST /api/v1/richtpreis`. Regeln:
+
+- **Schalter:** Mitarbeiter-Einstellung „Richtpreis für Kunden anzeigen“ (`/staff/kalkulation/einstellungen`,
+  Standard **aus**, Audit-Eintrag bei jeder Änderung). Aus: `GET /richtpreis/artikel` antwortet
+  `{ "aktiv": false, "artikel": [] }`, `POST /richtpreis` mit `403 nicht_aktiv`, und `quote` wird beim Anlegen
+  ohne Fehler ignoriert; die Anfrage läuft wie vorher.
+- **Produkt ↔ Artikel:** Die Produktliste (`GET /api/v1/products`) ist grob, Kalkulationsartikel sind konkret.
+  Die Druckerei ordnet in denselben Einstellungen jedem für den Shop freigegebenen Artikel ein oder mehrere
+  Produkte zu (gespeichert in `app_settings`, Schlüssel `kalkulation.produktzuordnung`). Nur zugeordnete
+  Artikel erscheinen beim jeweiligen Produkt; `quote.artikel` muss zum gewählten `product` gehören, sonst
+  `400 invalid_body`.
+- **Prüfung beim Anlegen:** Artikel freigegeben, Antworten passen zu den Fragen, 1 bis 3 Auflagen, keine
+  weiteren Felder (Preise vom Client werden abgelehnt). Die Angaben liegen bis zur Bestätigung in
+  `requests.inquiry_quote` (Migration 012).
+- **Beim Bestätigen** wird der Richtpreis aus Artikel, Antworten und Auflagen **neu berechnet** (aktuelle
+  Stammdaten und Preis-Einstellungen; nie Werte des Clients) und als Snapshot in `request_quotes`
+  gespeichert (`ergebnis.quelle = "anfrage"`). In der Mitarbeiteransicht erscheint er in der Karte
+  „Richtpreis (unverbindlich)“ mit dem Kennzeichen „vom Kunden angezeigt“. Ist der Schalter dann aus,
+  entfällt der Snapshot.
+- **Mails:** Die Eingangsbestätigung nennt den Richtpreis je Auflage mit dem Hinweis „unverbindlich, der
+  verbindliche Preis kommt mit unserem Angebot“; der Hinweis an `FIRM_INBOX` führt dieselben Zeilen auf.
+  Ohne Preisangaben ändert sich nichts.
+
 ## Der Code
 
 Kein Login-Code. Er liegt in `inquiry_codes`, gebunden an genau einen Entwurf (HMAC-SHA256 über Entwurf
@@ -62,8 +94,23 @@ Kontakt nach dem Versand geändert, gilt der alte Code nicht mehr.
 
 `0` schaltet eine Grenze ab. Gezählt wird über `audit_log` (Aktionen `inquiry_created`,
 `inquiry_code_issued`), also über alle Instanzen. Darüber: `429 rate_limited` mit `Retry-After: 3600`.
-Weitere feste Grenzen: 64 KB JSON, 100 MB je Datei, 20 Dateien je Anfrage. Unbestätigte Entwürfe
+Gezählt wird je Client-Adresse (siehe unten). Weitere feste Grenzen: 64 KB JSON, 100 MB je Datei, 20 Dateien je Anfrage. Unbestätigte Entwürfe
 löscht der bestehende Sweep nach `DRAFT_TTL_MINUTES`.
+
+### Client-Adresse hinter Proxys
+
+`X-Forwarded-For` kann ein Client selbst setzen; früher galt der linke Eintrag und ließ sich fälschen
+(Grenzen umgehbar). Jetzt (`lib/clientIp.ts`):
+
+| Variable | Standard | Bedeutung |
+| --- | --- | --- |
+| `CLIENT_IP_TRUSTED_PROXIES` | 1 | Zahl der vorgeschalteten Proxys, die die Adresse ihres Gegenübers **hinten anhängen** (Railway-Rand = 1). Es gilt der Eintrag an dieser Stelle von rechts. 0 = Header ignorieren (alle „unknown“, die IP-Grenzen greifen dann nicht). |
+| `WEBSITE_PROXY_SECRET` | leer | Gemeinsames Geheimnis (mindestens 16 Zeichen) mit dem Caddy von digitalemedien.de. Mit passendem Header `X-Dmp-Proxy-Secret` gilt die Besucher-Adresse aus `X-Dmp-Client-Ip`. Leer = aus. |
+
+Warum das Geheimnis: Für den Railway-Rand kommen alle Anfragen der Website von derselben Adresse (dem
+Website-Dienst). Ohne die Besucher-Adresse würden sich alle Besucher eine Grenze teilen. Ein falsches oder
+fehlendes Geheimnis wird ignoriert. Beim Einrichten: auf beiden Seiten denselben Zufallswert setzen
+(druck-s `WEBSITE_PROXY_SECRET`, Website `DRUCK_S_PROXY_SECRET`).
 
 ## Für Assistenten
 
