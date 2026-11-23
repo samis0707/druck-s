@@ -24,6 +24,9 @@ const eslintConfig = defineConfig([
     "public/pdf.worker.min.mjs",
     // Kopierte Swagger-Oberfläche für /api/docs (ebenfalls nicht im Repo).
     "public/swagger/**",
+    // Unverändert übernommener Quellcode aus dem kalpri-Repo und gebaute Werkbank.
+    "lib/kalpri/**",
+    "vendor/**",
   ]),
   // Werkzeugskripte für Schulungs-Screenshots und PDFs laufen als CommonJS mit Node.
   {

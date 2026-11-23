@@ -19,7 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@druck/units": ["./lib/kalpri/units/index.ts"],
+      "@druck/layout-core": ["./lib/kalpri/layout-core/index.ts"],
+      "@druck/resources": ["./lib/kalpri/resources/index.ts"]
     }
   },
   "include": [

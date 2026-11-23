@@ -1,0 +1,11 @@
+{
+  "repo": "kalpri",
+  "commit": "ae8e558a215785717c3c0d2461652997a104482e",
+  "saubererStand": true,
+  "pakete": [
+    "units",
+    "layout-core",
+    "resources"
+  ],
+  "datum": "2026-11-23T19:01:23.136Z"
+}
