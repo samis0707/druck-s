@@ -48,7 +48,7 @@ export const kalkulationPaths = {
       tags: ["Richtpreis"],
       operationId: "listRichtpreisArtikel",
       summary: "Artikel und Fragen für den Richtpreis",
-      description: "Nur für den Shop freigegebene Artikel, jeweils mit den Fragen in kundenverständlicher Form. Die `wert`-Angaben der Auswahl gehören in `antworten` von `POST /api/v1/richtpreis`; ein Format wird in Millimetern angegeben.",
+      description: "Nur für den Shop freigegebene Artikel, jeweils mit den Fragen in kundenverständlicher Form und den Produkten der Anfrage (`produkte`), denen die Druckerei sie zugeordnet hat. Solange die Druckerei „Richtpreis für Kunden anzeigen“ nicht eingeschaltet hat, antwortet die Schnittstelle mit `{ aktiv: false, artikel: [] }` (Status 200). Die `wert`-Angaben der Auswahl gehören in `antworten` von `POST /api/v1/richtpreis`; ein Format wird in Millimetern angegeben.",
       responses: {
         "200": { description: "Freigegebene Artikel.", content: json(ref("RichtpreisArtikelListe")) },
         "429": richtpreisFehler("Zu viele Abrufe von dieser Adresse.", "zu_viele_anfragen", "Zu viele Abrufe von dieser Adresse, bitte später erneut versuchen."),
@@ -66,6 +66,7 @@ export const kalkulationPaths = {
       responses: {
         "200": { description: "Ergebnis je Auflage.", content: json(ref("RichtpreisAntwort")) },
         "400": richtpreisFehler("Anfrage oder Antworten ungültig (`ungueltig`, `ungueltiges_json`).", "ungueltig", "Die Anfrage ist ungültig."),
+        "403": richtpreisFehler("Der Richtpreis für Kunden ist (noch) nicht eingeschaltet.", "nicht_aktiv", "Der Richtpreis ist derzeit nicht aktiv."),
         "404": richtpreisFehler("Artikel unbekannt oder nicht freigegeben.", "nicht_gefunden", "Diesen Artikel gibt es nicht."),
         "413": richtpreisFehler("Anfrage zu groß (höchstens 64 KB).", "zu_gross", "Die Anfrage ist zu groß."),
         "422": richtpreisFehler("Der Artikel lässt sich so nicht berechnen.", "nicht_berechenbar", "Dieser Artikel lässt sich so nicht berechnen."),
@@ -193,15 +194,16 @@ export const kalkulationSchemas = {
   },
   RichtpreisArtikelListe: {
     type: "object",
-    required: ["artikel", "maxAuflagen"],
+    required: ["aktiv", "artikel"],
     properties: {
+      aktiv: { type: "boolean", description: "false: der Richtpreis ist ausgeschaltet; `artikel` ist dann leer." },
       maxAuflagen: { type: "integer", example: MAX_AUFLAGEN },
       artikel: {
         type: "array",
         items: {
           type: "object",
           required: ["id", "titel", "einheit", "fragen"],
-          properties: { id: { type: "string" }, titel: { type: "string" }, einheit: { type: "string" }, text: { type: ["string", "null"] }, fragen: { type: "array", items: ref("RichtpreisFrage") } },
+          properties: { id: { type: "string" }, titel: { type: "string" }, einheit: { type: "string" }, text: { type: ["string", "null"] }, produkte: { type: "array", items: { type: "string" }, description: "Produkte der Anfrage (`GET /api/v1/products`), zu denen der Artikel gehört." }, fragen: { type: "array", items: ref("RichtpreisFrage") } },
         },
       },
     },

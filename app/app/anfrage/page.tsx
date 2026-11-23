@@ -9,6 +9,7 @@ import { Input, Textarea } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
+import { RichtpreisBereich, type RichtpreisAngaben } from "@/components/anfrage/RichtpreisBereich";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { inquiryMessage } from "@/lib/inquiry/messages";
 import { PRODUCT_HINTS } from "@/lib/ui-text";
@@ -27,6 +28,7 @@ export default function AnfragePage() {
   const [email, setEmail] = useState("");
   const [organisation, setOrganisation] = useState("");
   const [phone, setPhone] = useState("");
+  const [richtpreis, setRichtpreis] = useState<RichtpreisAngaben | null>(null);
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -48,15 +50,20 @@ export default function AnfragePage() {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return fail("Bitte geben Sie eine gültige E-Mail-Adresse an.");
     setBusy(true);
     try {
-      const created = await fetch("/api/v1/inquiries", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          product,
-          description,
-          contact: { name, email, organisation: organisation || null, phone: phone || null },
-        }),
-      });
+      const anlegen = (mitPreis: boolean) =>
+        fetch("/api/v1/inquiries", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            product,
+            description,
+            contact: { name, email, organisation: organisation || null, phone: phone || null },
+            ...(mitPreis && richtpreis ? { quote: richtpreis } : {}),
+          }),
+        });
+      let created = await anlegen(true);
+      // Der Richtpreis ist freiwillig: lehnt der Server die Preisangaben ab (z. B. gerade abgeschaltet), geht die Anfrage ohne sie.
+      if (created.status === 400 && richtpreis) created = await anlegen(false);
       const data = (await created.json()) as { inquiry?: { id: string } } & ApiError;
       if (!created.ok || !data.inquiry) throw new Error(inquiryMessage(data.code, "Die Anfrage konnte nicht angelegt werden."));
       const id = data.inquiry.id;
@@ -145,6 +152,7 @@ export default function AnfragePage() {
           </div>
         </CardContent>
       </Card>
+      <RichtpreisBereich produkt={product} onChange={setRichtpreis} />
       <Card>
         <CardContent className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">

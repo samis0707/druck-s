@@ -23,11 +23,13 @@ import { query } from "../db";
 import { bereich } from "./bereiche";
 import { ladeDaten } from "./daten";
 import { ladePreisEinstellungen, speicherePreisEinstellungen } from "./einstellungen";
+import { kundenRichtpreisAktiv, ladeZuordnung, setzeKundenRichtpreisAktiv, speichereZuordnung } from "./kundenRichtpreis";
+import { PRODUCT_HINTS } from "../ui-text";
 import { RUMPF_MAX, RUMPF_MAX_WERKBANK, gleicherUrsprung, kalkJson, leseJson, leseRumpf } from "./http";
 import { uebernehmeImport, vorschauImport, zaehlungen } from "./import";
 import { RICHTPREIS_HINWEIS } from "./richtpreis";
 import { berechneIntern, berechneUndSpeichere, ladeSnapshots } from "./richtpreisService";
-import { API_VERSION, KalkulierenSchema, anfrage } from "./schnittstelle";
+import { API_VERSION, KalkulierenSchema, anfrage, shopFreigegeben } from "./schnittstelle";
 import { DATEI_MAX, alleBereiche, dateiLesen, dateiSpeichern, dateienUmfang } from "./store";
 import { werkbankAnfrage } from "./werkbank-api";
 import { heuteIso } from "./zeit";
@@ -63,6 +65,34 @@ export async function staffKalkulation(req: Request, teile: string[]): Promise<R
       if (!r.ok) return fehler(400, "Einstellungen ungültig", r.fehler);
       await appendAudit({ action: "kalkulation_einstellungen_geaendert", actorType: "staff", actorId: user.id, ip: clientIp(req), detail: { einstellungen: r.wert } });
       return kalkJson({ einstellungen: r.wert });
+    }
+  }
+  // Richtpreis für Kunden: Schalter und Zuordnung Produkt → Artikel
+  if (teile[0] === "einstellungen" && teile[1] === "kunden" && teile.length === 2) {
+    if (methode === "GET") {
+      const g = await ladeDaten();
+      return kalkJson({
+        aktiv: await kundenRichtpreisAktiv(),
+        zuordnung: await ladeZuordnung(),
+        produkte: PRODUCT_HINTS,
+        artikel: g.ok ? g.daten.artikel.filter((a) => a.archiviert !== true).map((a) => ({ id: a.id, titel: a.titel, freigegeben: shopFreigegeben(a) })) : [],
+        stammdatenVorhanden: g.ok,
+      });
+    }
+    if (methode === "PUT") {
+      const j = await leseJson(req);
+      if (!j.ok) return fehler(j.status, j.meldung);
+      const b = (j.wert ?? {}) as { aktiv?: unknown; zuordnung?: unknown };
+      if (b.aktiv !== undefined && typeof b.aktiv !== "boolean") return fehler(400, "„aktiv“ muss true oder false sein");
+      const vorher = { aktiv: await kundenRichtpreisAktiv(), zuordnung: await ladeZuordnung() };
+      if (b.zuordnung !== undefined) {
+        const z = await speichereZuordnung(b.zuordnung, wer(user));
+        if (!z.ok) return fehler(400, "Zuordnung ungültig", z.fehler);
+      }
+      if (typeof b.aktiv === "boolean") await setzeKundenRichtpreisAktiv(b.aktiv, wer(user));
+      const nachher = { aktiv: await kundenRichtpreisAktiv(), zuordnung: await ladeZuordnung() };
+      await appendAudit({ action: "kalkulation_kunden_richtpreis_geaendert", actorType: "staff", actorId: user.id, ip: clientIp(req), detail: { vorher, nachher } });
+      return kalkJson(nachher);
     }
   }
   if (teile[0] === "import" && methode === "POST" && (teile.length === 1 || (teile.length === 2 && teile[1] === "vorschau"))) {

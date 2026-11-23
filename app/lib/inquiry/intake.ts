@@ -14,6 +14,13 @@ import { config } from "../config";
 import { query, withTx } from "../db";
 import { ensureProspect, findIdentityByEmail } from "../identities";
 import { sendMail } from "../mail";
+import {
+  berechneFuerAnfrage,
+  kundenRichtpreisAktiv,
+  pruefeAnfrageQuote,
+  richtpreisZeilen,
+  type RichtpreisZeile,
+} from "../kalkulation/kundenRichtpreis";
 import { inquiryCodeMail, inquiryReceivedMail, staffInquiryNotice } from "../mailTemplates";
 import { requestRef } from "../requestNumber";
 import { appendEventTx } from "../requests/events";
@@ -144,6 +151,13 @@ export async function createInquiry(body: InquiryBody, ctx: { ip?: string | null
   if (limit > 0 && knownIp(ctx.ip) && (await countAudit("inquiry_created", "ip", ctx.ip)) >= limit) {
     throw new InquiryError("Too many new inquiries from this address, try again later", 429, "rate_limited");
   }
+  // Richtpreis-Angaben nur, solange der Schalter an ist; sonst wie bisher ohne (still ignoriert).
+  let quote: unknown = null;
+  if (body.quote && (await kundenRichtpreisAktiv())) {
+    const geprueft = await pruefeAnfrageQuote(body.product, body.quote);
+    if (!geprueft.ok) throw new InquiryError("The quote data is invalid", 400, "invalid_body", geprueft.fehler);
+    quote = geprueft.quote;
+  }
   const draft = await createDraft({
     productHint: body.product,
     referenceText: body.reference,
@@ -154,7 +168,8 @@ export async function createInquiry(body: InquiryBody, ctx: { ip?: string | null
   if (body.contact) {
     await query("UPDATE requests SET inquiry_contact = $2 WHERE id = $1", [draft.id, JSON.stringify(body.contact)]);
   }
-  await appendAudit({ action: "inquiry_created", requestId: draft.id, ip: ctx.ip ?? null });
+  if (quote) await query("UPDATE requests SET inquiry_quote = $2 WHERE id = $1", [draft.id, JSON.stringify(quote)]);
+  await appendAudit({ action: "inquiry_created", requestId: draft.id, ip: ctx.ip ?? null, detail: quote ? { richtpreis: true } : {} });
   return toView({ ...draft, inquiryContact: body.contact });
 }
 
@@ -316,7 +331,8 @@ export async function confirmInquiry(id: string, code: string, ctx: { ip?: strin
     }
     await consumeCodeTx(client, id);
     const after = await client.query<PrintRequest>(`SELECT ${REQUEST_COLS} FROM requests WHERE id = $1`, [id]);
-    return { request: after.rows[0], contact, customer };
+    const q = await client.query<{ inquiry_quote: unknown }>("SELECT inquiry_quote FROM requests WHERE id = $1", [id]);
+    return { request: after.rows[0], contact, customer, quote: q.rows[0]?.inquiry_quote ?? null };
   });
 
   if ("error" in outcome && outcome.error) {
@@ -325,7 +341,12 @@ export async function confirmInquiry(id: string, code: string, ctx: { ip?: strin
     }
     throw outcome.error;
   }
-  const { request, contact, customer } = outcome as { request: PrintRequest; contact: InquiryContact; customer: boolean };
+  const { request, contact, customer, quote } = outcome as {
+    request: PrintRequest;
+    contact: InquiryContact;
+    customer: boolean;
+    quote: unknown;
+  };
 
   await appendAudit({
     action: "inquiry_confirmed",
@@ -334,17 +355,35 @@ export async function confirmInquiry(id: string, code: string, ctx: { ip?: strin
     ip: ctx.ip ?? null,
     detail: { email: contact.email, customer },
   });
-  await notifyAfterConfirm(request, contact, customer);
+  // Richtpreis NEU rechnen (aus Artikel, Antworten, Auflagen; nie aus Preisen des Clients) und festhalten.
+  let richtpreis: RichtpreisZeile[] | null = null;
+  if (quote) {
+    try {
+      const r = await berechneFuerAnfrage(id, request.productHint, quote);
+      if (r.ok) {
+        richtpreis = richtpreisZeilen(r.auflagen);
+        await appendAudit({ action: "richtpreis_saved", actorType: "customer", requestId: id, ip: ctx.ip ?? null, detail: { artikel: r.snapshot.artikelId, auflagen: r.snapshot.auflagen, quelle: "anfrage" } });
+      }
+    } catch (err) {
+      console.error(`[inquiry] Richtpreis ${id} fehlgeschlagen:`, err instanceof Error ? err.message : err);
+    }
+  }
+  await notifyAfterConfirm(request, contact, customer, richtpreis);
   return { inquiry: await toView(request), customer };
 }
 
 /** Eingangsbestätigung und Team-Hinweis. Ein Mailfehler macht die bestätigte Anfrage nicht ungültig. */
-async function notifyAfterConfirm(request: PrintRequest, contact: InquiryContact, customer: boolean): Promise<void> {
+async function notifyAfterConfirm(
+  request: PrintRequest,
+  contact: InquiryContact,
+  customer: boolean,
+  richtpreis: RichtpreisZeile[] | null,
+): Promise<void> {
   const ref = requestRef(request);
   const product = productLabel(request.productHint);
   try {
     const files = await listFiles(request.id);
-    const received = inquiryReceivedMail({ requestRef: ref, product, fileCount: files.length });
+    const received = inquiryReceivedMail({ requestRef: ref, product, fileCount: files.length, richtpreis });
     await sendMail({ to: contact.email, subject: received.subject, text: received.text, html: received.html });
   } catch (err) {
     console.error(`[inquiry] Eingangsbestätigung ${ref} fehlgeschlagen:`, err instanceof Error ? err.message : err);
@@ -358,6 +397,7 @@ async function notifyAfterConfirm(request: PrintRequest, contact: InquiryContact
       email: contact.email,
       organisation: contact.organisation,
       phone: contact.phone,
+      richtpreis,
       staffUrl: `${config.appBaseUrl.replace(/\/+$/, "")}/staff/requests/${request.id}`,
     });
     await sendMail({ to: config.firmInbox, subject: notice.subject, text: notice.text, html: notice.html });

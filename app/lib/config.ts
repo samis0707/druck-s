@@ -129,6 +129,16 @@ export const config = {
     /** Fehlversuche je Code, danach ist ein neuer Code nötig. */
     codeAttempts: numberVar("INQUIRY_CODE_ATTEMPTS", 5),
   },
+  /**
+   * Client-Adresse hinter Proxys (lib/clientIp.ts). X-Forwarded-For ist nur so weit glaubwürdig, wie
+   * die eigenen Proxys es angehängt haben: gezählt wird von rechts, nie vom (fälschbaren) linken Ende.
+   */
+  clientIp: {
+    /** Anzahl der vorgeschalteten Proxys, die die Adresse ihres Gegenübers anhängen (Railway-Rand = 1; 0 = Header ignorieren). */
+    trustedProxies: numberVar("CLIENT_IP_TRUSTED_PROXIES", 1),
+    /** Gemeinsames Geheimnis mit der Website (Caddy), damit deren Besucher-Adresse gilt; mindestens 16 Zeichen, leer = aus. */
+    websiteSecret: optional("WEBSITE_PROXY_SECRET").trim(),
+  },
   /** Öffentlicher Richtpreis ohne Login (lib/kalkulation, /api/v1/richtpreis). 0 = unbegrenzt. */
   richtpreis: {
     /** Berechnungen (POST) je IP-Adresse und Stunde. */

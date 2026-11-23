@@ -11,6 +11,13 @@ vi.mock("@/lib/auth/session", async (orig) => {
   return { ...echt, getSessionUser: async () => sitzung };
 });
 
+const gesendet: { to: string; subject: string; text: string }[] = [];
+vi.mock("@/lib/mail", () => ({
+  sendMail: async (m: { to: string; subject: string; text: string }) => {
+    gesendet.push({ to: m.to, subject: m.subject, text: m.text });
+  },
+}));
+
 import { config } from "@/lib/config";
 import { query } from "@/lib/db";
 import { beispielSicherung } from "@/lib/kalkulation/beispieldaten";
@@ -25,6 +32,9 @@ import { GET as keyArtikel } from "@/app/api/v1/kalkulation/artikel/route";
 import { POST as keyKalkulieren } from "@/app/api/v1/kalkulation/artikel/[id]/kalkulieren/route";
 import { GET as richtpreisArtikel } from "@/app/api/v1/richtpreis/artikel/route";
 import { POST as richtpreisPost } from "@/app/api/v1/richtpreis/route";
+import { POST as inquiriesPost } from "@/app/api/v1/inquiries/route";
+import { POST as confirmPost } from "@/app/api/v1/inquiries/[id]/confirm/route";
+import { storeCode } from "@/lib/inquiry/codes";
 import { GET as werkbankGet } from "@/app/staff/kalkulation/werkbank/[[...pfad]]/route";
 
 const BASE = "http://localhost";
@@ -48,10 +58,14 @@ beforeAll(async () => {
   const r = await importieren(beispielSicherung("2026-11-23"), "test", true);
   expect(r.ok).toBe(true);
   datenZwischenspeicherLeeren();
+  // Der öffentliche Richtpreis ist standardmäßig aus; die folgenden Tests prüfen ihn im Betrieb.
+  await query("DELETE FROM app_settings WHERE key = 'kalkulation.produktzuordnung'");
+  await query(`INSERT INTO app_settings (key, value, updated_by) VALUES ('kalkulation.kunden_richtpreis', 'an', 'test')
+               ON CONFLICT (key) DO UPDATE SET value = 'an'`);
 });
 
 afterAll(async () => {
-  await query("DELETE FROM app_settings WHERE key = 'kalkulation.preis'");
+  await query("DELETE FROM app_settings WHERE key IN ('kalkulation.preis', 'kalkulation.kunden_richtpreis', 'kalkulation.produktzuordnung')");
   await query("DELETE FROM audit_log WHERE action IN ('richtpreis_requested', 'richtpreis_saved', 'kalkulation_einstellungen_geaendert') AND (ip LIKE '10.99.%' OR ip IS NULL)");
 });
 
@@ -415,5 +429,147 @@ describe("Preis-Einstellungen und Snapshots", () => {
     expect(b.offen).toEqual([]);
     const zuViele = await staffPost(json("/api/staff/kalkulation/v1/artikel/A-FLYER/richtpreis", "POST", { auflagen: [1, 2, 3, 4, 5, 6, 7] }), ctxPfad("v1/artikel/A-FLYER/richtpreis"));
     expect(zuViele.status).toBe(400);
+  });
+});
+
+
+describe("Richtpreis für Kunden: Schalter, Zuordnung, offene Anfrage", () => {
+  const artikelListe = () => richtpreisArtikel(req("/api/v1/richtpreis/artikel", { ip: neueIp() }));
+  const rechne = (body: unknown) => richtpreisPost(json("/api/v1/richtpreis", "POST", body, { "x-forwarded-for": neueIp() }));
+  const staffKunden = (body: unknown) => staffPut(json("/api/staff/kalkulation/einstellungen/kunden", "PUT", body), ctxPfad("einstellungen/kunden"));
+  const flyer = { artikel: "A-FLYER", auflagen: [250, 1000], antworten: { endformat: "1", "teil:T1:woraus": "0", "teil:T1:druck": "1" } };
+  const ids: string[] = [];
+
+  async function anlegen(body: Record<string, unknown>, email: string) {
+    const res = await inquiriesPost(
+      json("/api/v1/inquiries", "POST", { product: "flyer", description: "Flyer fürs Fest", contact: { name: "Ines Test", email }, ...body }, { "x-forwarded-for": neueIp() }),
+    );
+    const b = (await res.json()) as { inquiry?: { id: string }; code?: string; details?: string[] };
+    if (b.inquiry) ids.push(b.inquiry.id);
+    return { status: res.status, b, id: b.inquiry?.id ?? "" };
+  }
+  async function bestaetigen(id: string, email: string) {
+    await storeCode(id, email, "123456");
+    const res = await confirmPost(json(`/api/v1/inquiries/${id}/confirm`, "POST", { code: "123456" }, { "x-forwarded-for": neueIp() }), ctxId(id));
+    expect(res.status).toBe(200);
+  }
+  const quoteZeile = (id: string) => query<{ inquiry_quote: unknown }>("SELECT inquiry_quote FROM requests WHERE id = $1", [id]).then((r) => r.rows[0].inquiry_quote);
+
+  afterAll(async () => {
+    if (ids.length) await query("DELETE FROM requests WHERE id = ANY($1::uuid[])", [ids]);
+    await query(`DELETE FROM "user" WHERE email LIKE '%@richtpreis-test.example'`);
+    await query("DELETE FROM audit_log WHERE action IN ('inquiry_created','inquiry_confirmed','kalkulation_kunden_richtpreis_geaendert','richtpreis_saved') AND (ip LIKE '10.99.%' OR actor_id = 'u-staff')");
+  });
+
+  it("ist standardmäßig aus: Artikelliste meldet „nicht aktiv“, Berechnung 403, Anfrage ignoriert quote", async () => {
+    await query("DELETE FROM app_settings WHERE key = 'kalkulation.kunden_richtpreis'");
+    const a = await artikelListe();
+    expect(a.status).toBe(200);
+    expect(await a.json()).toEqual({ aktiv: false, artikel: [] });
+    const r = await rechne(flyer);
+    expect(r.status).toBe(403);
+    expect(((await r.json()) as { code: string }).code).toBe("nicht_aktiv");
+    const zugeordnet = await anlegen({ quote: flyer }, "aus@richtpreis-test.example");
+    expect(zugeordnet.status).toBe(201);
+    expect(await quoteZeile(zugeordnet.id)).toBeNull();
+  });
+
+  it("lässt nur Mitarbeiter umschalten, prüft die Zuordnung und schreibt einen Audit-Eintrag", async () => {
+    sitzung = null;
+    expect((await staffKunden({ aktiv: true })).status).toBe(401);
+    sitzung = KUNDE;
+    expect((await staffKunden({ aktiv: true })).status).toBe(403);
+    sitzung = STAFF;
+    expect((await staffKunden({ zuordnung: { unbekannt: ["A-FLYER"] } })).status).toBe(400);
+    expect((await staffKunden({ aktiv: "ja" })).status).toBe(400);
+    const ok = await staffKunden({ aktiv: true, zuordnung: { flyer: ["A-FLYER"], "business-card": ["A-VISITENKARTE"] } });
+    expect(ok.status).toBe(200);
+    const stand = (await (await staffGet(req("/api/staff/kalkulation/einstellungen/kunden"), ctxPfad("einstellungen/kunden"))).json()) as { aktiv: boolean; artikel: { id: string }[] };
+    expect(stand.aktiv).toBe(true);
+    expect(stand.artikel.map((x) => x.id)).toContain("A-FLYER");
+    const audit = await query("SELECT 1 FROM audit_log WHERE action = 'kalkulation_kunden_richtpreis_geaendert' AND actor_id = 'u-staff'");
+    expect(audit.rowCount).toBeGreaterThan(0);
+    sitzung = null;
+  });
+
+  it("zeigt bei eingeschaltetem Richtpreis die Artikel mit ihren Produkten", async () => {
+    const b = (await (await artikelListe()).json()) as { aktiv: boolean; artikel: { id: string; produkte: string[] }[] };
+    expect(b.aktiv).toBe(true);
+    expect(b.artikel.find((x) => x.id === "A-FLYER")!.produkte).toEqual(["flyer"]);
+    expect(b.artikel.find((x) => x.id === "A-VISITENKARTE")!.produkte).toEqual(["business-card"]);
+  });
+
+  it("prüft die neuen Felder der Anfrage (Artikel muss zum Produkt passen, Antworten, höchstens 3 Auflagen)", async () => {
+    const fehler = async (quote: unknown) => {
+      const r = await anlegen({ quote }, "pruefung@richtpreis-test.example");
+      expect(r.status).toBe(400);
+      expect(r.b.code).toBe("invalid_body");
+      return (r.b.details ?? []).join(" | ");
+    };
+    expect(await fehler("text")).toMatch(/quote must be an object/);
+    expect(await fehler({ ...flyer, artikel: "A-VISITENKARTE" })).toMatch(/passt nicht zum gewählten Produkt/);
+    expect(await fehler({ ...flyer, artikel: "A-PLAKAT" })).toMatch(/unbekannter Artikel/);
+    expect(await fehler({ ...flyer, auflagen: [1, 2, 3, 4] })).toMatch(/Höchstens 3 Auflagen/);
+    expect(await fehler({ ...flyer, auflagen: [0] })).toMatch(/Auflage mindestens 1/);
+    expect(await fehler({ ...flyer, antworten: { endformat: "99" } })).toMatch(/Diese Auswahl gibt es nicht/);
+    expect(await fehler({ ...flyer, antworten: { gibtsnicht: "1" } })).toMatch(/Diese Frage gibt es für den Artikel nicht/);
+    // Preise vom Client werden nicht angenommen
+    expect(await fehler({ ...flyer, netto: { richtpreisCent: 1 } })).toMatch(/Unbekanntes Feld/);
+  });
+
+  it("rechnet beim Bestätigen neu: Snapshot aus den aktuellen Einstellungen, nicht aus dem Entwurf", async () => {
+    sitzung = STAFF;
+    await staffPut(json("/api/staff/kalkulation/einstellungen", "PUT", { gemeinkostenProzent: 10, gewinnProzent: 10, mindestpreisCent: 0, rundungSchrittCent: 1, rundungRichtung: "kaufmaennisch" }), ctxPfad("einstellungen"));
+    sitzung = null;
+    const email = "neu@richtpreis-test.example";
+    const d = await anlegen({ quote: flyer }, email);
+    expect(d.status).toBe(201);
+    expect(await quoteZeile(d.id)).toEqual({ artikel: "A-FLYER", antworten: flyer.antworten, auflagen: [250, 1000] });
+    // zwischen Entwurf und Bestätigung ändern sich die Preis-Einstellungen
+    sitzung = STAFF;
+    await staffPut(json("/api/staff/kalkulation/einstellungen", "PUT", { gemeinkostenProzent: 100, gewinnProzent: 100, mindestpreisCent: 0, rundungSchrittCent: 1, rundungRichtung: "kaufmaennisch" }), ctxPfad("einstellungen"));
+    sitzung = null;
+    gesendet.length = 0;
+    await bestaetigen(d.id, email);
+    const snaps = await ladeSnapshots(d.id);
+    expect(snaps).toHaveLength(1);
+    expect(snaps[0].artikelId).toBe("A-FLYER");
+    expect(snaps[0].auflagen).toEqual([250, 1000]);
+    expect(snaps[0].preisEinstellungen.gewinnProzent).toBe(100);
+    expect((snaps[0].ergebnis as { quelle?: string }).quelle).toBe("anfrage");
+    // identisch mit der öffentlichen Berechnung zu denselben Angaben
+    const direkt = (await (await rechne(flyer)).json()) as { auflagen: { netto: { richtpreisCent: number } }[] };
+    const gespeichert = (snaps[0].ergebnis as { auflagen: { richtpreis: { preis: { nettoCent: number } } }[] }).auflagen;
+    expect(gespeichert.map((x) => x.richtpreis.preis.nettoCent)).toEqual(direkt.auflagen.map((x) => x.netto.richtpreisCent));
+    // Mails: Kunde (unverbindlich) und Firmenpostfach
+    const kunde = gesendet.find((m) => m.to === email)!;
+    expect(kunde.text).toMatch(/Ungefährer Preis \(unverbindlich\)/);
+    expect(kunde.text).toMatch(/ca\. [\d.,]+ – [\d.,]+ € netto/);
+    expect(kunde.text).toMatch(/verbindliche Preis kommt mit unserem Angebot/);
+    const firma = gesendet.find((m) => m.to === config.firmInbox)!;
+    expect(firma.text).toMatch(/Richtpreis, den der Interessent gesehen hat/);
+    expect(firma.text).toMatch(/250 Stück: ca\./);
+  });
+
+  it("bestätigt ohne Richtpreis wie bisher, wenn der Schalter zwischenzeitlich ausgeschaltet wurde", async () => {
+    const email = "spaet@richtpreis-test.example";
+    const d = await anlegen({ quote: flyer }, email);
+    expect(d.status).toBe(201);
+    await query("UPDATE app_settings SET value = 'aus' WHERE key = 'kalkulation.kunden_richtpreis'");
+    gesendet.length = 0;
+    await bestaetigen(d.id, email);
+    expect(await ladeSnapshots(d.id)).toHaveLength(0);
+    expect(gesendet.find((m) => m.to === email)!.text).not.toMatch(/Richtpreis|Ungefährer Preis/);
+    await query("UPDATE app_settings SET value = 'an' WHERE key = 'kalkulation.kunden_richtpreis'");
+  });
+
+  it("legt Anfragen ohne quote unverändert an", async () => {
+    const email = "ohne@richtpreis-test.example";
+    const d = await anlegen({}, email);
+    expect(d.status).toBe(201);
+    gesendet.length = 0;
+    await bestaetigen(d.id, email);
+    expect(await ladeSnapshots(d.id)).toHaveLength(0);
+    expect(gesendet.find((m) => m.to === email)!.text).not.toMatch(/Ungefährer Preis/);
   });
 });

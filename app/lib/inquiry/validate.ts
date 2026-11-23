@@ -27,6 +27,11 @@ export interface InquiryBody {
   description: string;
   reference: string | null;
   contact: InquiryContact | null;
+  /**
+   * Optional: Angaben für den unverbindlichen Richtpreis ({ artikel, antworten, auflagen }). Hier nur
+   * als Objekt geprüft; Artikel, Antworten und Zuordnung zum Produkt prüft createInquiry gegen die Stammdaten.
+   */
+  quote: Record<string, unknown> | null;
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -102,8 +107,13 @@ export function validateInquiry(input: unknown): Validated<InquiryBody> {
     if (parsed.ok) contact = parsed.value;
     else errors.push(...parsed.errors);
   }
+  let quote: Record<string, unknown> | null = null;
+  if (input.quote !== undefined && input.quote !== null) {
+    if (isRecord(input.quote)) quote = input.quote;
+    else errors.push("quote must be an object");
+  }
   if (errors.length > 0 || !product || !description) return { ok: false, errors };
-  return { ok: true, value: { product, description, reference, contact } };
+  return { ok: true, value: { product, description, reference, contact, quote } };
 }
 
 /** Code aus der E-Mail: genau sechs Ziffern (Leerzeichen dazwischen werden toleriert). */
