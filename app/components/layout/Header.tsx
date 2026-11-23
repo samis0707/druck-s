@@ -17,15 +17,20 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const links = [
+const basisLinks = [
   { href: "/upload", label: "Upload" },
   { href: "/requests", label: "Aufträge" },
   { href: "/konto", label: "Konto" },
   { href: "/hilfe", label: "Hilfe" },
 ] as const;
 
+/** Zusätzliche Einträge im Backoffice (Mitarbeiter), ohne den Login. */
+const staffLinks = [{ href: "/staff/personalisierung", label: "Personalisierung" }] as const;
+
 export function Header() {
   const pathname = usePathname();
+  const imBackoffice = pathname.startsWith("/staff") && !pathname.startsWith("/staff/login");
+  const links = imBackoffice ? [...basisLinks, ...staffLinks] : basisLinks;
 
   return (
     <header className="nav" style={{ viewTransitionName: "site-header" }}>

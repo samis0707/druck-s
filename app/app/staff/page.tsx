@@ -553,6 +553,9 @@ export default function StaffPage() {
               <Button render={<Link href="/staff/kalkulation" />} variant="secondary" data-tour="staff-kalkulation">
                 Kalkulation
               </Button>
+              <Button render={<Link href="/staff/personalisierung" />} variant="secondary" data-tour="staff-personalisierung">
+                Personalisierung
+              </Button>
               <Button render={<Link href="/staff/einstellungen" />} variant="secondary">
                 Einstellungen
               </Button>

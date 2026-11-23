@@ -3,6 +3,7 @@
 /* Fetch-on-mount data loading: setState runs after await (no cascading render). */
 /* eslint-disable react-hooks/set-state-in-effect */
 
+import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
@@ -222,6 +223,9 @@ export default function StaffRequestPage({ params }: { params: Promise<{ id: str
           <>
             <Badge variant={toneVariant(STATUS_TONE[st] ?? "gray")}>{STAFF_STATUS[st] ?? st}</Badge>
             <Badge variant={toneVariant(herkunft.tone)}>{herkunft.label}</Badge>
+            {(detail.personalisierung || detail.request.productHint === "personalisierung") && (
+              <Badge variant="outline" data-tour="pers-auftrag-kennzeichen">Personalisierung</Badge>
+            )}
           </>
         }
       />
@@ -231,6 +235,38 @@ export default function StaffRequestPage({ params }: { params: Promise<{ id: str
             ? `Von ${detail.partner.name} zurückgezogen — keine weiteren Schritte.`
             : "Zurückgezogen — keine weiteren Schritte."}
         </p>
+      )}
+      {detail.request.productHint === "personalisierung" && (
+        <Card size="sm" data-tour="pers-auftrag-karte">
+          <CardContent className="space-y-2">
+            <CardTitle>Personalisierung</CardTitle>
+            {detail.personalisierung ? (
+              <>
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-[max-content_1fr]">
+                  <dt className="text-muted-foreground">Vorlage</dt>
+                  <dd>
+                    {detail.personalisierung.templateId ? (
+                      <Link className="underline" href={`/staff/personalisierung/${detail.personalisierung.templateId}`}>
+                        {detail.personalisierung.templateName ?? "Vorlage"}
+                      </Link>
+                    ) : (
+                      "Vorlage wurde gelöscht"
+                    )}
+                    , Version {detail.personalisierung.version}
+                  </dd>
+                  <dt className="text-muted-foreground">Umfang</dt>
+                  <dd>
+                    {detail.personalisierung.records} Datensätze, {detail.personalisierung.nutzen.toLocaleString("de-DE")} Nutzen,{" "}
+                    {detail.personalisierung.pages} {detail.personalisierung.pages === 1 ? "Seite" : "Seiten"} ({detail.personalisierung.mode === "ausgeschossen" ? "ausgeschossen" : "Einzelseiten"})
+                  </dd>
+                </dl>
+                <p className="text-xs text-muted-foreground">Druck-PDF und Datentabelle (XLSX) stehen unter „Dateien“.</p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Die Druckdaten sind noch nicht erzeugt (Bestätigung steht aus oder die Erzeugung ist fehlgeschlagen, siehe Beschreibung).</p>
+            )}
+          </CardContent>
+        </Card>
       )}
       {detail.partner && (
         <Card size="sm">
