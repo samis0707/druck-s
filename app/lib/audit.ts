@@ -32,6 +32,16 @@ export const AUDIT_ACTIONS = [
   // Batch-Virenscan (scripts/scan-pending.mjs, docs/virenscan.md); schreibt das Skript direkt.
   "malware_detected",
   "malware_scan_unavailable",
+  // Personalisierung (lib/personalisierung): Zählgrundlage der Gast-Grenzen, nie mit Datensatzwerten.
+  "pers_preview",
+  "pers_check",
+  "pers_table",
+  "pers_draft_created",
+  "pers_link_created",
+  "pers_link_revoked",
+  "pers_generated",
+  "pers_drafts_swept",
+  "pers_template_saved",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

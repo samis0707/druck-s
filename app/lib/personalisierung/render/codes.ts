@@ -96,7 +96,7 @@ export function barcodeForm(sym: Symbologie, text: string): CodeForm {
     if (cache.size > 500) cache.clear();
     cache.set(key, form);
     return form;
-  } catch (err) {
+  } catch {
     const msg = "Der Inhalt ist für diesen Codetyp ungültig.";
     if (cache.size > 500) cache.clear();
     cache.set(key, msg);

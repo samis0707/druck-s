@@ -129,6 +129,24 @@ export const config = {
     /** Fehlversuche je Code, danach ist ein neuer Code nötig. */
     codeAttempts: numberVar("INQUIRY_CODE_ATTEMPTS", 5),
   },
+  /** Personalisierung (lib/personalisierung). 0 = unbegrenzt bei den Mengen je Stunde. */
+  personalisierung: {
+    /** Datensätze je Erzeugung/Prüfung/Tabelle */
+    maxDatensaetze: numberVar("PERS_MAX_RECORDS", 2000),
+    /** Nutzen insgesamt (Datensätze × Auflage) */
+    maxNutzen: numberVar("PERS_MAX_NUTZEN", 20000),
+    maxDesignBytes: Math.floor(numberVar("PERS_MAX_DESIGN_MB", 25) * 1024 * 1024),
+    maxFontBytes: Math.floor(numberVar("PERS_MAX_FONT_MB", 10) * 1024 * 1024),
+    maxImageBytes: Math.floor(numberVar("PERS_MAX_IMAGE_MB", 10) * 1024 * 1024),
+    maxTableBytes: Math.floor(numberVar("PERS_MAX_TABLE_MB", 10) * 1024 * 1024),
+    /** Lebensdauer eines Gast-Entwurfs seit der letzten Änderung (Stunden) */
+    draftTtlHours: numberVar("PERS_DRAFT_TTL_HOURS", 24),
+    /** Grenzen je IP-Adresse und Stunde (Zählung im audit_log) */
+    previewsPerIpPerHour: numberVar("PERS_PREVIEWS_PER_IP_PER_HOUR", 120),
+    checksPerIpPerHour: numberVar("PERS_CHECKS_PER_IP_PER_HOUR", 120),
+    tablesPerIpPerHour: numberVar("PERS_TABLES_PER_IP_PER_HOUR", 60),
+    draftsPerIpPerHour: numberVar("PERS_DRAFTS_PER_IP_PER_HOUR", 30),
+  },
   ttl: {
     otpMinutes: numberVar("OTP_TTL_MINUTES", 10),
     sessionHours: numberVar("SESSION_TTL_HOURS", 24),

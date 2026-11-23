@@ -9,7 +9,6 @@ import {
   PDFDict,
   PDFDocument,
   PDFName,
-  PDFNumber,
   PDFRef,
   PDFPage,
   StandardFonts,
