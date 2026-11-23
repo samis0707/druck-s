@@ -14,6 +14,9 @@
  * es KEINEN Preis, sondern „Preis auf Anfrage“ mit Gründen.
  */
 
+/** Höchstens so viele Auflagen je Richtpreis-Berechnung. */
+export const MAX_AUFLAGEN = 6;
+
 export const RICHTPREIS_KENNZEICHEN = "unverbindlicher Richtpreis";
 export const RICHTPREIS_HINWEIS =
   "Unverbindlicher Richtpreis (Schätzung auf Basis Ihrer Angaben). Der verbindliche Preis ergibt sich aus dem Angebot der Druckerei.";

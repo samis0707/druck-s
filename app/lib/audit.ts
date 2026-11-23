@@ -32,6 +32,14 @@ export const AUDIT_ACTIONS = [
   // Batch-Virenscan (scripts/scan-pending.mjs, docs/virenscan.md); schreibt das Skript direkt.
   "malware_detected",
   "malware_scan_unavailable",
+  // Kalkulation (lib/kalkulation): Stammdaten, Einstellungen, Schlüssel, Richtpreis.
+  "kalkulation_stammdaten_import",
+  "kalkulation_stammdaten_zurueck",
+  "kalkulation_einstellungen_geaendert",
+  "kalkulation_key_created",
+  "kalkulation_key_revoked",
+  "richtpreis_requested",
+  "richtpreis_saved",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 

@@ -129,6 +129,13 @@ export const config = {
     /** Fehlversuche je Code, danach ist ein neuer Code nötig. */
     codeAttempts: numberVar("INQUIRY_CODE_ATTEMPTS", 5),
   },
+  /** Öffentlicher Richtpreis ohne Login (lib/kalkulation, /api/v1/richtpreis). 0 = unbegrenzt. */
+  richtpreis: {
+    /** Berechnungen (POST) je IP-Adresse und Stunde. */
+    perIpPerHour: numberVar("RICHTPREIS_PER_IP_PER_HOUR", 60),
+    /** Abrufe der Artikelliste (GET) je IP-Adresse und Stunde (im Speicher gezählt). */
+    artikelPerIpPerHour: numberVar("RICHTPREIS_ARTIKEL_PER_IP_PER_HOUR", 300),
+  },
   ttl: {
     otpMinutes: numberVar("OTP_TTL_MINUTES", 10),
     sessionHours: numberVar("SESSION_TTL_HOURS", 24),

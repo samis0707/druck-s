@@ -7,6 +7,7 @@
 import { company } from "./company";
 import { config } from "./config";
 import { INQUIRY_LIMITS, PRODUCT_VALUES } from "./inquiry/validate";
+import { kalkulationPaths, kalkulationSchemas, kalkulationSecuritySchemes, kalkulationTags } from "./kalkulation/openapi";
 
 /** Fehlercodes der Anfrage-Schnittstelle (lib/inquiry). */
 export const INQUIRY_ERROR_CODES = [
@@ -93,6 +94,7 @@ export function openApiDocument() {
         description:
           "Server-zu-Server-Schnittstelle für Partnersysteme, nur mit API-Schlüssel nach Vereinbarung. Webhooks, Signatur und alle Fehlercodes stehen in docs/partner-api.md.",
       },
+      ...kalkulationTags,
     ],
     paths: {
       "/api/v1/products": {
@@ -340,9 +342,11 @@ export function openApiDocument() {
           },
         },
       },
+      ...kalkulationPaths,
     },
     components: {
       securitySchemes: {
+        ...kalkulationSecuritySchemes,
         partnerKey: { type: "http", scheme: "bearer", bearerFormat: "dmp_<64 hex>", description: "API-Schlüssel eines Partners." },
       },
       parameters: {
@@ -355,6 +359,7 @@ export function openApiDocument() {
         },
       },
       schemas: {
+        ...kalkulationSchemas,
         Error: {
           type: "object",
           required: ["error", "code"],

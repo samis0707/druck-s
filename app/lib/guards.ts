@@ -1,5 +1,6 @@
 import { forbidden, unauthorized } from "./api";
 import { getSessionUser, isStaff } from "./auth/session";
+import { authentifiziereKey } from "./kalkulation/keys";
 
 /** Guard for staff-only Route Handlers. */
 export async function requireStaff(req: Request) {
@@ -19,4 +20,19 @@ export async function requireCustomer(req: Request) {
 
 export function clientIp(req: Request): string {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+}
+
+/**
+ * Guard für Maschinen-Routen der Kalkulation: `Authorization: Bearer kal_…` mit passendem Scope
+ * (lib/kalkulation/keys.ts). 401 ohne gültigen Schlüssel, 403 bei fehlendem Scope.
+ */
+export async function requireKalkulationKey(req: Request, scope = "kalkulation") {
+  const key = await authentifiziereKey(req.headers.get("authorization"));
+  if (!key) {
+    const res = unauthorized("Gültiger API-Schlüssel erforderlich");
+    res.headers.set("www-authenticate", 'Bearer realm="druck-s kalkulation"');
+    return { error: res } as const;
+  }
+  if (!key.scopes.includes(scope)) return { error: forbidden(`Scope „${scope}“ fehlt`) } as const;
+  return { key } as const;
 }
