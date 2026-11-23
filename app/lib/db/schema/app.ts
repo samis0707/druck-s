@@ -260,3 +260,77 @@ export const partnerWebhookOutbox = pgTable(
     index("partner_webhook_outbox_request_idx").on(t.requestId, t.id),
   ],
 );
+
+// ---------------------------------------------------------------------------
+// Kalkulation (Migration 010, openspec/changes/kalkulation-richtpreis)
+
+/** Aktueller Stand je Datenbereich der kalpri-Werkbank (Text, Version = optimistische Sperre). */
+export const kalkulationBereiche = pgTable("kalkulation_bereiche", {
+  schluessel: text("schluessel").primaryKey(),
+  json: text("json").notNull(),
+  version: integer("version").notNull(),
+  geaendertAm: timestamp("geaendert_am", { withTimezone: true }).notNull().defaultNow(),
+  geaendertVon: text("geaendert_von").notNull(),
+});
+
+/** Nur anhängend (Trigger verbietet UPDATE/DELETE). */
+export const kalkulationVerlauf = pgTable(
+  "kalkulation_verlauf",
+  {
+    nr: bigint("nr", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    schluessel: text("schluessel").notNull(),
+    version: integer("version").notNull(),
+    json: text("json").notNull(),
+    zeit: timestamp("zeit", { withTimezone: true }).notNull().defaultNow(),
+    von: text("von").notNull(),
+    anlass: text("anlass").notNull(),
+  },
+  (t) => [index("kalkulation_verlauf_schluessel_idx").on(t.schluessel, t.version)],
+);
+
+/** Metadaten der Stammdaten-Dateien; der Inhalt liegt im S3-Speicher (speicher_key). */
+export const kalkulationDateien = pgTable("kalkulation_dateien", {
+  id: text("id").primaryKey(),
+  groesse: bigint("groesse", { mode: "number" }).notNull(),
+  typ: text("typ").notNull(),
+  name: text("name").notNull(),
+  speicherKey: text("speicher_key").notNull(),
+  angelegtAm: timestamp("angelegt_am", { withTimezone: true }).notNull().defaultNow(),
+  von: text("von").notNull(),
+});
+
+/** API-Schlüssel für Maschinenzugriff (nur Hash + Präfix, Scope). */
+export const kalkulationApiKeys = pgTable(
+  "kalkulation_api_keys",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    keyHash: text("key_hash").notNull().unique(),
+    keyPrefix: text("key_prefix").notNull(),
+    scopes: text("scopes").array().notNull().default(["kalkulation"]),
+    active: boolean("active").notNull().default(true),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  },
+  (t) => [index("kalkulation_api_keys_prefix_idx").on(t.keyPrefix)],
+);
+
+/** Richtpreis-Snapshot zu einer Anfrage (Eingaben, Ergebnis, damalige Einstellungen). */
+export const requestQuotes = pgTable(
+  "request_quotes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requestId: uuid("request_id")
+      .notNull()
+      .references(() => requests.id, { onDelete: "cascade" }),
+    artikelId: text("artikel_id").notNull(),
+    antworten: jsonb("antworten").notNull().default({}),
+    auflagen: integer("auflagen").array().notNull(),
+    ergebnis: jsonb("ergebnis").notNull(),
+    preisEinstellungen: jsonb("preis_einstellungen").notNull(),
+    kalpriHerkunft: jsonb("kalpri_herkunft"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("request_quotes_request_idx").on(t.requestId, t.createdAt)],
+);
