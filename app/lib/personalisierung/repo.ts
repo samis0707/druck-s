@@ -13,10 +13,11 @@ import { randomToken, safeEqual, sha256Hex } from "../crypto";
 import { bucketName, getStorage } from "../storage";
 import { getRequestFile, putRequestFile, sha256Hex as sha256Bytes } from "../storageFiles";
 import { PersFehler, pruefeBild, pruefePdf, pruefeSchrift, type PdfInfo } from "./dateien";
+import { entschluesselToken, verschluesselToken } from "./linkKrypto";
 import type { Ressourcen } from "./render/typen";
 import {
   aktivierungsProbleme,
-  DatensatzSchema,
+  parseDatensatz,
   farbenInVorlage,
   FarbeSchema,
   parseVorlage,
@@ -585,17 +586,20 @@ export interface ZugriffsLink {
   createdAt: string;
   expiresAt: string | null;
   revokedAt: string | null;
+  /** Der Link kann erneut angezeigt/kopiert werden (Token verschlüsselt gespeichert). Ältere Links: false. */
+  kopierbar?: boolean;
 }
-const LINK_COLS = `id, template_id AS "templateId", label, created_at AS "createdAt", expires_at AS "expiresAt", revoked_at AS "revokedAt"`;
+const LINK_COLS = `id, template_id AS "templateId", label, created_at AS "createdAt", expires_at AS "expiresAt", revoked_at AS "revokedAt", (token_enc IS NOT NULL) AS kopierbar`;
 
 /** Link für "öffentlich per Link". Das Token wird nur hier im Klartext zurückgegeben. */
 export async function erstelleLink(templateId: string, opt: { label?: string; ablaufTage?: number | null; userId: string | null }): Promise<{ link: ZugriffsLink; token: string }> {
   if (!istUuid(templateId)) throw new PersFehler("Vorlage nicht gefunden.", 404, "nicht_gefunden");
   const token = randomToken(32);
+  const id = randomUUID();
   const r = await query<ZugriffsLink>(
-    `INSERT INTO pers_access_links (template_id, token_hash, label, created_by, expires_at)
-     VALUES ($1, $2, $3, $4, CASE WHEN $5::int IS NULL THEN NULL ELSE now() + make_interval(days => $5::int) END) RETURNING ${LINK_COLS}`,
-    [templateId, sha256Hex(token), (opt.label ?? "").slice(0, 120), opt.userId, opt.ablaufTage ?? null],
+    `INSERT INTO pers_access_links (id, template_id, token_hash, token_enc, label, created_by, expires_at)
+     VALUES ($1, $2, $3, $4, $5, $6, CASE WHEN $7::int IS NULL THEN NULL ELSE now() + make_interval(days => $7::int) END) RETURNING ${LINK_COLS}`,
+    [id, templateId, sha256Hex(token), verschluesselToken(token, id), (opt.label ?? "").slice(0, 120), opt.userId, opt.ablaufTage ?? null],
   );
   return { link: r.rows[0], token };
 }
@@ -605,10 +609,22 @@ export async function listeLinks(templateId: string): Promise<ZugriffsLink[]> {
   return r.rows;
 }
 
-export async function widerrufeLink(id: string): Promise<boolean> {
-  if (!istUuid(id)) return false;
-  const r = await query("UPDATE pers_access_links SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL", [id]);
+/** Widerruft einen Link; er muss zur angegebenen Vorlage gehören (sonst false, wie „nicht gefunden“). */
+export async function widerrufeLink(id: string, templateId: string): Promise<boolean> {
+  if (!istUuid(id) || !istUuid(templateId)) return false;
+  const r = await query("UPDATE pers_access_links SET revoked_at = now() WHERE id = $1 AND template_id = $2 AND revoked_at IS NULL", [id, templateId]);
   return (r.rowCount ?? 0) > 0;
+}
+
+/** Token eines aktiven, kopierbaren Links der Vorlage (für „Link kopieren“); sonst null. */
+export async function holeLinkToken(id: string, templateId: string): Promise<string | null> {
+  if (!istUuid(id) || !istUuid(templateId)) return null;
+  const r = await query<{ tokenEnc: string | null }>(
+    `SELECT token_enc AS "tokenEnc" FROM pers_access_links
+      WHERE id = $1 AND template_id = $2 AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > now())`,
+    [id, templateId],
+  );
+  return entschluesselToken(r.rows[0]?.tokenEnc, id);
 }
 
 /**
@@ -708,11 +724,17 @@ function pruefeDatensaetze(eingabe: unknown): Datensatz[] {
   }
   const out: Datensatz[] = [];
   for (const [i, d] of eingabe.entries()) {
-    const p = DatensatzSchema.safeParse(d);
+    const p = parseDatensatz(d);
     if (!p.success) throw new PersFehler(`Datensatz ${i + 1} ist ungültig.`);
     out.push(p.data);
   }
   return out;
+}
+
+/** Absolute Höchstdauer eines Entwurfs seit der Anlage in Stunden (0 oder weniger = keine Obergrenze). */
+function hoechstdauerStunden(): number {
+  const h = config.personalisierung.draftMaxHours;
+  return h > 0 ? h : 24 * 365 * 10;
 }
 
 /** Legt einen Entwurf zur aktuellen Version an; das Token wird nur hier im Klartext geliefert. */
@@ -720,10 +742,10 @@ export async function legeEntwurfAn(templateId: string, opt: { linkId?: string |
   const token = randomToken(32);
   const r = await query<Entwurf>(
     `INSERT INTO pers_drafts (template_id, template_version, link_id, access_hash, expires_at)
-     SELECT t.id, t.current_version, $2, $3, now() + make_interval(secs => $4::float * 3600)
+     SELECT t.id, t.current_version, $2, $3, now() + make_interval(secs => LEAST($4::float, $5::float) * 3600)
        FROM pers_templates t WHERE t.id = $1 AND t.status = 'aktiv' AND t.archived_at IS NULL
      RETURNING ${ENTWURF_COLS}`,
-    [templateId, opt.linkId ?? null, sha256Hex(token), config.personalisierung.draftTtlHours],
+    [templateId, opt.linkId ?? null, sha256Hex(token), config.personalisierung.draftTtlHours, hoechstdauerStunden()],
   );
   if (!r.rows[0]) throw new PersFehler("Vorlage nicht gefunden.", 404, "nicht_gefunden");
   return { entwurf: r.rows[0], token };
@@ -740,7 +762,7 @@ export async function holeEntwurf(id: string, token: string): Promise<Entwurf | 
   return entwurf;
 }
 
-/** Datensätze speichern; verlängert die Lebensdauer ab jetzt (gleitend). */
+/** Datensätze speichern; verlängert die Lebensdauer ab jetzt (gleitend), aber nie über die absolute Höchstdauer ab Anlage. */
 export async function speichereEntwurf(id: string, token: string, daten: { datensaetze?: unknown; einstellungen?: Record<string, unknown> }): Promise<Entwurf | null> {
   const cur = await holeEntwurf(id, token);
   if (!cur) return null;
@@ -748,9 +770,9 @@ export async function speichereEntwurf(id: string, token: string, daten: { daten
   if (daten.einstellungen && JSON.stringify(daten.einstellungen).length > 4000) throw new PersFehler("Die Einstellungen sind zu groß.");
   const r = await query<Entwurf>(
     `UPDATE pers_drafts SET records = COALESCE($3::jsonb, records), settings = COALESCE($4::jsonb, settings), updated_at = now(),
-       expires_at = now() + make_interval(secs => $5::float * 3600)
+       expires_at = LEAST(now() + make_interval(secs => $5::float * 3600), created_at + make_interval(secs => $6::float * 3600))
       WHERE id = $1 AND access_hash = $2 RETURNING ${ENTWURF_COLS}`,
-    [id, sha256Hex(token), recs ? JSON.stringify(recs) : null, daten.einstellungen ? JSON.stringify(daten.einstellungen) : null, config.personalisierung.draftTtlHours],
+    [id, sha256Hex(token), recs ? JSON.stringify(recs) : null, daten.einstellungen ? JSON.stringify(daten.einstellungen) : null, config.personalisierung.draftTtlHours, hoechstdauerStunden()],
   );
   return r.rows[0] ?? null;
 }
@@ -765,7 +787,8 @@ export async function loescheEntwurf(id: string, token: string): Promise<boolean
  * aktuell noch von Entwürfen oder Anfragen benötigt werden.
  */
 export async function sweepAbgelaufeneEntwuerfe(): Promise<number> {
-  const r = await query("DELETE FROM pers_drafts WHERE expires_at <= now()");
+  // Abgelaufen (gleitend) ODER älter als die absolute Höchstdauer seit der Anlage.
+  const r = await query("DELETE FROM pers_drafts WHERE expires_at <= now() OR created_at <= now() - make_interval(secs => $1::float * 3600)", [hoechstdauerStunden()]);
   const n = r.rowCount ?? 0;
   await query(
     `DELETE FROM pers_template_versions v USING pers_templates t

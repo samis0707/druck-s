@@ -163,7 +163,7 @@ describe("Zugriff", () => {
     expect(await loeseLinkAuf(token)).toBeNull();
     await query("UPDATE pers_access_links SET expires_at = NULL WHERE id = $1", [link.id]);
     // widerrufen
-    await widerrufeLink(link.id);
+    await widerrufeLink(link.id, d.id);
     expect(await loeseLinkAuf(token)).toBeNull();
     // archiviert
     const { token: t2 } = await erstelleLink(d.id, { userId: userStaff });

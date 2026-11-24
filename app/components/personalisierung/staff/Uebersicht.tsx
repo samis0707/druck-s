@@ -86,23 +86,23 @@ function Karte({ k, erste, onWeiter, onFehler, neuLaden }: { k: VorlagenKarte; e
     try {
       let url = `${window.location.origin}/personalisieren/${k.id}`;
       if (k.sichtbarkeit === "oeffentlich") {
-        let gemerkt: string | null = null;
-        try {
-          gemerkt = sessionStorage.getItem(`pers-link:${k.id}`);
-        } catch {
-          /* ohne Speicher */
-        }
-        if (gemerkt) url = gemerkt;
-        else {
-          // Die Adresse eines Links ist nur beim Erzeugen bekannt (gespeichert wird nur ein Hash): neuer Link.
-          const r = await api<{ url: string }>(`${STAFF_API}/vorlagen/${k.id}/links`, { method: "POST", json: { label: "Aus der Übersicht kopiert" } });
-          url = r.url;
+        // Gleicher Link wie zuvor: ein aktiver, kopierbarer Link wird wiederverwendet; nur wenn es keinen gibt, entsteht ein neuer.
+        const jetzt = Date.now();
+        const liste = await api<{ links: { id: string; expiresAt: string | null; revokedAt: string | null; kopierbar?: boolean }[] }>(`${STAFF_API}/vorlagen/${k.id}/links`);
+        const vorhanden = liste.links.find((l) => l.kopierbar && !l.revokedAt && (!l.expiresAt || new Date(l.expiresAt).getTime() > jetzt));
+        let adresse: string | null = null;
+        if (vorhanden) {
           try {
-            sessionStorage.setItem(`pers-link:${k.id}`, url);
+            adresse = (await api<{ url: string }>(`${STAFF_API}/vorlagen/${k.id}/links/${vorhanden.id}`)).url;
           } catch {
-            /* ohne Speicher */
+            adresse = null;
           }
         }
+        if (!adresse) {
+          const r = await api<{ url: string }>(`${STAFF_API}/vorlagen/${k.id}/links`, { method: "POST", json: { label: "Aus der Übersicht kopiert" } });
+          adresse = r.url;
+        }
+        url = adresse;
       }
       const ok = await kopiere(url);
       toast.add({ description: ok ? "Link kopiert." : "Kopieren nicht möglich. Der Link steht in der Freigabe.", type: ok ? "success" : "error" });

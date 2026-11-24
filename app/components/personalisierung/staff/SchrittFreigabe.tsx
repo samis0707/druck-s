@@ -22,6 +22,7 @@ interface LinkEintrag {
   createdAt: string;
   expiresAt: string | null;
   revokedAt: string | null;
+  kopierbar?: boolean;
 }
 interface KundeEintrag {
   id: string;
@@ -131,6 +132,14 @@ function Links({ id, links, onGeaendert }: { id: string; links: LinkEintrag[]; o
       setBusy(false);
     }
   }
+  async function kopieren(l: LinkEintrag) {
+    try {
+      const r = await api<{ url: string }>(`${STAFF_API}/vorlagen/${id}/links/${l.id}`);
+      toast.add({ description: (await kopiere(r.url)) ? "Link kopiert." : "Kopieren nicht möglich.", type: "info" });
+    } catch (e) {
+      meldeFehler(e, "Der Link konnte nicht abgerufen werden.");
+    }
+  }
   async function widerrufen(l: LinkEintrag) {
     try {
       await api(`${STAFF_API}/vorlagen/${id}/links/${l.id}`, { method: "DELETE" });
@@ -158,7 +167,7 @@ function Links({ id, links, onGeaendert }: { id: string; links: LinkEintrag[]; o
       </div>
       {neu && (
         <Meldungsbox ton="ok">
-          <p className="font-medium">Ihr neuer Link (wird aus Sicherheitsgründen nur jetzt angezeigt):</p>
+          <p className="font-medium">Ihr neuer Link:</p>
           <p className="break-all font-mono text-xs">{neu.url}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <Button type="button" size="sm" variant="secondary" onClick={async () => toast.add({ description: (await kopiere(neu.url)) ? "Kopiert." : "Kopieren nicht möglich.", type: "info" })}>
@@ -184,6 +193,11 @@ function Links({ id, links, onGeaendert }: { id: string; links: LinkEintrag[]; o
                   {l.expiresAt ? `, gültig bis ${DATUM.format(new Date(l.expiresAt))}` : ""}
                 </span>
                 {aktiv ? <Badge>Aktiv</Badge> : <Badge variant="outline">{l.revokedAt ? "Widerrufen" : "Abgelaufen"}</Badge>}
+                {aktiv && l.kopierbar && (
+                  <Button type="button" size="sm" variant="secondary" onClick={() => void kopieren(l)}>
+                    Link kopieren
+                  </Button>
+                )}
                 {aktiv && (
                   <ConfirmAction triggerLabel="Widerrufen" title="Link widerrufen?" description="Wer diesen Link hat, kann die Vorlage danach nicht mehr öffnen. Bereits eingegangene Aufträge bleiben unverändert." confirmLabel="Widerrufen" onConfirm={() => widerrufen(l)} />
                 )}
