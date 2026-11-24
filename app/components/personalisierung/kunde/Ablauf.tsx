@@ -7,6 +7,8 @@ import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { ConfirmAction } from "@/components/requests/ConfirmAction";
+import { HilfeMenue } from "@/components/hilfe/HilfeMenue";
+import { PageTour } from "@/components/tour/PageTour";
 import { Absenden } from "@/components/personalisierung/kunde/Absenden";
 import { Einzeln, StatusPunkt } from "@/components/personalisierung/kunde/Einzeln";
 import { Tabelle } from "@/components/personalisierung/kunde/Tabelle";
@@ -353,6 +355,10 @@ export function Ablauf({ refKennung }: { refKennung: string }) {
               <li>Prüfen Sie alle Einträge. Wir zeigen Ihnen, falls etwas nicht passt.</li>
               <li>{ansicht.akteur === "gast" ? "Geben Sie Ihre E-Mail-Adresse an und bestätigen Sie mit dem Code, den wir Ihnen schicken." : "Senden Sie den Auftrag ab."}</li>
             </ol>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <HilfeMenue kurs={ansicht.akteur === "mitarbeiter" ? "druckerei" : "kunden"} />
+            <PageTour id="ausfuellen" />
           </div>
           <details className="w-full sm:w-auto" data-tour="pers-beispielvorschau">
             <summary className="cursor-pointer rounded-xl border px-3 py-2 text-sm font-medium hover:bg-muted">Beispiel ansehen</summary>

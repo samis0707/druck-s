@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { JsonLd } from "@/components/hilfe/JsonLd";
 import { FortschrittsBalken, LektionsListe } from "@/components/hilfe/KursFortschritt";
 import { cn } from "@/lib/utils";
-import { KURSE, kursFuer, kursMinuten, lektionsPfad } from "@/lib/hilfe/inhalte";
+import { KURSE, kursDownloads, kursFuer, kursMinuten, lektionsPfad } from "@/lib/hilfe/inhalte";
 import { brotkrumen, graph, kursDaten, organisation } from "@/lib/hilfe/jsonld";
 
 export const dynamicParams = false;
@@ -55,12 +55,12 @@ export default async function KursSeite({ params }: PageProps<"/hilfe/[kurs]">) 
         <Link href={lektionsPfad(kurs, erste)} className={cn(buttonVariants({ size: "lg" }), "min-h-11")}>
           Mit Lektion 1 beginnen
         </Link>
-        {kurs.download && (
-          <a href={kurs.download.href} download={kurs.download.datei} className={cn(buttonVariants({ size: "lg", variant: "outline" }), "min-h-11 gap-1.5")}>
+        {kursDownloads(kurs).map((d) => (
+          <a key={d.href} href={d.href} download={d.datei} className={cn(buttonVariants({ size: "lg", variant: "outline" }), "min-h-11 gap-1.5")}>
             <HugeiconsIcon icon={Download04Icon} size={16} aria-hidden="true" />
-            {kurs.download.titel} (PDF)
+            {d.titel} (PDF)
           </a>
-        )}
+        ))}
         {kurs.tour && (
           <Link href={`${kurs.tour.href}?tour=start`} className={cn(buttonVariants({ size: "lg", variant: "ghost" }), "min-h-11")}>
             {kurs.tour.label}
@@ -77,7 +77,7 @@ export default async function KursSeite({ params }: PageProps<"/hilfe/[kurs]">) 
         </h2>
         <LektionsListe
           kurs={kurs.slug}
-          lektionen={kurs.lektionen.map((l) => ({ slug: l.slug, titel: l.titel, kurz: l.kurz, minuten: l.minuten, href: lektionsPfad(kurs, l) }))}
+          lektionen={kurs.lektionen.map((l) => ({ slug: l.slug, titel: l.titel, kurz: l.kurz, minuten: l.minuten, href: lektionsPfad(kurs, l), block: l.block }))}
         />
       </section>
     </main>

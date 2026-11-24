@@ -11,6 +11,8 @@ export interface LektionKurz {
   kurz: string;
   minuten: number;
   href: string;
+  /** Themenblock; die Überschrift erscheint, wenn er wechselt */
+  block?: string;
 }
 
 /** Fortschrittsbalken „x von n erledigt“. */
@@ -47,8 +49,10 @@ export function LektionsListe({ kurs, lektionen, aktiv }: { kurs: string; lektio
       {lektionen.map((l, i) => {
         const fertig = erledigt.includes(l.slug);
         const ist = l.slug === aktiv;
+        const neuerBlock = l.block && l.block !== lektionen[i - 1]?.block;
         return (
-          <li key={l.slug}>
+          <li key={l.slug} className={neuerBlock ? "pt-3 first:pt-0" : undefined}>
+            {neuerBlock && <p className="mb-1.5 px-3 text-sm font-semibold uppercase tracking-[0.06em] text-muted-foreground">{l.block}</p>}
             <Link
               href={l.href}
               aria-current={ist ? "page" : undefined}

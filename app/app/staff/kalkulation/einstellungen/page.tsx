@@ -1,4 +1,6 @@
 import { PageHeader } from "@/components/layout/PageHeader";
+import { HilfeMenue } from "@/components/hilfe/HilfeMenue";
+import { PageTour } from "@/components/tour/PageTour";
 import { EinstellungenForm } from "@/components/kalkulation/EinstellungenForm";
 import { KundenRichtpreisKarte } from "@/components/kalkulation/KundenRichtpreisKarte";
 import { KalkulationNav } from "@/components/kalkulation/KalkulationNav";
@@ -11,6 +13,12 @@ export default function KalkulationEinstellungenPage() {
         titel="Preis-Einstellungen"
         beschreibung="Wie aus den Kosten der Kalkulation ein unverbindlicher Richtpreis wird."
         brotkrumen={[{ bezeichnung: "Backoffice", href: "/staff" }, { bezeichnung: "Kalkulation", href: "/staff/kalkulation" }, { bezeichnung: "Preis-Einstellungen" }]}
+        aktionen={
+          <>
+            <HilfeMenue kurs="druckerei" />
+            <PageTour id="kalkulation-preise" />
+          </>
+        }
       />
       <KalkulationNav aktiv="einstellungen" />
       <EinstellungenForm />

@@ -1,0 +1,252 @@
+{
+  "hinweis": "Erzeugt von docs/schulung/personalisierung-beispiele.mts",
+  "vorlage": {
+    "schemaVersion": 1,
+    "name": "Visitenkarte Außendienst",
+    "beschreibung": "Visitenkarte mit Name, Funktion, Telefon und E-Mail. Auf der Rückseite steht ein QR-Code zum Speichern des Kontakts.",
+    "endformat": {
+      "breite": 85,
+      "hoehe": 55
+    },
+    "beschnitt": 3,
+    "design": {
+      "dateiId": "d1000000-0000-4000-8000-000000000001",
+      "vorne": 1,
+      "hinten": 2,
+      "mitBeschnitt": true
+    },
+    "variablen": [
+      {
+        "schluessel": "vorname",
+        "bezeichnung": "Vorname",
+        "pflicht": true,
+        "beispiel": "Erika",
+        "maxLaenge": 30,
+        "hilfe": ""
+      },
+      {
+        "schluessel": "nachname",
+        "bezeichnung": "Nachname",
+        "pflicht": true,
+        "beispiel": "Mustermann",
+        "maxLaenge": 40,
+        "hilfe": ""
+      },
+      {
+        "schluessel": "funktion",
+        "bezeichnung": "Funktion",
+        "pflicht": false,
+        "beispiel": "Leiterin Vertrieb",
+        "maxLaenge": 60,
+        "hilfe": ""
+      },
+      {
+        "schluessel": "telefon",
+        "bezeichnung": "Telefon",
+        "pflicht": false,
+        "beispiel": "07131 555-100",
+        "maxLaenge": null,
+        "hilfe": ""
+      },
+      {
+        "schluessel": "email",
+        "bezeichnung": "E-Mail",
+        "pflicht": false,
+        "beispiel": "erika.mustermann@example.org",
+        "maxLaenge": null,
+        "hilfe": ""
+      }
+    ],
+    "felder": [
+      {
+        "typ": "text",
+        "id": "name",
+        "seite": "vorne",
+        "name": "Name",
+        "x": 8,
+        "y": 21,
+        "breite": 69,
+        "hoehe": 7,
+        "vorlage": "{{vorname}} {{nachname}}",
+        "umbruch": "einzeilig",
+        "ausrichtung": "links",
+        "vertikal": "oben",
+        "schrift": {
+          "familie": "Open Sans",
+          "fett": true,
+          "kursiv": false
+        },
+        "groesse": 12,
+        "zeilenabstand": 1.2,
+        "farbe": "Schwarz",
+        "grossschreibung": "keine",
+        "verkleinernBis": 8
+      },
+      {
+        "typ": "text",
+        "id": "funktion",
+        "seite": "vorne",
+        "name": "Funktion",
+        "x": 8,
+        "y": 29,
+        "breite": 69,
+        "hoehe": 5,
+        "vorlage": "{{funktion}}",
+        "umbruch": "einzeilig",
+        "ausrichtung": "links",
+        "vertikal": "oben",
+        "schrift": {
+          "familie": "Open Sans",
+          "fett": false,
+          "kursiv": false
+        },
+        "groesse": 8.5,
+        "zeilenabstand": 1.2,
+        "farbe": "Firmenblau",
+        "grossschreibung": "keine",
+        "verkleinernBis": 6
+      },
+      {
+        "typ": "text",
+        "id": "kontakt",
+        "seite": "vorne",
+        "name": "Kontakt",
+        "x": 8,
+        "y": 36,
+        "breite": 69,
+        "hoehe": 12,
+        "vorlage": "Tel. {{telefon}}\n{{email}}",
+        "umbruch": "mehrzeilig",
+        "ausrichtung": "links",
+        "vertikal": "oben",
+        "schrift": {
+          "familie": "Open Sans",
+          "fett": false,
+          "kursiv": false
+        },
+        "groesse": 8,
+        "zeilenabstand": 1.2,
+        "farbe": "Schwarz",
+        "grossschreibung": "keine",
+        "verkleinernBis": null
+      },
+      {
+        "typ": "vcard",
+        "id": "kontakt-qr",
+        "seite": "hinten",
+        "name": "Kontakt-QR",
+        "x": 30,
+        "y": 12,
+        "breite": 25,
+        "hoehe": 25,
+        "zuordnung": {
+          "vorname": "{{vorname}}",
+          "nachname": "{{nachname}}",
+          "funktion": "{{funktion}}",
+          "telefon": "{{telefon}}",
+          "email": "{{email}}"
+        },
+        "fehlerkorrektur": "M",
+        "farbe": "Schwarz",
+        "hintergrund": "Weiß",
+        "ruhezone": 1
+      }
+    ],
+    "ausgabe": {
+      "modus": "einzeln",
+      "bogen": {
+        "breite": 320,
+        "hoehe": 450
+      },
+      "rand": {
+        "oben": 5,
+        "unten": 5,
+        "links": 5,
+        "rechts": 5
+      },
+      "abstand": {
+        "spalten": 0,
+        "zeilen": 0
+      },
+      "ueberlagerung": null
+    }
+  },
+  "farben": [
+    {
+      "name": "Firmenblau",
+      "cmyk": [
+        100,
+        55,
+        0,
+        20
+      ]
+    },
+    {
+      "name": "Hausgrün",
+      "cmyk": [
+        62,
+        0,
+        100,
+        10
+      ]
+    },
+    {
+      "name": "Akzent HKS 13 K",
+      "cmyk": [
+        0,
+        35,
+        100,
+        0
+      ],
+      "sonderfarbe": "HKS 13 K"
+    }
+  ],
+  "pruefung": {
+    "Anna|Muster": {
+      "datei": "vorschau-1.pdf",
+      "meldungen": []
+    },
+    "Ben|Beispiel": {
+      "datei": "vorschau-2.pdf",
+      "meldungen": []
+    },
+    "Marie-Luise|Sonnenschein-Wolkenstein": {
+      "datei": "vorschau-3.pdf",
+      "meldungen": [
+        {
+          "schwere": "warnung",
+          "code": "text_verkleinert",
+          "datensatz": 1,
+          "feld": "name",
+          "variable": null,
+          "text": "Datensatz 1, Feld „Name“: Der Text wird verkleinert gedruckt (9,9 statt 12 pt)."
+        },
+        {
+          "schwere": "warnung",
+          "code": "text_verkleinert",
+          "datensatz": 1,
+          "feld": "funktion",
+          "variable": null,
+          "text": "Datensatz 1, Feld „Funktion“: Der Text wird verkleinert gedruckt (7,3 statt 8.5 pt)."
+        }
+      ]
+    },
+    "Tim|": {
+      "datei": "vorschau-4.pdf",
+      "meldungen": [
+        {
+          "schwere": "fehler",
+          "code": "pflicht_leer",
+          "datensatz": 1,
+          "feld": "name",
+          "variable": "nachname",
+          "text": "Datensatz 1: „Nachname“ ist ein Pflichtfeld und noch leer."
+        }
+      ]
+    },
+    "|": {
+      "datei": "vorschau-5.pdf",
+      "meldungen": []
+    }
+  }
+}

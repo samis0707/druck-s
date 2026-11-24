@@ -88,7 +88,7 @@ describe("Hilfe-Inhalte", () => {
     for (const tour of Object.values(TOUREN)) {
       for (const s of tour.schritte) {
         if (!s.ziel || s.ziel === TOUR_KNOPF) continue;
-        const direkt = quelle.includes(`data-tour="${s.ziel}"`);
+        const direkt = quelle.includes(`data-tour="${s.ziel}"`) || new RegExp(`data-tour=\\{[^}]*"${s.ziel}"`).test(quelle);
         const fotoband = s.ziel.startsWith("fb-") && quelle.includes("data-tour={`fb-${p.id}`}") && quelle.includes(`id: "${s.ziel.slice(3)}"`);
         expect(direkt || fotoband, s.ziel).toBe(true);
       }

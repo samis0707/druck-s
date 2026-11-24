@@ -1,4 +1,6 @@
 import { PageHeader } from "@/components/layout/PageHeader";
+import { HilfeMenue } from "@/components/hilfe/HilfeMenue";
+import { PageTour } from "@/components/tour/PageTour";
 import { KalkulationNav } from "@/components/kalkulation/KalkulationNav";
 import { Stammdaten } from "@/components/kalkulation/Stammdaten";
 
@@ -10,6 +12,12 @@ export default function KalkulationStammdatenPage() {
         titel="Stammdaten"
         beschreibung="Die Grundlage der Kalkulation: Material, Preise, Maschinen und Artikel."
         brotkrumen={[{ bezeichnung: "Backoffice", href: "/staff" }, { bezeichnung: "Kalkulation", href: "/staff/kalkulation" }, { bezeichnung: "Stammdaten" }]}
+        aktionen={
+          <>
+            <HilfeMenue kurs="druckerei" />
+            <PageTour id="kalkulation-stammdaten" />
+          </>
+        }
       />
       <KalkulationNav aktiv="stammdaten" />
       <Stammdaten />

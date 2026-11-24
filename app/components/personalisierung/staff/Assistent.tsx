@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { HilfeMenue } from "@/components/hilfe/HilfeMenue";
+import { PageTour } from "@/components/tour/PageTour";
+import type { TourId } from "@/components/tour/touren";
 import { useStaffFehler } from "@/components/personalisierung/staff/hooks";
 import { SchrittDesign } from "@/components/personalisierung/staff/SchrittDesign";
 import { SchrittFelder } from "@/components/personalisierung/staff/SchrittFelder";
@@ -17,6 +20,9 @@ import { api, ApiFehler, STAFF_API, vorSekunden } from "@/lib/personalisierung/u
 import type { SchriftEintrag } from "@/lib/personalisierung/ui/browser-engine";
 import { festhalten, leereVorlage, neuerVerlauf, rueckgaengig, setze, setzeLive, wiederholen, type Verlauf } from "@/lib/personalisierung/ui/editor";
 import { STANDARD_FARBEN, VorlageBasisSchema, type Farbe, type Sichtbarkeit, type Vorlage, type VorlagenStatus } from "@/lib/personalisierung/schema";
+
+/** Je Schritt des Assistenten eine eigene Tour; Einladung (Toast) nur für die ersten beiden. */
+const SCHRITT_TOUR: Record<number, TourId> = { 1: "vorlage-design", 2: "vorlage-felder", 3: "vorlage-bogen", 4: "vorlage-freigabe" };
 
 const SCHRITTE = [
   { nr: 1, titel: "Design", tour: "pers-schritt-design" },
@@ -253,6 +259,8 @@ export function Assistent({ id }: { id: string | null }) {
             <Button variant="secondary" render={<Link href="/staff/personalisierung" />}>
               Schließen
             </Button>
+            <HilfeMenue kurs="druckerei" />
+            <PageTour key={schritt} id={SCHRITT_TOUR[schritt]} einladen={schritt <= 2} />
           </div>
         }
       />

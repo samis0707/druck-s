@@ -6,7 +6,7 @@ import { HelpCircleIcon } from "@hugeicons/core-free-icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { kursFuer, type KursSlug } from "@/lib/hilfe/inhalte";
+import { kursDownloads, kursFuer, type KursSlug } from "@/lib/hilfe/inhalte";
 
 /** Dropdown „Hilfe“ im Arbeitsbereich: Online-Schulung, Kurzanleitung (echter Download), alle Unterlagen. */
 export function HilfeMenue({ kurs }: { kurs: KursSlug }) {
@@ -18,16 +18,17 @@ export function HilfeMenue({ kurs }: { kurs: KursSlug }) {
         <HugeiconsIcon icon={HelpCircleIcon} size={16} aria-hidden="true" />
         Hilfe
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-64 p-1.5">
+      <PopoverContent align="end" className="w-80 max-w-[calc(100vw-2rem)] p-1.5">
         <nav aria-label="Hilfe" className="flex flex-col text-sm">
           <Link href={`/hilfe/${kurs}`} className={eintrag}>
             Online-Schulung
           </Link>
-          {k?.download && (
-            <a href={k.download.href} download={k.download.datei} className={eintrag}>
-              Kurzanleitung herunterladen (PDF)
-            </a>
-          )}
+          {k &&
+            kursDownloads(k).map((d, i) => (
+              <a key={d.href} href={d.href} download={d.datei} className={eintrag}>
+                {i === 0 ? "Kurzanleitung herunterladen (PDF)" : `${d.titel} (PDF)`}
+              </a>
+            ))}
           <Link href="/hilfe#unterlagen" className={eintrag}>
             Alle Unterlagen
           </Link>

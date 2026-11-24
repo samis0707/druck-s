@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { HilfeMenue } from "@/components/hilfe/HilfeMenue";
+import { PageTour } from "@/components/tour/PageTour";
 import { KalkulationNav } from "@/components/kalkulation/KalkulationNav";
 import { Rechner } from "@/components/kalkulation/Rechner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +14,12 @@ export default function KalkulationPage() {
         titel="Kalkulation"
         beschreibung="Artikel wählen, Fragen beantworten, Auflagen eintragen – und sofort einen unverbindlichen Richtpreis sehen."
         brotkrumen={[{ bezeichnung: "Backoffice", href: "/staff" }, { bezeichnung: "Kalkulation" }]}
+        aktionen={
+          <>
+            <HilfeMenue kurs="druckerei" />
+            <PageTour id="kalkulation" />
+          </>
+        }
       />
       <KalkulationNav aktiv="kalkulation" />
       <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>

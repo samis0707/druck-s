@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: { title: "Hilfe & Schulung · dmp druckraum", description: BESCHREIBUNG, url: "/hilfe", type: "website", locale: "de_DE" },
 };
 
-const THEMEN: Frage["thema"][] = ["Zugang", "Hochladen", "Prüfung", "Freigabe & Versand", "Sicherheit & Datenschutz", "Für KI-Assistenten"];
+const THEMEN: Frage["thema"][] = ["Zugang", "Hochladen", "Prüfung", "Freigabe & Versand", "Personalisierung", "Ungefährer Preis", "Sicherheit & Datenschutz", "Für KI-Assistenten"];
 
 const WER_FARBE: Record<string, string> = {
   Kunde: "bg-(--color-brand-100) text-(--color-brand-800) dark:bg-(--color-brand-900) dark:text-(--color-brand-200)",
