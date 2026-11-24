@@ -16,7 +16,11 @@ export const INQUIRY_LIMITS = {
   email: 254,
 } as const;
 
-const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+// Lokalteil: Zeichen aus RFC 5322 "atext" (plus Buchstaben/Ziffern beliebiger Schrift), durch einzelne Punkte getrennt;
+// kein " < > , ; ( ) [ ] : \\ und keine Leerzeichen. Domain: Labels aus Buchstaben/Ziffern/Bindestrich (auch IDN), mind. zwei Labels.
+const ATEXT = "[\\p{L}\\p{N}!#$%&'*+/=?^_`{|}~-]+";
+const LABEL = "[\\p{L}\\p{N}](?:[\\p{L}\\p{N}-]{0,61}[\\p{L}\\p{N}])?";
+const EMAIL = new RegExp(`^${ATEXT}(?:\\.${ATEXT})*@${LABEL}(?:\\.${LABEL})+$`, "u");
 /** Steuerzeichen außer Zeilenumbruch und Tabulator. */
 const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g;
 

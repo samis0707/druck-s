@@ -21,6 +21,16 @@ import {
   produktionAusJson,
 } from '@druck/resources';
 import { z } from 'zod/v3';
+
+/** decodeURIComponent, das bei ungültiger %-Kodierung nicht wirft (der Rohtext bleibt, die Suche scheitert dann normal mit 404). */
+function dekodiere(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
 import type { Antwort } from './schnittstelle';
 import * as db from './store';
 
@@ -94,7 +104,7 @@ export async function werkbankAnfrage(
     if (!r.success)
       return fehler(400, 'Rumpf ungültig', { details: r.error.issues.map((i) => i.message) });
     const s = await db.schreiben(
-      decodeURIComponent(schluessel),
+      dekodiere(schluessel),
       r.data.json,
       r.data.version,
       wer,
@@ -111,13 +121,13 @@ export async function werkbankAnfrage(
   if (was === 'sicherung' && a.methode === 'GET') return { status: 200, body: await db.sicherung(heute) };
 
   if (was === 'verlauf' && schluessel !== undefined && a.methode === 'GET')
-    return { status: 200, body: { verlauf: await db.verlauf(decodeURIComponent(schluessel)) } };
+    return { status: 200, body: { verlauf: await db.verlauf(dekodiere(schluessel)) } };
 
   if (was === 'zurueck' && schluessel !== undefined && a.methode === 'POST') {
     const r = ZurueckSchema.safeParse(a.rumpf);
     if (!r.success) return fehler(400, 'Rumpf ungültig');
     const z = await db.zurueck(
-      decodeURIComponent(schluessel),
+      dekodiere(schluessel),
       r.data.version,
       r.data.aktuell,
       wer,

@@ -38,6 +38,16 @@ import {
 } from '@druck/resources';
 import { z } from 'zod/v3';
 
+/** decodeURIComponent, das bei ungültiger %-Kodierung nicht wirft (der Rohtext bleibt, die Suche scheitert dann normal mit 404). */
+function dekodiere(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
+
 export const API_VERSION = '0.1.0';
 
 // ---------------------------------------------------------------------------
@@ -391,7 +401,7 @@ export type Anfrage = {
  * Kopfzeilen); `heute` (JJJJ-MM-TT) ist der Stichtag für Preise.
  */
 export function anfrage(d: Daten, a: Anfrage, heute: string): Antwort {
-  const teile = a.pfad.replace(/\/+$/, '').split('/').filter(Boolean).map(decodeURIComponent);
+  const teile = a.pfad.replace(/\/+$/, '').split('/').filter(Boolean).map(dekodiere);
   const [v, bereich, id, aktion] = teile;
   if (v !== 'v1') return fehler(404, 'unbekannter Pfad – alle Pfade beginnen mit /v1');
   const get = a.methode === 'GET';

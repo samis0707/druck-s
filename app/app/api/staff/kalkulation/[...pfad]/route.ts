@@ -5,7 +5,13 @@ type Ctx = { params: Promise<{ pfad: string[] }> };
 
 async function handle(req: Request, ctx: Ctx) {
   const { pfad } = await ctx.params;
-  return staffKalkulation(req, pfad.map(decodeURIComponent));
+  let teile: string[];
+  try {
+    teile = pfad.map((t) => decodeURIComponent(t));
+  } catch {
+    return Response.json({ fehler: "Ungültige Adresse" }, { status: 400 });
+  }
+  return staffKalkulation(req, teile);
 }
 
 export const GET = handle;

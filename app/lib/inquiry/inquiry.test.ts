@@ -78,3 +78,13 @@ describe("offene Anfrage: Code", () => {
     expect(inquiryMessage("gibt-es-nicht", "Ersatz")).toBe("Ersatz");
   });
 });
+
+describe("E-Mail-Prüfung", () => {
+  const ok = (email: string) => validateContact({ name: "A", email }).ok;
+  it("akzeptiert übliche Adressen, auch mit Plus, Punkt und Umlaut-Domain", () => {
+    for (const e of ["a@b.de", "max.muster+druck@mueller-druck.de", "info@müller-druck.de", "o'neil@example.com"]) expect(ok(e)).toBe(true);
+  });
+  it("lehnt Anführungszeichen, spitze Klammern, Komma, Semikolon, Leerzeichen und doppelte Punkte ab", () => {
+    for (const e of ['"a"@b.de', "a<b>@c.de", "a,b@c.de", "a;b@c.de", "a b@c.de", "a@b..de", ".a@b.de", "a@b", "a@b.c;d.de", "a@@b.de"]) expect(ok(e)).toBe(false);
+  });
+});

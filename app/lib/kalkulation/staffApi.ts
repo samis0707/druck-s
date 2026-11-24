@@ -192,6 +192,11 @@ export async function staffKalkulation(req: Request, teile: string[]): Promise<R
     const a = { methode, pfad, rumpf: j.wert };
     const w = await werkbankAnfrage(a, heute, wer(user));
     if (w === null) return fehler(404, "Unbekannter Pfad");
+    if (w.status === 200 && methode === "PUT" && teile[2] === "daten" && teile[3]) {
+      // Stammdaten-Bereich per Werkbank gespeichert (Schlüssel und neue Version, nie der Inhalt)
+      const version = (w.body as { version?: unknown } | null)?.version;
+      await appendAudit({ action: "kalkulation_stammdaten_geaendert", actorType: "staff", actorId: user.id, ip: clientIp(req), detail: { bereich: teile[3], version: typeof version === "number" ? version : null, quelle: "werkbank" } });
+    }
     if (w.status === 200 && methode === "POST") {
       const art = teile[2] === "zurueck" ? "kalkulation_stammdaten_zurueck" : teile[2] === "import" || teile[2] === "ergaenzung" ? "kalkulation_stammdaten_import" : null;
       if (art) await appendAudit({ action: art, actorType: "staff", actorId: user.id, ip: clientIp(req), detail: { pfad: teile.slice(2).join("/"), quelle: "werkbank" } });
