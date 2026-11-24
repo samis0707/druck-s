@@ -6,7 +6,6 @@
  * Eine Zeile je Bild: [Name, optionaler Zuschnitt { oben, hoehe } in Anteilen der Bildhöhe].
  */
 const path = require("path");
-const fs = require("fs");
 const sharp = require("sharp");
 
 const [quelle] = process.argv.slice(2);

@@ -117,11 +117,11 @@ async function main() {
   for (const [schluessel, werte] of Object.entries(eintraege)) {
     nr += 1;
     const v = await erzeugeVorschau(vorlage, ressourcen, { werte, auflage: 1 });
-    writeFileSync(path.join(AUS, `vorschau-${nr}.pdf`), v.pdf);
+    writeFileSync(path.join(AUS, `vorschau-${nr}.pdf`), v.pdf!);
     pruefung[schluessel] = { datei: `vorschau-${nr}.pdf`, meldungen: await pruefeDatensaetze(vorlage, ressourcen, [{ werte, auflage: 1 }]) };
   }
   const beispiel = await erzeugeVorschau(vorlage, ressourcen, null);
-  writeFileSync(path.join(AUS, "vorschau-beispiel.pdf"), beispiel.pdf);
+  writeFileSync(path.join(AUS, "vorschau-beispiel.pdf"), beispiel.pdf!);
 
   writeFileSync(
     path.join(AUS, "personalisierung-fixtures.json"),
