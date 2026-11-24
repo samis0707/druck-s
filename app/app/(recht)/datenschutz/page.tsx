@@ -11,6 +11,8 @@ const abschnitte = [
   { id: "zwecke", titel: "3. Zwecke und Rechtsgrundlagen" },
   { id: "anmeldung", titel: "4. Anmeldung per Einmalcode, Cookies und lokaler Speicher" },
   { id: "vorpruefung", titel: "5. Automatischer Vorprüfungs-Hinweis (Mistral AI)" },
+  { id: "personalisierung", titel: "5a. Personalisierung von Druckprodukten" },
+  { id: "richtpreis", titel: "5b. Unverbindlicher Richtpreis" },
   { id: "virenpruefung", titel: "6. Prüfung auf Schadsoftware" },
   { id: "e-mail", titel: "7. E-Mail-Versand" },
   { id: "hosting", titel: "8. Hosting und Server-Logdateien" },
@@ -65,6 +67,11 @@ export default function DatenschutzPage() {
         <li>
           <strong>Auftragsdaten:</strong> Produktauswahl, Referenz, Freitext-Angaben, Status,
           Auftragsbestätigungen in ihren Versionen und Kommunikation zum Auftrag.
+        </li>
+        <li>
+          <strong>Personalisierungsdaten:</strong> die Angaben, die Sie in einer Vorlage für variable
+          Druckprodukte (z. B. Visitenkarten) eintragen oder aus einer Tabelle hochladen (siehe
+          Abschnitt 5a).
         </li>
         <li>
           <strong>Freigabe- und Ereignisprotokoll:</strong> Zeitpunkt, Art und Version von
@@ -191,6 +198,64 @@ export default function DatenschutzPage() {
         aus, wird Ihr Auftrag ohne den Hinweis bearbeitet.
       </p>
 
+      {/* [Bitte juristisch prüfen] Abschnitte 5a und 5b (Personalisierung, Richtpreis): Wortlaut, Rolle als
+          Auftragsverarbeiter (Art. 28 DSGVO) und Fristen mit dem Inhaber und der Rechtsberatung abstimmen;
+          die Aufbewahrungsfrist nach Versand ist noch festzulegen (PERS_DATA_RETENTION_DAYS /
+          PERS_PDF_RETENTION_DAYS, derzeit aus). */}
+      <h2 id="personalisierung">5a. Personalisierung von Druckprodukten</h2>
+      <p>
+        Mit der Personalisierung können Sie Druckprodukte mit variablen Angaben bestellen, zum
+        Beispiel Visitenkarten für mehrere Personen. Dazu geben Sie die Angaben in einem Formular
+        ein oder laden eine Tabelle (CSV oder Excel) hoch.
+      </p>
+      <ul>
+        <li>
+          <strong>Welche Daten:</strong> die Werte, die die gewählte Vorlage vorsieht, etwa Name,
+          Funktion, Telefonnummer, E-Mail-Adresse oder Adresse, sowie die gewünschte Auflage je
+          Eintrag. Beim Absenden als Gast kommen Name, E-Mail-Adresse und optional Firma und Telefon
+          als Ihre Kontaktdaten hinzu.
+        </li>
+        <li>
+          <strong>Zweck:</strong> Wir erzeugen daraus die Vorschau, prüfen die Angaben (z. B. auf
+          Pflichtfelder und Textlängen) und erstellen nach Ihrem Absenden die Druckdaten und die
+          Datentabelle für Ihren Auftrag. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.
+        </li>
+        <li>
+          <strong>Entwürfe:</strong> Solange Sie noch nicht abgesendet haben, speichern wir Ihre
+          Eingaben als Entwurf. Ein Entwurf wird automatisch gelöscht, wenn er
+          24 Stunden nicht geändert wurde, spätestens aber 72 Stunden nach dem Anlegen. Wenn Sie
+          ohne Bestätigung abbrechen, werden auch die offene Anfrage und ihre Kontaktdaten nach
+          kurzer Zeit gelöscht.
+        </li>
+        <li>
+          <strong>Nach dem Absenden:</strong> Die Eingaben werden Teil Ihrer Anfrage und damit
+          Ihres Auftrags. Es gelten dann die Angaben zur Speicherdauer in Abschnitt 11.
+        </li>
+        <li>
+          <strong>Angaben zu anderen Personen:</strong> Tragen Sie Daten Dritter ein, etwa
+          Mitarbeiterdaten auf Visitenkarten, sind Sie dafür verantwortlich, dass Sie diese Daten
+          für den Zweck der Bestellung weitergeben dürfen und die betroffenen Personen informiert
+          sind. Wir verarbeiten diese Daten in Ihrem Auftrag ausschließlich zur Herstellung der
+          bestellten Druckprodukte und handeln insoweit als Auftragsverarbeiter nach Art. 28
+          DSGVO; Anfragen betroffener Personen leiten wir an Sie weiter.
+        </li>
+      </ul>
+      <p>
+        Datensatzwerte schreiben wir nicht in Protokolle oder Logdateien. Die Vorschau und die
+        Druckdaten werden auf unseren Servern erzeugt; es erfolgt keine Übermittlung an den
+        KI-Dienst aus Abschnitt 5.
+      </p>
+
+      <h2 id="richtpreis">5b. Unverbindlicher Richtpreis</h2>
+      <p>
+        Den unverbindlichen Richtpreis können Sie ohne Anmeldung berechnen. Dabei verarbeiten wir
+        keine personenbezogenen Daten außer Ihrer IP-Adresse, die wir kurzzeitig speichern, um
+        Missbrauch durch übermäßig viele Berechnungen zu begrenzen (Art. 6 Abs. 1 lit. f DSGVO).
+        Die Angaben zur Berechnung (Produkt, Auflage, Optionen) sind nicht mit Ihrer Person
+        verknüpft. Erst wenn Sie den Richtpreis mit einer Anfrage verbinden und Ihre Kontaktdaten
+        angeben, werden die Angaben Teil dieser Anfrage.
+      </p>
+
       <h2 id="virenpruefung">6. Prüfung auf Schadsoftware</h2>
       <p>
         Hochgeladene Dateien werden mit dem Virenscanner ClamAV geprüft. Die Prüfung läuft
@@ -276,7 +341,7 @@ export default function DatenschutzPage() {
         Wir speichern personenbezogene Daten nur so lange, wie dies für die Abwicklung des Auftrags
         und zur Erfüllung gesetzlicher Aufbewahrungspflichten erforderlich ist; dazu zählen
         insbesondere die Pflichten nach §§ 147 AO und 257 HGB. Nach Ablauf der jeweiligen Fristen
-        werden die Daten gelöscht oder anonymisiert. Sitzungen laufen nach 24 Stunden ohne Nutzung ab, Einmalcodes nach wenigen Minuten. Über die Abwicklung hinaus archivieren wir
+        werden die Daten gelöscht oder anonymisiert. Sitzungen laufen nach 24 Stunden ohne Nutzung ab, Einmalcodes nach wenigen Minuten. IP-Adressen und E-Mail-Adressen in unseren Sicherheits- und Zählprotokollen entfernen wir nach 90 Tagen; der Nachweis einer Freigabe bleibt davon unberührt. Über die Abwicklung hinaus archivieren wir
         Druckdaten nur bei entsprechender Vereinbarung (siehe Abschnitt 10 der{" "}
         <Link href="/agb#druckdaten">AGB</Link>).
       </p>
