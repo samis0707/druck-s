@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { requireStaff } from "@/lib/guards";
+import { CSP_WERKBANK, HSTS, PERMISSIONS_POLICY } from "@/lib/sicherheitsHeader";
 
 /**
  * Liefert die gebaute kalpri-Werkbank (vendor/kalpri-werkbank, siehe scripts/kalpri-sync.mjs)
@@ -21,10 +22,7 @@ const TYPEN: Record<string, string> = {
   ".woff2": "font/woff2",
 };
 
-/** Strenge Richtlinie: nur eigene Quellen; Stile inline (React-Style-Attribute), Bilder auch data:/blob:. */
-const CSP =
-  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; " +
-  "connect-src 'self'; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'";
+const CSP = CSP_WERKBANK;
 
 export async function GET(req: Request, ctx: { params: Promise<{ pfad?: string[] }> }) {
   const guard = await requireStaff(req);
@@ -35,7 +33,12 @@ export async function GET(req: Request, ctx: { params: Promise<{ pfad?: string[]
     return guard.error ?? NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
   const { pfad = [] } = await ctx.params;
-  const teile = pfad.map((t) => decodeURIComponent(t));
+  let teile: string[];
+  try {
+    teile = pfad.map((t) => decodeURIComponent(t));
+  } catch {
+    return new NextResponse("Nicht gefunden", { status: 404 }); // ungültige %-Kodierung
+  }
   if (teile.some((t) => t === "" || t === "." || t === ".." || /[\\/\0]/.test(t))) {
     return new NextResponse("Nicht gefunden", { status: 404 });
   }
@@ -54,6 +57,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ pfad?: string[]
         "x-content-type-options": "nosniff",
         "x-frame-options": "SAMEORIGIN",
         "referrer-policy": "same-origin",
+        "strict-transport-security": HSTS,
+        "permissions-policy": PERMISSIONS_POLICY,
         "x-robots-tag": "noindex",
       },
     });

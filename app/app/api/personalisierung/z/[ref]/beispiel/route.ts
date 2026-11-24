@@ -16,6 +16,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ ref: string }> 
         "content-type": csv ? "text/csv; charset=utf-8" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "content-disposition": `attachment; filename="${name}-beispiel.${csv ? "csv" : "xlsx"}"`,
         "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
       },
     });
   } catch (e) {
