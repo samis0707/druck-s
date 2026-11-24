@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { RechteckSchema, liegtIn, ueberlappen, type Rechteck } from './geometrie';
 import { ausZod, type Fehler, type PruefErgebnis } from './pruefung';
 

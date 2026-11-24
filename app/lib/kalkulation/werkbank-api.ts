@@ -20,7 +20,7 @@ import {
   produktionAlsJson,
   produktionAusJson,
 } from '@druck/resources';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import type { Antwort } from './schnittstelle';
 import * as db from './store';
 

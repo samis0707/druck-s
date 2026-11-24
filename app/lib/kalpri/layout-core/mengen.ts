@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { menge, type Menge } from '@druck/units';
 import { ausZod, type PruefErgebnis } from './pruefung';
 

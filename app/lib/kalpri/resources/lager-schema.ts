@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { MaterialSchema, druckbogenMeldung } from './material';
 import { MaterialGruppeSchema, STANDARD_GRUPPEN } from './material-gruppe-schema';
 import { PreisanpassungSchema } from './preisanpassung-schema';

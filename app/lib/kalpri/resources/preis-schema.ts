@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 /** Erlaubte Zeichen einer Preis-ID: A-Z a-z 0-9 _ - */
 const ID_MUSTER = /^[A-Za-z0-9_-]+$/;

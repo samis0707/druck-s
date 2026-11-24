@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type { z } from 'zod/v3';
 
 export type Fehler = { pfad: string; meldung: string };
 export type PruefErgebnis<T> = { ok: true; wert: T } | { ok: false; fehler: Fehler[] };

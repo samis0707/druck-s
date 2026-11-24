@@ -32,12 +32,28 @@ for (const p of PAKETE) {
 const git = (args, cwd = repo) =>
   execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
 
+// Die Engine nutzt die zod-v3-API. Die App hängt an zod 4 (Sicherheitsfixes); zod 4 liefert die
+// alte API unter dem Unterpfad "zod/v3". Beim Kopieren wird daher nur der Import-Pfad angepasst
+// ('zod' -> 'zod/v3'); der übrige Kern bleibt Zeichen für Zeichen unverändert.
+function zodAufV3Umschreiben(dir) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const f = path.join(dir, e.name);
+    if (e.isDirectory()) zodAufV3Umschreiben(f);
+    else if (/\.(ts|tsx|mts|js|mjs)$/.test(e.name)) {
+      const alt = fs.readFileSync(f, "utf8");
+      const neu = alt.replace(/(\bfrom\s+)(["'])zod\2/g, "$1$2zod/v3$2");
+      if (neu !== alt) fs.writeFileSync(f, neu);
+    }
+  }
+}
+
 const ziel = path.join(appDir, "lib", "kalpri");
 fs.mkdirSync(ziel, { recursive: true });
 for (const p of PAKETE) {
   const z = path.join(ziel, p);
   fs.rmSync(z, { recursive: true, force: true });
   fs.cpSync(path.join(repo, "packages", p, "src"), z, { recursive: true });
+  zodAufV3Umschreiben(z);
 }
 
 const patchPfad = path.join(ziel, "werkbank.patch");

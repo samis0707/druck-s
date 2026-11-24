@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 const idFeld = z
   .string({ required_error: 'Pflichtfeld', invalid_type_error: 'muss ein Text sein' })

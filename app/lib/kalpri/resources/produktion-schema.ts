@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { EINHEITEN, GANZZAHLIGE_EINHEITEN } from '@druck/units';
 import { AuspraegungSchema } from './auspraegung-schema';
 import { KostenstelleSchema } from './kostenstelle-schema';

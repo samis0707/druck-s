@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { AusrichtungSchema, type RasterEingabe } from './raster';
 import { ausZod, type PruefErgebnis } from './pruefung';
 

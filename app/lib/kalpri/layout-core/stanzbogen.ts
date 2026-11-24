@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import type { Rechteck } from './geometrie';
 import { ausZod, type Fehler, type PruefErgebnis } from './pruefung';
 import { TiegelSchema, rasterStanzform } from './stanze';

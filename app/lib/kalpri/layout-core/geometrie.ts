@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 /** Rechteck in ganzzahligen µm. Ursprung ist die linke Ecke der Greiferkante. */
 export const RechteckSchema = z.object({

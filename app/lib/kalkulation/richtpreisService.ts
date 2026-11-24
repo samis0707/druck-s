@@ -8,7 +8,7 @@
  *   Lieferanten oder interne Hinweise.
  * - `speichereSnapshot`: Richtpreis-Snapshot zu einer Anfrage (Tabelle request_quotes).
  */
-import { z } from "zod";
+import { z } from "zod/v3";
 import { artikelFragen, type Artikel, type ArtikelAntworten, type ArtikelFrage } from "@druck/resources";
 import { query } from "../db";
 import herkunft from "../kalpri/HERKUNFT.json";

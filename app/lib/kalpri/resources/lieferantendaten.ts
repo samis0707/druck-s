@@ -15,7 +15,7 @@
  *   Material über Artikelnummer, sonst eindeutige Rückfrage. Gleicher Preis wie der am Tag geltende →
  *   kein neuer Eintrag. Stornierte Bestellungen und Nebenkosten nie im Materialpreis.
  */
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { pruefeLager, type Lager } from './lager-schema';
 import { naechsteMaterialId } from './lager';
 import type { Material } from './material';

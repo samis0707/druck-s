@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import type { Lager } from './lager-schema';
 import { ausZod, type PruefErgebnis } from './pruefung';
 import { LagerStanzformSchema } from './stanzform-schema';

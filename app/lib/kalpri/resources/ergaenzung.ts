@@ -6,7 +6,7 @@
  * Ungültige Datei als Ganzes → nichts. Ungültige oder unauflösbare Zeile → ausgelassen, als Fehler
  * in der Vorschau; der Rest wird eingespielt.
  */
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { EINHEITEN } from '@druck/units';
 import { pruefeLager, type Lager } from './lager-schema';
 import { naechsteMaterialId } from './lager';

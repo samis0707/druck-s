@@ -9,7 +9,7 @@
  *   welchem Produkt gehört, entscheidet die Druckerei in den Kalkulations-Einstellungen.
  * - Beim Bestätigen einer Anfrage wird neu gerechnet (nie Client-Werte übernehmen).
  */
-import { z } from "zod";
+import { z } from "zod/v3";
 import { getSetting, setSetting } from "../settings";
 import { PRODUCT_HINTS } from "../ui-text";
 import { ladeDaten } from "./daten";

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 /**
  * T169: Lieferantensorten mit Preis je 100 kg (Nutzer 17.11.: „pro Lieferant einfach die Sorten

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 /**
  * Tag des kontrollierten Katalogs (T69). Die ID ist ein Bezeichner ohne Umlaute

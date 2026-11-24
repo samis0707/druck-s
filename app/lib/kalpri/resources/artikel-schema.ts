@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { EINHEITEN } from '@druck/units';
 import { DruckSchema } from './kalkulation-schema';
 import { ausZod, type PruefErgebnis } from './pruefung';

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 /**
  * Einkaufsgruppe (T70; fachliche Bezeichnung der T68-Materialgruppe, Code-Bezeichner

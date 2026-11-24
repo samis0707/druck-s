@@ -16,7 +16,7 @@
  * zusätzlich den Ursprung (CSRF).
  */
 import { createHash } from "node:crypto";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { appendAudit } from "../auditLog";
 import { clientIp, requireStaff } from "../guards";
 import { query } from "../db";

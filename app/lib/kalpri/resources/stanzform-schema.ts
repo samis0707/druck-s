@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { LeistungsaenderungSchema } from './auspraegung-schema';
 
 /** Erlaubte Zeichen einer Stanzform-ID: A-Z a-z 0-9 _ - */

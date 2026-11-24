@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { ausZod, type PruefErgebnis } from './pruefung';
 
 /** Erlaubte Zeichen einer Material-ID: A-Z a-z 0-9 _ - */
