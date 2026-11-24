@@ -53,6 +53,10 @@ export interface Lektion {
   ausprobieren?: { href: string; label: string };
   /** Geschätzte Lesezeit in Minuten */
   minuten: number;
+  /** Themenblock innerhalb des Kurses (Überschrift in der Lektionsliste, z. B. „Personalisierung“) */
+  block?: string;
+  /** Kurzanleitung (PDF) zu genau dieser Lektion; sonst gilt der Download des Kurses */
+  download?: Download;
 }
 
 export interface Download {
@@ -74,6 +78,8 @@ export interface Kurs {
   kurz: string;
   lektionen: Lektion[];
   download?: Download;
+  /** Weitere Kurzanleitungen (PDF) zu einzelnen Themenblöcken des Kurses */
+  weitereDownloads?: Download[];
   /** Pfad mit geführter Tour (`?tour=start` wird angehängt) */
   tour?: { href: string; label: string };
 }
@@ -88,7 +94,7 @@ export interface Frage {
   frage: string;
   antwort: string;
   /** Kategorie für die Gliederung auf /hilfe und in llms-full.txt */
-  thema: "Zugang" | "Hochladen" | "Prüfung" | "Freigabe & Versand" | "Sicherheit & Datenschutz" | "Für KI-Assistenten";
+  thema: "Zugang" | "Hochladen" | "Prüfung" | "Freigabe & Versand" | "Personalisierung" | "Ungefährer Preis" | "Sicherheit & Datenschutz" | "Für KI-Assistenten";
 }
 
 /** Feste Zahlen der App — Quelle: lib/limits.ts, lib/analyze/pdf.ts, .env.example, Staff-Toasts. */
@@ -101,6 +107,14 @@ export const FAKTEN = {
   entwurfGueltigMin: 45,
   einmalLinkTage: 7,
   sitzungStunden: 24,
+  /** Personalisierung — Quelle: lib/config.ts (PERS_*) */
+  persMaxDatensaetze: 2000,
+  persMaxNutzen: 20000,
+  persDesignMb: 25,
+  persTabelleMb: 10,
+  persSchriftMb: 10,
+  persEntwurfStunden: 24,
+  persLinkTage: "7, 30 oder 90",
   dateitypen: "PDF, Bilder (z. B. PNG, JPG, TIFF), Word, Excel und PowerPoint (DOCX, XLSX, PPTX)",
 } as const;
 
@@ -875,4 +889,15 @@ export function kursMinuten(kurs: Kurs): number {
   return kurs.lektionen.reduce((s, l) => s + l.minuten, 0);
 }
 
-export const DOWNLOADS: Download[] = KURSE.flatMap((k) => (k.download ? [k.download] : []));
+/** Alle Kurzanleitungen eines Kurses: die Hauptanleitung zuerst, dann die zu einzelnen Themenblöcken. */
+export function kursDownloads(kurs: Kurs): Download[] {
+  const liste = [...(kurs.download ? [kurs.download] : []), ...(kurs.weitereDownloads ?? []), ...kurs.lektionen.flatMap((l) => (l.download ? [l.download] : []))];
+  return liste.filter((d, i) => liste.findIndex((x) => x.href === d.href) === i);
+}
+
+/** Die Kurzanleitung, die zu einer Lektion passt (eigene, sonst die des Kurses). */
+export function lektionsDownload(kurs: Kurs, lektion: Lektion): Download | undefined {
+  return lektion.download ?? kurs.download;
+}
+
+export const DOWNLOADS: Download[] = KURSE.flatMap(kursDownloads);

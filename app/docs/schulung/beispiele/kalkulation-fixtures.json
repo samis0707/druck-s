@@ -1,0 +1,619 @@
+{
+  "hinweis": "Erzeugt von docs/schulung/kalkulation-fixtures.ts — Beispieldaten, keine echten Preise.",
+  "artikelListe": {
+    "artikel": [
+      {
+        "id": "A-FLYER",
+        "titel": "Flyer",
+        "einheit": "Stueck"
+      },
+      {
+        "id": "A-VISITENKARTE",
+        "titel": "Visitenkarten",
+        "einheit": "Stueck"
+      },
+      {
+        "id": "A-PLAKAT",
+        "titel": "Plakat (nur intern)",
+        "einheit": "Stueck"
+      }
+    ]
+  },
+  "erster": {
+    "id": "A-FLYER",
+    "titel": "Flyer",
+    "einheit": "Stueck"
+  },
+  "fragen": {
+    "id": "A-FLYER",
+    "titel": "Flyer",
+    "einheit": "Stueck",
+    "beschreibung": "Interne Notiz: Standard-Flyer im Digitaldruck.",
+    "fragen": [
+      {
+        "schluessel": "endformat",
+        "titel": "Endformat",
+        "art": "auswahl",
+        "optionen": [
+          {
+            "wert": "0",
+            "text": "105 × 148 mm"
+          },
+          {
+            "wert": "1",
+            "text": "148 × 210 mm"
+          },
+          {
+            "wert": "2",
+            "text": "99 × 210 mm"
+          }
+        ]
+      },
+      {
+        "schluessel": "teil:T1:woraus",
+        "titel": "Flyer: Papier/Material",
+        "art": "auswahl",
+        "optionen": [
+          {
+            "wert": "0",
+            "text": "Bilderdruck matt SRA3 135 g"
+          },
+          {
+            "wert": "1",
+            "text": "Bilderdruck matt SRA3 170 g"
+          }
+        ]
+      },
+      {
+        "schluessel": "teil:T1:druck",
+        "titel": "Flyer: Farbigkeit",
+        "art": "auswahl",
+        "optionen": [
+          {
+            "wert": "0",
+            "text": "4/0"
+          },
+          {
+            "wert": "1",
+            "text": "4/4"
+          }
+        ]
+      }
+    ],
+    "stanzformen": []
+  },
+  "richtpreis": {
+    "ok": true,
+    "artikel": {
+      "id": "A-FLYER",
+      "titel": "Flyer",
+      "einheit": "Stueck"
+    },
+    "auflagen": [
+      {
+        "auflage": 100,
+        "kostenZehntelcent": 34854,
+        "vollstaendig": true,
+        "ohneKosten": [],
+        "richtpreis": {
+          "status": "preis",
+          "auflage": 100,
+          "kennzeichnung": "unverbindlicher Richtpreis",
+          "preis": {
+            "nettoCent": 4500,
+            "bruttoCent": 5355
+          },
+          "von": {
+            "nettoCent": 4000,
+            "bruttoCent": 4760
+          },
+          "bis": {
+            "nettoCent": 5100,
+            "bruttoCent": 6069
+          },
+          "mwstProzent": 19,
+          "jeStueckZehntelcent": 450,
+          "je1000Cent": 45000,
+          "mindestpreisAngewendet": false,
+          "rechenweg": {
+            "kostenZehntelcent": 34854,
+            "gemeinkostenZehntelcent": 5228,
+            "gewinnZehntelcent": 4008,
+            "zwischensummeCent": 4409,
+            "nachMindestpreisCent": 4409,
+            "nachRundungCent": 4500
+          }
+        }
+      },
+      {
+        "auflage": 250,
+        "kostenZehntelcent": 37469,
+        "vollstaendig": true,
+        "ohneKosten": [],
+        "richtpreis": {
+          "status": "preis",
+          "auflage": 250,
+          "kennzeichnung": "unverbindlicher Richtpreis",
+          "preis": {
+            "nettoCent": 4800,
+            "bruttoCent": 5712
+          },
+          "von": {
+            "nettoCent": 4300,
+            "bruttoCent": 5117
+          },
+          "bis": {
+            "nettoCent": 5500,
+            "bruttoCent": 6545
+          },
+          "mwstProzent": 19,
+          "jeStueckZehntelcent": 192,
+          "je1000Cent": 19200,
+          "mindestpreisAngewendet": false,
+          "rechenweg": {
+            "kostenZehntelcent": 37469,
+            "gemeinkostenZehntelcent": 5620,
+            "gewinnZehntelcent": 4309,
+            "zwischensummeCent": 4740,
+            "nachMindestpreisCent": 4740,
+            "nachRundungCent": 4800
+          }
+        }
+      },
+      {
+        "auflage": 500,
+        "kostenZehntelcent": 41875,
+        "vollstaendig": true,
+        "ohneKosten": [],
+        "richtpreis": {
+          "status": "preis",
+          "auflage": 500,
+          "kennzeichnung": "unverbindlicher Richtpreis",
+          "preis": {
+            "nettoCent": 5300,
+            "bruttoCent": 6307
+          },
+          "von": {
+            "nettoCent": 4800,
+            "bruttoCent": 5712
+          },
+          "bis": {
+            "nettoCent": 6100,
+            "bruttoCent": 7259
+          },
+          "mwstProzent": 19,
+          "jeStueckZehntelcent": 106,
+          "je1000Cent": 10600,
+          "mindestpreisAngewendet": false,
+          "rechenweg": {
+            "kostenZehntelcent": 41875,
+            "gemeinkostenZehntelcent": 6281,
+            "gewinnZehntelcent": 4816,
+            "zwischensummeCent": 5297,
+            "nachMindestpreisCent": 5297,
+            "nachRundungCent": 5300
+          }
+        }
+      }
+    ],
+    "offen": [],
+    "hinweise": [],
+    "zeilen": [
+      {
+        "auflage": 100,
+        "zeilen": [
+          {
+            "titel": "Bilderdruck matt SRA3 135 g (L10)",
+            "art": "material",
+            "menge": 24,
+            "einheit": "Bogen",
+            "mengeGesamt": null,
+            "kostenZehntelcent": 672,
+            "zeitMs": 0,
+            "rechenweg": [
+              "Menge aus dem Papierweg: 24 Rohbogen (brutto, Zuschuss 11 Druckbogen) = 24",
+              "Material: 24 Bogen × 28,00 € je 1.000 (Großhandel Beispiel) = 0,67 €"
+            ],
+            "hinweise": []
+          },
+          {
+            "titel": "Digitaldruck Toner – Digitaldruck",
+            "art": "arbeitsgang",
+            "menge": 13,
+            "einheit": "Bogen",
+            "mengeGesamt": 24,
+            "kostenZehntelcent": 16299,
+            "zeitMs": 328800,
+            "rechenweg": [
+              "Menge aus dem Papierweg: 13 Druckbogen = 13",
+              "Leistung: 3.000 Bogen/h",
+              "Zuschuss: 10 fest + 2 % = 11 → 24 Bogen",
+              "Lauf: 24 Bogen ÷ 3.000/h = 0,48 min",
+              "Rüsten: Rüsten 5 min = 5 min",
+              "Zeit: 5,48 min = 0,09 h",
+              "Vollkosten: 0,09 h × 164,00 €/h = 14,98 €",
+              "Teilkosten: nicht hinterlegt",
+              "Klicks vorne farbig: 24 × 0,055 € = 1,32 €",
+              "Vollkosten mit Druck: 14,98 € Zeit + 1,32 € Klicks = 16,30 €"
+            ],
+            "hinweise": [
+              "Teilkosten nicht hinterlegt",
+              "Stundensatz vorläufig"
+            ]
+          },
+          {
+            "titel": "Schnellschneider – Schneiden",
+            "art": "arbeitsgang",
+            "menge": 12,
+            "einheit": "Schnitte",
+            "mengeGesamt": 12,
+            "kostenZehntelcent": 17883,
+            "zeitMs": 1110000,
+            "rechenweg": [
+              "Menge aus dem Papierweg: 12 Schnitte je Stapel (aufeinander) × 1 Stapel (13 Druckbogen) = 12",
+              "Leistung: 120 Schnitte/h",
+              "Zuschuss: 0 fest + 0 % = 0 → 12 Schnitte",
+              "Lauf: 12 Schnitte ÷ 120/h = 6 min",
+              "Rüsten: Rüsten 10 min + Nebenzeit je Stapel 2,5 min = 12,5 min",
+              "Zeit: 18,5 min = 0,31 h",
+              "Vollkosten: 0,31 h × 58,00 €/h = 17,88 €",
+              "Teilkosten: nicht hinterlegt"
+            ],
+            "hinweise": [
+              "Teilkosten nicht hinterlegt",
+              "Stundensatz vorläufig"
+            ]
+          }
+        ]
+      },
+      {
+        "auflage": 250,
+        "zeilen": [
+          {
+            "titel": "Bilderdruck matt SRA3 135 g (L10)",
+            "art": "material",
+            "menge": 43,
+            "einheit": "Bogen",
+            "mengeGesamt": null,
+            "kostenZehntelcent": 1204,
+            "zeitMs": 0,
+            "rechenweg": [
+              "Menge aus dem Papierweg: 43 Rohbogen (brutto, Zuschuss 11 Druckbogen) = 43",
+              "Material: 43 Bogen × 28,00 € je 1.000 (Großhandel Beispiel) = 1,20 €"
+            ],
+            "hinweise": []
+          },
+          {
+            "titel": "Digitaldruck Toner – Digitaldruck",
+            "art": "arbeitsgang",
+            "menge": 32,
+            "einheit": "Bogen",
+            "mengeGesamt": 43,
+            "kostenZehntelcent": 18382,
+            "zeitMs": 351600,
+            "rechenweg": [
+              "Menge aus dem Papierweg: 32 Druckbogen = 32",
+              "Leistung: 3.000 Bogen/h",
+              "Zuschuss: 10 fest + 2 % = 11 → 43 Bogen",
+              "Lauf: 43 Bogen ÷ 3.000/h = 0,86 min",
+              "Rüsten: Rüsten 5 min = 5 min",
+              "Zeit: 5,86 min = 0,1 h",
+              "Vollkosten: 0,1 h × 164,00 €/h = 16,02 €",
+              "Teilkosten: nicht hinterlegt",
+              "Klicks vorne farbig: 43 × 0,055 € = 2,365 €",
+              "Vollkosten mit Druck: 16,02 € Zeit + 2,37 € Klicks = 18,38 €"
+            ],
+            "hinweise": [
+              "Teilkosten nicht hinterlegt",
+              "Stundensatz vorläufig"
+            ]
+          },
+          {
+            "titel": "Schnellschneider – Schneiden",
+            "art": "arbeitsgang",
+            "menge": 12,
+            "einheit": "Schnitte",
+            "mengeGesamt": 12,
+            "kostenZehntelcent": 17883,
+            "zeitMs": 1110000,
+            "rechenweg": [
+              "Menge aus dem Papierweg: 12 Schnitte je Stapel (aufeinander) × 1 Stapel (32 Druckbogen) = 12",
+              "Leistung: 120 Schnitte/h",
+              "Zuschuss: 0 fest + 0 % = 0 → 12 Schnitte",
+              "Lauf: 12 Schnitte ÷ 120/h = 6 min",
+              "Rüsten: Rüsten 10 min + Nebenzeit je Stapel 2,5 min = 12,5 min",
+              "Zeit: 18,5 min = 0,31 h",
+              "Vollkosten: 0,31 h × 58,00 €/h = 17,88 €",
+              "Teilkosten: nicht hinterlegt"
+            ],
+            "hinweise": [
+              "Teilkosten nicht hinterlegt",
+              "Stundensatz vorläufig"
+            ]
+          }
+        ]
+      },
+      {
+        "auflage": 500,
+        "zeilen": [
+          {
+            "titel": "Bilderdruck matt SRA3 135 g (L10)",
+            "art": "material",
+            "menge": 75,
+            "einheit": "Bogen",
+            "mengeGesamt": null,
+            "kostenZehntelcent": 2100,
+            "zeitMs": 0,
+            "rechenweg": [
+              "Menge aus dem Papierweg: 75 Rohbogen (brutto, Zuschuss 12 Druckbogen) = 75",
+              "Material: 75 Bogen × 28,00 € je 1.000 (Großhandel Beispiel) = 2,10 €"
+            ],
+            "hinweise": []
+          },
+          {
+            "titel": "Digitaldruck Toner – Digitaldruck",
+            "art": "arbeitsgang",
+            "menge": 63,
+            "einheit": "Bogen",
+            "mengeGesamt": 75,
+            "kostenZehntelcent": 21892,
+            "zeitMs": 390000,
+            "rechenweg": [
+              "Menge aus dem Papierweg: 63 Druckbogen = 63",
+              "Leistung: 3.000 Bogen/h",
+              "Zuschuss: 10 fest + 2 % = 12 → 75 Bogen",
+              "Lauf: 75 Bogen ÷ 3.000/h = 1,5 min",
+              "Rüsten: Rüsten 5 min = 5 min",
+              "Zeit: 6,5 min = 0,11 h",
+              "Vollkosten: 0,11 h × 164,00 €/h = 17,77 €",
+              "Teilkosten: nicht hinterlegt",
+              "Klicks vorne farbig: 75 × 0,055 € = 4,125 €",
+              "Vollkosten mit Druck: 17,77 € Zeit + 4,13 € Klicks = 21,89 €"
+            ],
+            "hinweise": [
+              "Teilkosten nicht hinterlegt",
+              "Stundensatz vorläufig"
+            ]
+          },
+          {
+            "titel": "Schnellschneider – Schneiden",
+            "art": "arbeitsgang",
+            "menge": 12,
+            "einheit": "Schnitte",
+            "mengeGesamt": 12,
+            "kostenZehntelcent": 17883,
+            "zeitMs": 1110000,
+            "rechenweg": [
+              "Menge aus dem Papierweg: 12 Schnitte je Stapel (aufeinander) × 1 Stapel (63 Druckbogen) = 12",
+              "Leistung: 120 Schnitte/h",
+              "Zuschuss: 0 fest + 0 % = 0 → 12 Schnitte",
+              "Lauf: 12 Schnitte ÷ 120/h = 6 min",
+              "Rüsten: Rüsten 10 min + Nebenzeit je Stapel 2,5 min = 12,5 min",
+              "Zeit: 18,5 min = 0,31 h",
+              "Vollkosten: 0,31 h × 58,00 €/h = 17,88 €",
+              "Teilkosten: nicht hinterlegt"
+            ],
+            "hinweise": [
+              "Teilkosten nicht hinterlegt",
+              "Stundensatz vorläufig"
+            ]
+          }
+        ]
+      }
+    ],
+    "einstellungen": {
+      "gemeinkostenProzent": 15,
+      "gewinnProzent": 10,
+      "mindestpreisCent": 2500,
+      "rundungSchrittCent": 100,
+      "rundungRichtung": "auf",
+      "spanneUntenProzent": 10,
+      "spanneObenProzent": 15,
+      "mwstProzent": 19
+    },
+    "hinweis": "Unverbindlicher Richtpreis (Schätzung auf Basis Ihrer Angaben). Der verbindliche Preis ergibt sich aus dem Angebot der Druckerei.",
+    "stichtag": "2026-11-09"
+  },
+  "einstellungen": {
+    "gemeinkostenProzent": 15,
+    "gewinnProzent": 10,
+    "mindestpreisCent": 2500,
+    "rundungSchrittCent": 100,
+    "rundungRichtung": "auf",
+    "spanneUntenProzent": 10,
+    "spanneObenProzent": 15,
+    "mwstProzent": 19
+  },
+  "kunden": {
+    "aktiv": true,
+    "zuordnung": {
+      "flyer": [
+        "A-FLYER"
+      ],
+      "brochure": [
+        "A-VISITENKARTE"
+      ]
+    },
+    "produkte": [
+      {
+        "value": "name-tag",
+        "label": "Namensschild"
+      },
+      {
+        "value": "flyer",
+        "label": "Flyer"
+      },
+      {
+        "value": "brochure",
+        "label": "Broschüre"
+      },
+      {
+        "value": "poster",
+        "label": "Poster"
+      },
+      {
+        "value": "business-card",
+        "label": "Visitenkarte"
+      },
+      {
+        "value": "letterhead",
+        "label": "Briefpapier"
+      },
+      {
+        "value": "sticker",
+        "label": "Aufkleber"
+      },
+      {
+        "value": "banner",
+        "label": "Banner"
+      },
+      {
+        "value": "campaign",
+        "label": "Kampagne (gemischt)"
+      },
+      {
+        "value": "other",
+        "label": "Sonstiges (unten beschreiben)"
+      }
+    ],
+    "artikel": [
+      {
+        "id": "A-FLYER",
+        "titel": "Flyer",
+        "freigegeben": true
+      },
+      {
+        "id": "A-VISITENKARTE",
+        "titel": "Visitenkarten",
+        "freigegeben": true
+      },
+      {
+        "id": "A-PLAKAT",
+        "titel": "Plakat (nur intern)",
+        "freigegeben": false
+      }
+    ],
+    "stammdatenVorhanden": true
+  },
+  "oeffentlicheArtikel": {
+    "aktiv": true,
+    "artikel": [
+      {
+        "id": "A-FLYER",
+        "titel": "Flyer",
+        "einheit": "Stueck",
+        "text": "Flyer in verschiedenen Formaten, ein- oder beidseitig farbig gedruckt.",
+        "produkte": [
+          "flyer"
+        ],
+        "fragen": [
+          {
+            "schluessel": "endformat",
+            "titel": "Endformat",
+            "art": "auswahl",
+            "optionen": [
+              {
+                "wert": "0",
+                "text": "105 × 148 mm"
+              },
+              {
+                "wert": "1",
+                "text": "148 × 210 mm"
+              },
+              {
+                "wert": "2",
+                "text": "99 × 210 mm"
+              }
+            ]
+          },
+          {
+            "schluessel": "teil:T1:woraus",
+            "titel": "Flyer: Papier/Material",
+            "art": "auswahl",
+            "optionen": [
+              {
+                "wert": "0",
+                "text": "Bilderdruck matt SRA3 135 g"
+              },
+              {
+                "wert": "1",
+                "text": "Bilderdruck matt SRA3 170 g"
+              }
+            ]
+          },
+          {
+            "schluessel": "teil:T1:druck",
+            "titel": "Flyer: Farbigkeit",
+            "art": "auswahl",
+            "optionen": [
+              {
+                "wert": "0",
+                "text": "4/0"
+              },
+              {
+                "wert": "1",
+                "text": "4/4"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "A-VISITENKARTE",
+        "titel": "Visitenkarten",
+        "einheit": "Stueck",
+        "text": "Visitenkarten auf kräftigem Karton, 85 × 55 mm.",
+        "produkte": [
+          "brochure"
+        ],
+        "fragen": [
+          {
+            "schluessel": "teil:T1:druck",
+            "titel": "Karte: Farbigkeit",
+            "art": "auswahl",
+            "optionen": [
+              {
+                "wert": "0",
+                "text": "4/0"
+              },
+              {
+                "wert": "1",
+                "text": "4/4"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "maxAuflagen": 6
+  },
+  "oeffentlicheAntwort": {
+    "artikel": {
+      "id": "A-FLYER",
+      "titel": "Flyer"
+    },
+    "kennzeichnung": "unverbindlicher Richtpreis",
+    "hinweis": "Unverbindlicher Richtpreis (Schätzung auf Basis Ihrer Angaben). Der verbindliche Preis ergibt sich aus dem Angebot der Druckerei.",
+    "waehrung": "EUR",
+    "auflagen": [
+      {
+        "auflage": 500,
+        "status": "preis",
+        "netto": {
+          "vonCent": 4800,
+          "richtpreisCent": 5300,
+          "bisCent": 6100
+        },
+        "brutto": {
+          "vonCent": 5712,
+          "richtpreisCent": 6307,
+          "bisCent": 7259
+        },
+        "mwstProzent": 19,
+        "jeStueckNettoZehntelcent": 106,
+        "je1000NettoCent": 10600
+      }
+    ]
+  },
+  "ersterOeffentlicherArtikel": "A-FLYER"
+}

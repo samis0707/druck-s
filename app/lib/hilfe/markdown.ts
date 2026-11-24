@@ -15,6 +15,8 @@ import {
   lektionsPfad,
   type Frage,
   type Kurs,
+  kursDownloads,
+  lektionsDownload,
   type Lektion,
 } from "./inhalte";
 import { HILFE_STAND, absolut } from "./site";
@@ -24,6 +26,8 @@ const THEMEN: Frage["thema"][] = [
   "Hochladen",
   "Prüfung",
   "Freigabe & Versand",
+  "Personalisierung",
+  "Ungefährer Preis",
   "Sicherheit & Datenschutz",
   "Für KI-Assistenten",
 ];
@@ -63,6 +67,8 @@ export function lektionMarkdown(kurs: Kurs, lektion: Lektion, ebene = 1): string
     const richtig = lektion.quiz.antworten.find((a) => a.richtig)?.text ?? "";
     teile.push(`${h(1)} Kurz geprüft`, `**${lektion.quiz.frage}** ${richtig} ${lektion.quiz.erklaerung}`);
   }
+  const pdf = lektionsDownload(kurs, lektion);
+  if (pdf) teile.push(`Kurzanleitung (PDF): [${pdf.titel}](${absolut(pdf.href)})`);
   if (lektion.ausprobieren) teile.push(`In der App: [${lektion.ausprobieren.label}](${absolut(lektion.ausprobieren.href)})`);
   return teile.join("\n\n") + "\n";
 }
@@ -74,7 +80,7 @@ export function kursMarkdown(kurs: Kurs, mitLektionen = false, ebene = 1): strin
     `> ${kurs.beschreibung}`,
     `${kurs.zielgruppe} · ${kurs.lektionen.length} Lektionen · ca. ${kursMinuten(kurs)} Minuten · ${absolut(`/hilfe/${kurs.slug}`)}`,
   ];
-  if (kurs.download) teile.push(`PDF: [${kurs.download.titel}](${absolut(kurs.download.href)}) — ${kurs.download.beschreibung}`);
+  for (const d of kursDownloads(kurs)) teile.push(`PDF: [${d.titel}](${absolut(d.href)}) — ${d.beschreibung}`);
   if (mitLektionen) {
     for (const l of kurs.lektionen) teile.push(lektionMarkdown(kurs, l, ebene + 1).trim());
   } else {
@@ -151,7 +157,7 @@ export function llmsTxt(): string {
     "## Optional",
     liste([
       `[Komplette Hilfe in einer Datei](${absolut("/llms-full.txt")})`,
-      ...KURSE.flatMap((k) => (k.download ? [`[${k.download.titel} (PDF)](${absolut(k.download.href)})`] : [])),
+      ...KURSE.flatMap((k) => kursDownloads(k).map((d) => `[${d.titel} (PDF)](${absolut(d.href)})`)),
     ]),
     "",
   ].join("\n\n");

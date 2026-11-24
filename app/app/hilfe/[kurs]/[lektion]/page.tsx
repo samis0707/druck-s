@@ -11,7 +11,7 @@ import { FortschrittsBalken, LektionsListe } from "@/components/hilfe/KursFortsc
 import { LektionAbschluss } from "@/components/hilfe/LektionAbschluss";
 import { Quiz } from "@/components/hilfe/Quiz";
 import { cn } from "@/lib/utils";
-import { KURSE, lektionFuer, lektionsPfad } from "@/lib/hilfe/inhalte";
+import { KURSE, lektionFuer, lektionsDownload, lektionsPfad } from "@/lib/hilfe/inhalte";
 import { brotkrumen, graph, lektionDaten } from "@/lib/hilfe/jsonld";
 
 export const dynamicParams = false;
@@ -54,6 +54,7 @@ export default async function LektionSeite({ params }: PageProps<"/hilfe/[kurs]/
   const vorher = kurs.lektionen[index - 1];
   const nachher = kurs.lektionen[index + 1];
   const [erstesBild, ...weitereBilder] = lektion.bilder ?? [];
+  const pdf = lektionsDownload(kurs, lektion);
 
   return (
     <main className="hilfe mx-auto grid max-w-6xl gap-10 px-4 py-8 md:px-6 md:py-12 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -168,13 +169,13 @@ export default async function LektionSeite({ params }: PageProps<"/hilfe/[kurs]/
           <LektionsListe
             kurs={kurs.slug}
             aktiv={lektion.slug}
-            lektionen={kurs.lektionen.map((x) => ({ slug: x.slug, titel: x.titel, kurz: x.kurz, minuten: x.minuten, href: lektionsPfad(kurs, x) }))}
+            lektionen={kurs.lektionen.map((x) => ({ slug: x.slug, titel: x.titel, kurz: x.kurz, minuten: x.minuten, href: lektionsPfad(kurs, x), block: x.block }))}
           />
         </div>
-        {kurs.download && (
-          <a href={kurs.download.href} download={kurs.download.datei} className={cn(buttonVariants({ variant: "outline" }), "min-h-11 w-full gap-1.5")}>
+        {pdf && (
+          <a href={pdf.href} download={pdf.datei} className={cn(buttonVariants({ variant: "outline" }), "min-h-11 w-full gap-1.5")}>
             <HugeiconsIcon icon={Download04Icon} size={16} aria-hidden="true" />
-            Kurzanleitung (PDF)
+            {pdf === kurs.download ? "Kurzanleitung (PDF)" : `${pdf.titel} (PDF)`}
           </a>
         )}
       </aside>

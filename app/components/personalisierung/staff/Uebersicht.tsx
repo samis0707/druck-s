@@ -17,6 +17,8 @@ import { toast } from "@/components/ui/toast";
 import { ConfirmAction } from "@/components/requests/ConfirmAction";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { HilfeMenue } from "@/components/hilfe/HilfeMenue";
+import { PageTour } from "@/components/tour/PageTour";
 import { PdfSeite, usePdfDokument } from "@/components/personalisierung/PdfSeite";
 import { useStaffFehler } from "@/components/personalisierung/staff/hooks";
 import { api, kopiere, STAFF_API } from "@/lib/personalisierung/ui/api";
@@ -227,6 +229,8 @@ export function Uebersicht() {
               <HugeiconsIcon icon={Add01Icon} data-icon="inline-start" />
               Neue Vorlage
             </Button>
+            <HilfeMenue kurs="druckerei" />
+            <PageTour id="personalisierung" bereit={vorlagen !== null} />
           </>
         }
       />

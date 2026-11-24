@@ -19,7 +19,17 @@ const EINLADUNG_DAUER_MS = 20000;
  * Einladung per Toast beim ersten Besuch und die Hervorhebungen selbst.
  * `?tour=aus` unterdrückt Einladung und Autostart, `?tour=start` startet sofort.
  */
-export function PageTour({ id, bereit = true }: { id: TourId; /** erst starten, wenn die Seite ihre Daten hat */ bereit?: boolean }) {
+export function PageTour({
+  id,
+  bereit = true,
+  einladen = true,
+}: {
+  id: TourId;
+  /** erst starten, wenn die Seite ihre Daten hat */
+  bereit?: boolean;
+  /** false: keine Einladung (Toast), die Tour startet nur über den Knopf oder `?tour=start` */
+  einladen?: boolean;
+}) {
   const tour = TOUREN[id];
   const pathname = usePathname();
   const [aktiv, setAktiv] = useState(false);
@@ -55,7 +65,7 @@ export function PageTour({ id, bereit = true }: { id: TourId; /** erst starten, 
         }
         starten();
       }, 400);
-    } else if (modus !== "aus" && einladungZeigen(id)) {
+    } else if (einladen && modus !== "aus" && einladungZeigen(id)) {
       timer = setTimeout(() => {
         alsAngebotenMerken(id);
         toastId.current = toast.add({
@@ -72,7 +82,7 @@ export function PageTour({ id, bereit = true }: { id: TourId; /** erst starten, 
       if (timer) clearTimeout(timer);
       if (toastId.current) toast.close(toastId.current);
     };
-  }, [id, tour.einladung, starten, bereit]);
+  }, [id, tour.einladung, starten, bereit, einladen]);
 
   useEffect(() => {
     if (pathname !== startPfad.current) {
