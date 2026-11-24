@@ -17,6 +17,9 @@ const ANLEITUNGEN = {
   kunden: "dmp-druckraum-kurzanleitung-kunden.pdf",
   druckerei: "dmp-druckraum-kurzanleitung-druckerei.pdf",
   partner: "dmp-druckraum-kurzreferenz-partner-api.pdf",
+  "personalisierung-vorlage": "dmp-druckraum-kurzanleitung-personalisierung-vorlage.pdf",
+  "personalisierung-ausfuellen": "dmp-druckraum-kurzanleitung-personalisierung-ausfuellen.pdf",
+  kalkulation: "dmp-druckraum-kurzanleitung-kalkulation.pdf",
 };
 
 (async () => {

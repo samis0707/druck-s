@@ -6,9 +6,9 @@ Alles für Besucher (Menschen und KI-Assistenten) kommt aus **einer** Inhaltsque
 | Teil | Wo | Quelle |
 | --- | --- | --- |
 | Online-Schulung | `/hilfe`, `/hilfe/<kurs>`, `/hilfe/<kurs>/<lektion>` | `app/hilfe/**`, `components/hilfe/**` |
-| Geführte Touren (Toast + Coachmarks) | `/upload`, `/requests/<id>`, `/staff` | `components/tour/**`, Anker `data-tour="…"` |
+| Geführte Touren (Toast + Coachmarks) | `/upload`, `/requests/<id>`, `/staff`, `/staff/personalisierung` (Übersicht und je Schritt des Assistenten), `/personalisieren/<ref>`, `/staff/kalkulation` (drei Seiten) | `components/tour/**`, Anker `data-tour="…"` |
 | Hilfe-Menü | Staff-Bereich, Kopf von „Aufträge“ | `components/hilfe/HilfeMenue.tsx` |
-| PDF-Kurzanleitungen | `public/hilfe/*.pdf` | `docs/schulung/{kunden,druckerei,partner}.html` + `style.css` |
+| PDF-Kurzanleitungen | `public/hilfe/*.pdf` | `docs/schulung/{kunden,druckerei,partner,personalisierung-vorlage,personalisierung-ausfuellen,kalkulation}.html` + `style.css` |
 | Für KI-Assistenten | `/llms.txt`, `/llms-full.txt`, jede Hilfeseite + `.md` | `lib/hilfe/markdown.ts` |
 | Strukturierte Daten (JSON-LD) | Startseite, `/hilfe`, Kurse, Lektionen | `lib/hilfe/jsonld.ts` |
 | Suchmaschinen | `/robots.txt`, `/sitemap.xml`, Canonicals, `noindex` für private Bereiche | `app/robots.ts`, `app/sitemap.ts`, `app/*/layout.tsx` |
@@ -22,6 +22,25 @@ Die Basis-URL für Canonicals, Sitemap, llms.txt und JSON-LD ist `APP_BASE_URL` 
 2. `npx vitest run tests/hilfe.test.ts` — der Test prüft u. a., dass jede zitierte Beschriftung im App-Code
    vorkommt, jede Tour-Station einen `data-tour`-Anker hat und alle Bilder/PDFs existieren.
 3. `HILFE_STAND` in `lib/hilfe/site.ts` auf das heutige Datum setzen (erscheint in llms.txt und JSON-LD).
+
+Themenblöcke: `Lektion.block` gliedert die Lektionsliste (Druckerei: „Aufträge und Kunden“, „Personalisierung“,
+„Kalkulation und Richtpreis“). Eine Kurzanleitung zu einem Block hängt als `Lektion.download` an den Lektionen des Blocks
+(`kursDownloads()` sammelt sie für /hilfe, Kursseite, Hilfe-Menü und Markdown).
+
+Einführung für Mitarbeitende: [einfuehrung-personalisierung-kalkulation.md](einfuehrung-personalisierung-kalkulation.md)
+(Schulungsplan 60–90 Minuten, Übungen, Checkliste, Übergabe-Notiz).
+
+## Beispieldaten für Personalisierung und Kalkulation
+
+Alles erfunden (Muster GmbH). Die Screenshots lesen nur die fertigen Dateien in `docs/schulung/beispiele/`:
+
+```bash
+npx vite-node docs/schulung/personalisierung-beispiele.mts   # Design-PDFs, Beispieltabelle, Vorschauen, Prüfmeldungen (echte Engine, ohne Datenbank)
+DATABASE_URL=postgres://dam:dam@localhost:5432/dam_hilfe node scripts/kalkulation-beispieldaten.mjs   # nur lokale DB
+DATABASE_URL=postgres://dam:dam@localhost:5432/dam_hilfe npx tsx docs/schulung/kalkulation-fixtures.ts # → kalkulation-fixtures.json
+```
+
+`visitenkarte-design.pdf`, `namensschild-design.pdf` und `visitenkarten-beispiel.csv` sind zugleich die Übungsdateien der Schulung.
 
 ## Screenshots neu erzeugen (nach UI-Änderungen)
 
@@ -40,13 +59,14 @@ node docs/schulung/screenshots.cjs http://localhost:3100 /tmp/shots
 node docs/schulung/zu-webp.cjs /tmp/shots
 ```
 
-`zu-webp.cjs` schreibt `public/hilfe/img/*.webp` und die Maß-Tabelle `lib/hilfe/bilder.ts`.
+`NUR=neu node docs/schulung/screenshots.cjs …` nimmt nur die Bilder zu Personalisierung, Kalkulation und Richtpreis auf.
+`zu-webp.cjs` schreibt `public/hilfe/img/*.webp` und ergänzt die Maß-Tabelle `lib/hilfe/bilder.ts` (vorhandene Einträge bleiben).
 Bilder vorher ansehen: richtige Seite, kein Toast/Tooltip, deutsches Datum.
 
 ## PDF-Kurzanleitungen neu erzeugen
 
 Die Bildausschnitte in `docs/schulung/bilder/*.jpg` stammen aus denselben Screenshots (bei UI-Änderungen neu
-schneiden). Dann:
+schneiden; die neuen mit `node docs/schulung/ausschnitte.cjs /tmp/shots`). Dann:
 
 ```bash
 node docs/schulung/render.cjs
@@ -54,13 +74,14 @@ node docs/schulung/render.cjs
 
 Das Skript meldet je Seite, ob Inhalt in die Fußzeile ragt (Exit 2). Dann Text kürzen oder Bild schmaler —
 nie Schrift unter 9 pt. Vorschau: `docs/schulung/preview-*.png` (nicht im Repo).
-QR-Codes (`qr-*.svg`) zeigen auf `https://www.druck-s.de/hilfe/<kurs>`; bei Domainwechsel neu erzeugen
+QR-Codes (`qr-*.svg`) zeigen auf `https://www.druck-s.de/hilfe/<kurs>` bzw. die erste Lektion des Themenblocks; bei Domainwechsel neu erzeugen
 (z. B. mit dem npm-Paket `qrcode`). Schrift: Geist (`fonts/`, SIL Open Font License).
 
 ## Touren
 
 - Texte in `components/tour/touren.ts`, Anker als `data-tour="…"` direkt am Element.
 - `?tour=aus` unterdrückt die Einladung (Screenshots), `?tour=start` startet sofort (Links aus der Hilfe).
+- Der Assistent der Personalisierung hat je Schritt eine eigene Tour (`vorlage-design`, `-felder`, `-bogen`, `-freigabe`); die Einladung (Toast) erscheint nur für die ersten beiden (`PageTour einladen={…}`).
 - Wesentliche Änderung einer Tour → Schlüssel-Version in `components/tour/storage.ts` (`v1` → `v2`) erhöhen,
   damit Nutzer die Einladung erneut sehen.
 
@@ -68,4 +89,4 @@ QR-Codes (`qr-*.svg`) zeigen auf `https://www.druck-s.de/hilfe/<kurs>`; bei Doma
 
 1. `npx vitest run tests/hilfe.test.ts tests/tour.test.ts`
 2. Screenshots + WebP neu, Ausschnitte neu, `render.cjs`.
-3. Tour je Seite einmal durchklicken (`/upload?tour=start`, `/staff?tour=start`).
+3. Tour je Seite einmal durchklicken (`/upload?tour=start`, `/staff?tour=start`, `/staff/personalisierung?tour=start`, `/staff/kalkulation?tour=start`, `/personalisieren/<ref>?tour=start`).

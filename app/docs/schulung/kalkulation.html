@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Kurzanleitung Kalkulation &amp; Richtpreis – dmp druckraum</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+  <header class="top">
+    <div class="logo">dmp</div>
+    <div class="t">
+      <div class="k">Kurzanleitung für Mitarbeitende</div>
+      <h1>Kalkulation &amp; Richtpreis</h1>
+      <div class="sub"><b>dmp druckraum</b> · Staff-Bereich · <span class="ui" style="background:#fff;color:#16191c">Kalkulation</span></div>
+    </div>
+    <div class="qr"><img src="qr-kalkulation.svg" alt=""><span>Online-Schulung</span></div>
+  </header>
+
+  <div class="cycle" style="grid-template-columns:repeat(4,1fr)">
+    <div><small>Grundlage</small><b>Stammdaten</b>Material, Maschinen, Artikel</div>
+    <div class="you"><small>Sie</small><b>Kalkulation</b>Kosten je Auflage</div>
+    <div class="you"><small>Sie</small><b>Preis-Einstellungen</b>Zuschläge, Rundung</div>
+    <div><small>Ergebnis</small><b>Richtpreis</b>immer unverbindlich</div>
+  </div>
+
+  <section class="step">
+    <div class="num">1</div>
+    <div>
+      <h2>Ad-hoc kalkulieren</h2>
+      <div class="row">
+        <ol>
+          <li>In <b>Aufträge</b> auf <span class="ui">Kalkulation</span> klicken.</li>
+          <li>Unter <b>1 · Was soll kalkuliert werden?</b> den <b>Artikel</b> wählen und die Fragen beantworten (Format, Papier, Farbigkeit).</li>
+          <li>Unter <b>2 · Wie viele?</b> bis zu 6 Auflagen eintragen, <span class="ui o">+ Auflage</span> fügt eine hinzu.</li>
+          <li><span class="ui">Richtpreis berechnen</span> klicken. Das Ergebnis steht unter <b>3 · Ergebnis</b>.</li>
+        </ol>
+        <img class="shot" src="bilder/kalk-rechner.jpg" alt="">
+      </div>
+      <div class="warn"><b>Preis auf Anfrage</b> heißt: Für diese Auflage lässt sich kein Preis ausrechnen, meist fehlt eine Angabe in den Stammdaten. Der rote Kasten nennt den Grund.</div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">2</div>
+    <div>
+      <h2>Rechenweg lesen</h2>
+      <div class="row">
+        <ul>
+          <li><span class="ui o">Rechenweg anzeigen</span> öffnet die Rechnung je Auflage.</li>
+          <li>Tabelle: <b>Position</b>, <b>Menge</b>, <b>Zeit</b>, <b>Kosten</b>, <b>Wie gerechnet</b>.</li>
+          <li>Darunter: Kosten + Gemeinkosten + Gewinn = Zwischensumme → <b>nach Mindestpreis</b> → <b>nach Rundung = Richtpreis netto</b> → + MwSt = brutto.</li>
+          <li><b>Ohne Kosten</b> nennt Positionen ohne hinterlegten Preis.</li>
+        </ul>
+        <img class="shot" src="bilder/kalk-ergebnis.jpg" alt="">
+      </div>
+    </div>
+  </section>
+
+  <footer class="bottom"><span>Kurzanleitung Kalkulation &amp; Richtpreis · Seite 1 von 2</span><span>www.druck-s.de/hilfe/druckerei</span></footer>
+</div>
+
+<div class="page">
+  <header class="top small">
+    <div class="logo">dmp</div>
+    <div class="t"><h1>Kalkulation &amp; Richtpreis</h1></div>
+  </header>
+
+  <section class="step">
+    <div class="num">3</div>
+    <div>
+      <h2>Stammdaten pflegen (nur Grundlagen)</h2>
+      <ul>
+        <li><span class="ui">Stammdaten</span> → <span class="ui s">Werkbank öffnen</span> (neuer Tab): Material, Preise, Maschinen, Arbeitsschritte, Artikel. Nur nach Absprache ändern: falsche Stammdaten = falsche Preise.</li>
+        <li>Vor größeren Änderungen: <span class="ui o">Sicherung herunterladen</span>. Zurück geht es über <b>Sicherung einspielen</b> (Vorschau lesen, bestätigen).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">4</div>
+    <div>
+      <h2>Preis-Einstellungen</h2>
+      <div class="row">
+        <ul>
+          <li><span class="ui">Preis-Einstellungen</span>: <b>Gemeinkosten / Vertrieb</b>, <b>Gewinn</b>, <b>Mindestpreis je Auftrag (netto)</b>, <b>Mehrwertsteuer</b>, <b>Spanne</b>, <b>Runden auf</b>.</li>
+          <li>Die <b>Beispielrechnung</b> rechts ändert sich beim Tippen mit.</li>
+          <li><span class="ui">Speichern</span>. Gilt für neue Berechnungen; gespeicherte Richtpreise zu Anfragen behalten ihre Werte.</li>
+        </ul>
+        <img class="shot" src="bilder/kalk-einstellungen.jpg" alt="">
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="num">5</div>
+    <div>
+      <h2>Richtpreis für Kunden einschalten</h2>
+      <ol>
+        <li>In den <b>Preis-Einstellungen</b> unten <b>Richtpreis für Kunden anzeigen</b> ansehen. Der Schalter ist <b>ab Werk aus</b>.</li>
+        <li>Bei <b>Zu welchem Produkt gehört welcher Artikel?</b> die Produkte anhaken (nur für den Shop freigegebene Artikel).</li>
+        <li>Erst einschalten, wenn die Stammdaten geprüft sind. <span class="ui">Speichern</span>.</li>
+        <li>Besucher sehen dann in der Anfrage <span class="ui o">Ungefähren Preis anzeigen</span>. Der Server rechnet beim Bestätigen neu.</li>
+        <li>In der Anfrage zeigt die Karte <b>Richtpreis (unverbindlich)</b> den Preis, <span class="badge">vom Kunden angezeigt</span> kennzeichnet ihn.</li>
+      </ol>
+      <div class="warn"><b>Warum nicht gleich einschalten?</b> Besucher sehen den Preis sofort, ohne dass ihn jemand geprüft hat, und ein zu niedriger Preis weckt Erwartungen. Vorher eine Probe-Anfrage selbst durchspielen. Ausschalten geht jederzeit.</div>
+    </div>
+  </section>
+
+  <div class="cols">
+    <div class="box">
+      <h3>Immer daran denken</h3>
+      <ul class="check">
+        <li>Der Richtpreis ist <b>unverbindlich</b>. Den verbindlichen Preis nennt das Angebot.</li>
+        <li>Kosten = Material, Maschinen, Zukauf <b>ohne</b> Zuschläge.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>API-Schlüssel</h3>
+      <p>Nur für andere Systeme, Thema der Administration: Schlüssel per Skript anlegen (<code>kalkulation-key.mjs create</code>), er erscheint nur einmal und beginnt mit <code>kal_</code>.</p>
+    </div>
+  </div>
+
+  <footer class="bottom"><span>Kurzanleitung Kalkulation &amp; Richtpreis · Seite 2 von 2</span><span>www.druck-s.de/hilfe/druckerei</span></footer>
+</div>
+
+</body>
+</html>
