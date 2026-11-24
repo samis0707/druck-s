@@ -69,9 +69,11 @@ function buildAuth() {
         "/email-otp/send-verification-otp": { window: 60, max: 5 },
       },
     },
-    ...(config.auth.trustedProxies.length > 0
-      ? { advanced: { ipAddress: { trustedProxies: config.auth.trustedProxies } } }
-      : {}),
+    advanced: {
+      // SameSite explizit auf Lax (CSRF-Grundschutz der Sitzungs-Cookies), nicht auf den Bibliotheks-Standard verlassen.
+      defaultCookieAttributes: { sameSite: "lax" },
+      ...(config.auth.trustedProxies.length > 0 ? { ipAddress: { trustedProxies: config.auth.trustedProxies } } : {}),
+    },
   });
 }
 
