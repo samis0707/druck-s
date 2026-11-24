@@ -5,6 +5,7 @@
 
 import { startTransition, useCallback, useEffect, useMemo, useState, ViewTransition, type CSSProperties } from "react";
 import Link from "next/link";
+import { TestleitfadenHinweis } from "@/components/vorschau/TestleitfadenHinweis";
 import { HilfeMenue } from "@/components/hilfe/HilfeMenue";
 import { PageTour } from "@/components/tour/PageTour";
 import { useRouter } from "next/navigation";
@@ -565,6 +566,7 @@ export default function StaffPage() {
           </>
         }
       />
+      <TestleitfadenHinweis />
       <div data-tour="staff-filter">
         <FilterLeiste filter={filter} setFilter={setFilter} />
       </div>
