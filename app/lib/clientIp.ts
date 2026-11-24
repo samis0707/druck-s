@@ -12,7 +12,7 @@
  * Geheimnis in `X-Dmp-Proxy-Secret`. Nur mit passendem Geheimnis gilt diese Adresse.
  */
 import { createHash, timingSafeEqual } from "node:crypto";
-import { isIP } from "node:net";
+import { isIP, isIPv6 } from "node:net";
 
 export const HEADER_WEBSITE_IP = "x-dmp-client-ip";
 export const HEADER_WEBSITE_SECRET = "x-dmp-proxy-secret";
@@ -38,12 +38,35 @@ export function normalisiereIp(roh: string | null | undefined): string | null {
   return isIP(v) ? v.toLowerCase() : null;
 }
 
+/**
+ * IPv6-Adressen werden je /64-Netz gezählt (ein Anschluss bekommt meist ein ganzes /64 und kann die
+ * Adresse darin beliebig wechseln). Ergebnis z. B. "2001:db8:1:2::/64". IPv4 bleibt unverändert.
+ */
+export function aufZaehlAdresse(ip: string): string {
+  if (!isIPv6(ip)) return ip;
+  let v = ip.toLowerCase();
+  const zone = v.indexOf("%");
+  if (zone >= 0) v = v.slice(0, zone);
+  // eingebettetes IPv4 am Ende (z. B. ::1.2.3.4) in zwei Gruppen umrechnen
+  const v4 = /^(.*:)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(v);
+  if (v4) {
+    const [a, b, c, d] = v4.slice(2).map(Number);
+    v = `${v4[1]}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`;
+  }
+  const [kopf, rest] = v.split("::");
+  const vorn = kopf === "" ? [] : kopf.split(":");
+  const hinten = rest === undefined ? [] : rest === "" ? [] : rest.split(":");
+  const fehlend = rest === undefined ? 0 : 8 - vorn.length - hinten.length;
+  const gruppen = [...vorn, ...Array<string>(Math.max(0, fehlend)).fill("0"), ...hinten].slice(0, 4);
+  return `${gruppen.map((g) => parseInt(g || "0", 16).toString(16)).join(":")}::/64`;
+}
+
 export function ermittleClientIp(headers: Pick<Headers, "get">, o: ClientIpOptions): string {
   if (o.websiteSecret.length >= MIN_SECRET) {
     const gesendet = headers.get(HEADER_WEBSITE_SECRET);
     if (gesendet && timingSafeEqual(sha(gesendet), sha(o.websiteSecret))) {
       const ip = normalisiereIp(headers.get(HEADER_WEBSITE_IP));
-      if (ip) return ip;
+      if (ip) return aufZaehlAdresse(ip);
     }
   }
   const n = Math.floor(o.trustedProxies);
@@ -55,5 +78,6 @@ export function ermittleClientIp(headers: Pick<Headers, "get">, o: ClientIpOptio
   if (eintraege.length === 0) return "unknown";
   // Kürzere Kette als erwartet (Proxy fehlt): dann ist nur der erste Eintrag noch etwas wert.
   const index = eintraege.length >= n ? eintraege.length - n : 0;
-  return normalisiereIp(eintraege[index]) ?? "unknown";
+  const ip = normalisiereIp(eintraege[index]);
+  return ip ? aufZaehlAdresse(ip) : "unknown";
 }

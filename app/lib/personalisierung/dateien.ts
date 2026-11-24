@@ -8,7 +8,7 @@ export class PersFehler extends Error {
   constructor(
     message: string,
     /** HTTP-nahe Einordnung für die Routen */
-    public readonly status: 400 | 403 | 404 | 409 | 413 | 429 = 400,
+    public readonly status: 400 | 403 | 404 | 409 | 413 | 429 | 503 = 400,
     public readonly code = "ungueltig",
   ) {
     super(message);

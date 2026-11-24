@@ -21,7 +21,8 @@ import { createDraft, getRequest, submitDraft } from "../requests/store";
 import { requireOpenDraft } from "../inquiry/intake";
 import { notifyDirekt } from "./benachrichtigung";
 import { PersFehler } from "./dateien";
-import { erzeugeDruckdatenFuerAnfrage, pruefe, zaehle } from "./dienst";
+import { begrenzeJeEntwurf, begrenzeJeIp, begrenzeJeNutzer, erzeugeDruckdatenFuerAnfrage, pruefe, zaehle } from "./dienst";
+import { config } from "../config";
 import { bindeEntwurfAnAnfrage, holeEntwurf, holeVorlage, loescheEntwurf, type Entwurf, type VorlageDetail } from "./repo";
 import type { Zugang } from "./zugang";
 import type { Datensatz } from "./schema";
@@ -80,9 +81,23 @@ export interface CodeVersand {
   expiresInMinutes: number;
 }
 
+/**
+ * Grenzen für Absenden-Versuche, VOR der teuren Prüfung: je Entwurf (alle Wege), je IP (Gäste) bzw. je
+ * Nutzer (angemeldete Kunden und Mitarbeiter, großzügig). Jeder Versuch wird gezählt.
+ */
+async function begrenzeAbsenden(z: Zugang, entwurfId: unknown): Promise<void> {
+  const id = typeof entwurfId === "string" ? entwurfId.toLowerCase() : null;
+  const c = config.personalisierung;
+  await begrenzeJeEntwurf("pers_submit", id, c.submitsPerDraftPerHour);
+  if (z.akteur.type === "system") await begrenzeJeIp("pers_submit", z.ip, c.submitsPerIpPerHour);
+  else await begrenzeJeNutzer("pers_submit", z.akteur.id, c.directPerUserPerHour);
+  await zaehle("pers_submit", z.ip, z.akteur, { templateId: z.detail.id, entwurfId: id });
+}
+
 /** Gast: Anfrage anlegen (oder wiederverwenden) und den Code senden. */
 export async function startGastAbsenden(z: Zugang, eingabe: { entwurfId: unknown; token: string; kontakt: unknown; anmerkung: unknown }): Promise<CodeVersand> {
   if (z.akteur.type !== "system") throw new PersFehler("Bitte den Direktweg verwenden.", 400, "direkt");
+  await begrenzeAbsenden(z, eingabe.entwurfId);
   const kontakt = validateContact(eingabe.kontakt);
   if (!kontakt.ok) throw new PersFehler("Bitte Name und eine gültige E-Mail-Adresse angeben.", 400, "kontakt");
   const { entwurf, detail } = await ladeBereiteDaten(z, eingabe.entwurfId, eingabe.token);
@@ -152,6 +167,7 @@ export interface DirektErgebnis {
  * `fuerKundeId` ist für Mitarbeiter Pflicht und für Kunden nicht erlaubt.
  */
 export async function sendeDirekt(z: Zugang, eingabe: { entwurfId: unknown; token: string; anmerkung: unknown; fuerKundeId?: unknown }): Promise<DirektErgebnis> {
+  await begrenzeAbsenden(z, eingabe.entwurfId);
   let kundeId: string;
   if (z.akteur.type === "customer") {
     if (eingabe.fuerKundeId) throw new PersFehler("Nicht erlaubt.", 403, "verboten");

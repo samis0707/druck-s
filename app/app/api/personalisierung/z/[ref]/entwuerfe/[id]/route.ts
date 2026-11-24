@@ -1,3 +1,5 @@
+import { config } from "@/lib/config";
+import { zaehleImSpeicher } from "@/lib/kalkulation/begrenzung";
 import { istObjekt, leseJson, persError, persFailure, persJson } from "@/lib/personalisierung/http";
 import { PersFehler } from "@/lib/personalisierung/dateien";
 import { holeEntwurf, loescheEntwurf, speichereEntwurf } from "@/lib/personalisierung/repo";
@@ -30,6 +32,10 @@ export async function PUT(req: Request, ctx: Ctx) {
   try {
     const a = await zugriff(req, ctx);
     if ("fehler" in a) return a.fehler;
+    // Speichern je Entwurf begrenzen (im Speicher, je Instanz): Entwürfe bis 2 MB, sonst Speicher-DoS.
+    if (!zaehleImSpeicher(`pers-put:${a.id}`, config.personalisierung.savesPerDraftPerHour)) {
+      return persError(429, "rate_limited", "Zu viele Speichervorgänge für diesen Entwurf, bitte später erneut versuchen.");
+    }
     const body = await leseJson(req);
     if (!istObjekt(body)) throw new PersFehler("Der Körper muss ein JSON-Objekt sein.");
     const einstellungen = istObjekt(body.einstellungen) ? body.einstellungen : undefined;

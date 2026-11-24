@@ -15,8 +15,8 @@ import type { Datensatz, Variable, Vorlage } from "./schema";
 
 export const TABELLEN_GRENZEN = {
   maxBytes: 10 * 1024 * 1024,
-  /** Entpackte Größe aller Teile (Schutz vor Zip-Bomben) */
-  maxEntpackt: 60 * 1024 * 1024,
+  /** Entpackte Größe aller Teile (Schutz vor Zip-Bomben; fast-xml-parser baut daraus einen Objektbaum, der ein Vielfaches an Heap braucht) */
+  maxEntpackt: 15 * 1024 * 1024,
   maxZeilen: 5000,
   maxSpalten: 100,
   maxZelleZeichen: 2000,
@@ -198,6 +198,24 @@ function spaltenIndex(ref: string): number {
   return n - 1;
 }
 
+/** Zeilen und Spalten vor dem Parsen begrenzen (billige Textsuche statt Objektbaum). */
+function pruefeBlattGroesse(blattXml: string): void {
+  const g = TABELLEN_GRENZEN;
+  const dim = /<dimension\s[^>]*ref="([A-Z]+)(\d+)(?::([A-Z]+)(\d+))?"/.exec(blattXml);
+  if (dim) {
+    const spalten = spaltenIndex(dim[3] ?? dim[1]) - spaltenIndex(dim[1]) + 1;
+    const zeilen = Number(dim[4] ?? dim[2]) - Number(dim[2]) + 1;
+    if (spalten > g.maxSpalten * 2) throw new TabellenFehler(`Die Tabelle hat zu viele Spalten (höchstens ${g.maxSpalten}).`);
+    if (zeilen > g.maxZeilen * 2) throw new TabellenFehler(`Die Tabelle hat zu viele Zeilen (höchstens ${g.maxZeilen}).`);
+  }
+  let n = 0;
+  for (let i = blattXml.indexOf("<row"); i >= 0; i = blattXml.indexOf("<row", i + 4)) {
+    const c = blattXml.charCodeAt(i + 4);
+    if (c !== 32 && c !== 62 && c !== 47) continue; // nur <row ...>, nicht <rowBreaks
+    if (++n > g.maxZeilen * 2) throw new TabellenFehler(`Die Tabelle hat zu viele Zeilen (höchstens ${g.maxZeilen}).`);
+  }
+}
+
 export function leseXlsx(bytes: Uint8Array): Tabelle {
   const g = TABELLEN_GRENZEN;
   if (bytes.length > g.maxBytes) throw new TabellenFehler("Die Datei ist zu groß.");
@@ -237,7 +255,9 @@ export function leseXlsx(bytes: Uint8Array): Tabelle {
     const ss = xml.parse(strFromU8(teile["xl/sharedStrings.xml"])) as Knoten;
     for (const si of ((ss.sst as Knoten)?.si as Knoten[]) ?? []) shared.push(stringItem(si));
   }
-  const sx = xml.parse(strFromU8(blatt)) as Knoten;
+  const blattXml = strFromU8(blatt);
+  pruefeBlattGroesse(blattXml);
+  const sx = xml.parse(blattXml) as Knoten;
   const rowsXml = (((sx.worksheet as Knoten)?.sheetData as Knoten)?.row as Knoten[]) ?? [];
   const roh: string[][] = [];
   for (const row of rowsXml) {

@@ -76,6 +76,10 @@ function letzterCode(an: string): string {
 }
 
 beforeAll(async () => {
+  // Die Absenden-Grenzen zählen im audit_log über Läufe hinweg; diese Tests prüfen den Ablauf, nicht die Grenzen (siehe haertung.test.ts).
+  config.personalisierung.submitsPerIpPerHour = 0;
+  config.personalisierung.submitsPerDraftPerHour = 0;
+  config.personalisierung.directPerUserPerHour = 0;
   designId = (await speichereDatei("design", "design.pdf", await testDesign(91, 61), null)).datei.id;
   await speichereSchrift(testSchrift("regular").bytes, { dateiname: "os.ttf", userId: null });
   await speichereSchrift(testSchrift("bold").bytes, { dateiname: "osb.ttf", userId: null });

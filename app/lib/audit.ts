@@ -35,6 +35,7 @@ export const AUDIT_ACTIONS = [
   // Kalkulation (lib/kalkulation): Stammdaten, Einstellungen, Schlüssel, Richtpreis.
   "kalkulation_stammdaten_import",
   "kalkulation_stammdaten_zurueck",
+  "kalkulation_stammdaten_geaendert",
   "kalkulation_einstellungen_geaendert",
   "kalkulation_key_created",
   "kalkulation_key_revoked",
@@ -44,6 +45,9 @@ export const AUDIT_ACTIONS = [
   // Personalisierung (lib/personalisierung): Zählgrundlage der Gast-Grenzen, nie mit Datensatzwerten.
   "pers_preview",
   "pers_check",
+  "pers_submit",
+  "pers_retention_swept",
+  "audit_anonymized",
   "pers_table",
   "pers_draft_created",
   "pers_link_created",

@@ -370,13 +370,30 @@ export const SICHTBARKEIT_NAMEN: Record<Sichtbarkeit, string> = {
   oeffentlich: "Öffentlich per Link",
 };
 
+/** Höchstzahl der Werte (Schlüssel) je Datensatz. */
+export const MAX_WERTE = 60;
+
 /** Ein Datensatz: Werte je Variablen-Schlüssel (immer Text) und Auflage. */
 export const DatensatzSchema = z.object({
-  werte: z.record(z.string().regex(VARIABLEN_SCHLUESSEL), z.string().max(2000)),
+  // Höchstens so viele Schlüssel wie eine Vorlage Variablen hat (60); Werte höchstens 2000 Zeichen.
+  werte: z
+    .record(z.string().regex(VARIABLEN_SCHLUESSEL), z.string().max(2000))
+    .refine((w) => Object.keys(w).length <= MAX_WERTE, { message: `Zu viele Werte in einem Datensatz (höchstens ${MAX_WERTE}).` }),
   /** Stückzahl dieses Datensatzes (Ausgeschossen: so viele Nutzen). */
   auflage: z.number().int().min(1).max(100000).default(1),
 });
 export type Datensatz = z.infer<typeof DatensatzSchema>;
+
+/**
+ * Datensatz parsen. Die Schlüsselzahl wird VOR zod geprüft, damit ein Objekt mit Zehntausenden Schlüsseln
+ * gar nicht erst in die (speicherhungrige) record-Prüfung gelangt.
+ */
+export function parseDatensatz(eingabe: unknown): { success: true; data: Datensatz } | { success: false } {
+  const w = (eingabe as { werte?: unknown } | null)?.werte;
+  if (w && typeof w === "object" && !Array.isArray(w) && Object.keys(w).length > MAX_WERTE) return { success: false };
+  const r = DatensatzSchema.safeParse(eingabe);
+  return r.success ? { success: true, data: r.data } : { success: false };
+}
 export type DatensatzEingabe = z.input<typeof DatensatzSchema>;
 
 /** Standardfarbe, falls die Palette keine "Schwarz"-Farbe enthält. */

@@ -2,7 +2,7 @@ import { istObjekt, alsStaff, leseJson, persJson } from "@/lib/personalisierung/
 import { PersFehler } from "@/lib/personalisierung/dateien";
 import { vorschau } from "@/lib/personalisierung/dienst";
 import { listeFarben } from "@/lib/personalisierung/repo";
-import { DatensatzSchema, farbenInVorlage, parseVorlage } from "@/lib/personalisierung/schema";
+import { parseDatensatz, farbenInVorlage, parseVorlage } from "@/lib/personalisierung/schema";
 
 /**
  * Vorschau einer (noch ungespeicherten) Vorlage für den Editor: { vorlage, datensatz? }.
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     if (!p.ok) throw new PersFehler(p.fehler.map((f) => `${f.pfad ? f.pfad + ": " : ""}${f.text}`).join("; "), 400, "schema");
     let datensatz = null;
     if (body.datensatz !== undefined && body.datensatz !== null) {
-      const d = DatensatzSchema.safeParse(body.datensatz);
+      const d = parseDatensatz(body.datensatz);
       if (!d.success) throw new PersFehler("Der Datensatz ist ungültig.");
       datensatz = d.data;
     }

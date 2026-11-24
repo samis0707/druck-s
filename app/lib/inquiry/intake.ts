@@ -141,14 +141,15 @@ async function countAudit(action: string, where: "ip" | "email", value: string):
   return Number(res.rows[0]?.n ?? 0);
 }
 
-function knownIp(ip: string | null | undefined): ip is string {
-  return !!ip && ip !== "unknown";
+/** Zählschlüssel der IP: unbekannte Adressen zählen gemeinsam als "unknown" (lieber zu streng als ohne Grenze). */
+function zaehlIp(ip: string | null | undefined): string {
+  return ip || "unknown";
 }
 
 /** Entwurf anlegen. Kontakt kann gleich mitkommen oder beim Code-Versand folgen. */
 export async function createInquiry(body: InquiryBody, ctx: { ip?: string | null }): Promise<InquiryView> {
   const limit = config.inquiry.draftsPerIpPerHour;
-  if (limit > 0 && knownIp(ctx.ip) && (await countAudit("inquiry_created", "ip", ctx.ip)) >= limit) {
+  if (limit > 0 && (await countAudit("inquiry_created", "ip", zaehlIp(ctx.ip))) >= limit) {
     throw new InquiryError("Too many new inquiries from this address, try again later", 429, "rate_limited");
   }
   // Richtpreis-Angaben nur, solange der Schalter an ist; sonst wie bisher ohne (still ignoriert).
@@ -169,7 +170,7 @@ export async function createInquiry(body: InquiryBody, ctx: { ip?: string | null
     await query("UPDATE requests SET inquiry_contact = $2 WHERE id = $1", [draft.id, JSON.stringify(body.contact)]);
   }
   if (quote) await query("UPDATE requests SET inquiry_quote = $2 WHERE id = $1", [draft.id, JSON.stringify(quote)]);
-  await appendAudit({ action: "inquiry_created", requestId: draft.id, ip: ctx.ip ?? null, detail: quote ? { richtpreis: true } : {} });
+  await appendAudit({ action: "inquiry_created", requestId: draft.id, ip: zaehlIp(ctx.ip), detail: quote ? { richtpreis: true } : {} });
   return toView({ ...draft, inquiryContact: body.contact });
 }
 
@@ -218,7 +219,7 @@ export async function sendInquiryCode(
   if (c.codesPerEmailPerHour > 0 && (await countAudit("inquiry_code_issued", "email", effective.email)) >= c.codesPerEmailPerHour) {
     throw new InquiryError("Too many codes for this email address, try again later", 429, "rate_limited");
   }
-  if (c.codesPerIpPerHour > 0 && knownIp(ctx.ip) && (await countAudit("inquiry_code_issued", "ip", ctx.ip)) >= c.codesPerIpPerHour) {
+  if (c.codesPerIpPerHour > 0 && (await countAudit("inquiry_code_issued", "ip", zaehlIp(ctx.ip))) >= c.codesPerIpPerHour) {
     throw new InquiryError("Too many codes from this address, try again later", 429, "rate_limited");
   }
 
@@ -240,7 +241,7 @@ export async function sendInquiryCode(
   await appendAudit({
     action: "inquiry_code_issued",
     requestId: id,
-    ip: ctx.ip ?? null,
+    ip: zaehlIp(ctx.ip),
     detail: { email: effective.email },
   });
   return { expiresInMinutes: config.ttl.otpMinutes, sentTo: maskEmail(effective.email) };

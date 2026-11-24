@@ -156,13 +156,38 @@ export const config = {
     maxFontBytes: Math.floor(numberVar("PERS_MAX_FONT_MB", 10) * 1024 * 1024),
     maxImageBytes: Math.floor(numberVar("PERS_MAX_IMAGE_MB", 10) * 1024 * 1024),
     maxTableBytes: Math.floor(numberVar("PERS_MAX_TABLE_MB", 10) * 1024 * 1024),
+    /** Tabellen: höchstens so viel entpackte XML-Daten je XLSX (MB) – schützt den Heap beim Parsen */
+    maxTableUnpackedBytes: Math.floor(numberVar("PERS_MAX_TABLE_UNPACKED_MB", 15) * 1024 * 1024),
+    /** Gleichzeitige PDF-Erzeugungen/Vorschauen je Instanz; darüber „Bitte gleich nochmal versuchen“ (0 = unbegrenzt) */
+    maxParallelRender: numberVar("PERS_MAX_PARALLEL_RENDER", 2),
     /** Lebensdauer eines Gast-Entwurfs seit der letzten Änderung (Stunden) */
     draftTtlHours: numberVar("PERS_DRAFT_TTL_HOURS", 24),
+    /** Absolute Höchstdauer eines Entwurfs seit der Anlage (Stunden), unabhängig von weiteren Änderungen */
+    draftMaxHours: numberVar("PERS_DRAFT_MAX_HOURS", 72),
+    /** Aufbewahrung der Datentabelle (XLSX) einer Anfrage nach Versand/Rückzug, in Tagen; 0 = nie automatisch löschen */
+    dataRetentionDays: numberVar("PERS_DATA_RETENTION_DAYS", 0),
+    /** Aufbewahrung des erzeugten Druck-PDFs nach Versand/Rückzug, in Tagen; 0 = nie automatisch löschen */
+    pdfRetentionDays: numberVar("PERS_PDF_RETENTION_DAYS", 0),
+    /** Je Entwurf und Stunde: Prüfen + Vorschau (je Aufruf mit Entwurfs-Bezug) */
+    rendersPerDraftPerHour: numberVar("PERS_RENDERS_PER_DRAFT_PER_HOUR", 60),
+    /** Je Entwurf und Stunde: Absenden-Versuche */
+    submitsPerDraftPerHour: numberVar("PERS_SUBMITS_PER_DRAFT_PER_HOUR", 10),
+    /** Je IP und Stunde: Absenden-Versuche von Gästen */
+    submitsPerIpPerHour: numberVar("PERS_SUBMITS_PER_IP_PER_HOUR", 30),
+    /** Je angemeldetem Kunden/Mitarbeiter und Stunde: direktes Absenden (großzügig) */
+    directPerUserPerHour: numberVar("PERS_DIRECT_PER_USER_PER_HOUR", 60),
+    /** Je Entwurf und Stunde: Speichern (PUT), im Speicher gezählt je Instanz */
+    savesPerDraftPerHour: numberVar("PERS_SAVES_PER_DRAFT_PER_HOUR", 1200),
     /** Grenzen je IP-Adresse und Stunde (Zählung im audit_log) */
     previewsPerIpPerHour: numberVar("PERS_PREVIEWS_PER_IP_PER_HOUR", 120),
     checksPerIpPerHour: numberVar("PERS_CHECKS_PER_IP_PER_HOUR", 120),
     tablesPerIpPerHour: numberVar("PERS_TABLES_PER_IP_PER_HOUR", 60),
     draftsPerIpPerHour: numberVar("PERS_DRAFTS_PER_IP_PER_HOUR", 30),
+  },
+  /** Datenschutz: Aufbewahrung im audit_log */
+  audit: {
+    /** IP-Adressen, User-Agent und E-Mail-Adressen im Detail nach so vielen Tagen anonymisieren; 0 = nie */
+    anonymizeAfterDays: numberVar("AUDIT_ANONYMIZE_DAYS", 90),
   },
   ttl: {
     otpMinutes: numberVar("OTP_TTL_MINUTES", 10),

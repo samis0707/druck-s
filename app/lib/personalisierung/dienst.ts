@@ -6,27 +6,62 @@
 import { appendAudit } from "../auditLog";
 import type { AuditAction } from "../audit";
 import { config } from "../config";
+import { sha256Hex } from "../crypto";
 import { query } from "../db";
 import { addFile } from "../requests/store";
 import { PersFehler } from "./dateien";
+import { mitRenderPlatz } from "./parallel";
 import { erzeugePdf, erzeugeVorschau, pruefeDatensaetze, RenderFehler, type Ergebnis } from "./render";
 import type { Meldung } from "./render";
 import { holeVorlage, ladeRessourcen, type VorlageDetail } from "./repo";
 import { datensaetzeXlsx } from "./tabelle";
-import { DatensatzSchema, type Datensatz } from "./schema";
+import { parseDatensatz, type Datensatz } from "./schema";
 
 export function renderGrenzen() {
   return { maxDatensaetze: config.personalisierung.maxDatensaetze, maxNutzen: config.personalisierung.maxNutzen };
 }
 
 /** Grenzen je IP und Stunde; 0 = unbegrenzt. Wirft PersFehler 429. */
-export async function begrenzeJeIp(action: Extract<AuditAction, "pers_preview" | "pers_check" | "pers_table" | "pers_draft_created">, ip: string | null | undefined, limit: number): Promise<void> {
-  if (limit <= 0 || !ip || ip === "unknown") return;
+export async function begrenzeJeIp(action: Extract<AuditAction, "pers_preview" | "pers_check" | "pers_table" | "pers_draft_created" | "pers_submit">, ip: string | null | undefined, limit: number): Promise<void> {
+  if (limit <= 0) return;
+  // Unbekannte Adresse (kein Proxy-Header): gemeinsamer Eimer "unknown" statt ohne Grenze – wie beim Richtpreis.
+  const adresse = ip || "unknown";
   const r = await query<{ n: string }>(
     `SELECT count(*)::text AS n FROM audit_log WHERE action = $1 AND ip = $2 AND created_at > now() - interval '1 hour'`,
-    [action, ip],
+    [action, adresse],
   );
   if (Number(r.rows[0]?.n ?? 0) >= limit) throw new PersFehler("Zu viele Anfragen von dieser Adresse, bitte später erneut versuchen.", 429, "rate_limited");
+}
+
+/** Grenze je Entwurf und Stunde (Zählung im audit_log über `detail.entwurfId`, gilt über alle Instanzen). */
+export async function begrenzeJeEntwurf(action: Extract<AuditAction, "pers_preview" | "pers_check" | "pers_submit">, entwurfId: string | null | undefined, limit: number): Promise<void> {
+  if (limit <= 0 || !entwurfId) return;
+  const r = await query<{ n: string }>(
+    `SELECT count(*)::text AS n FROM audit_log WHERE action = $1 AND detail->>'entwurfId' = $2 AND created_at > now() - interval '1 hour'`,
+    [action, entwurfId],
+  );
+  if (Number(r.rows[0]?.n ?? 0) >= limit) throw new PersFehler("Für diesen Entwurf gab es zu viele Anfragen, bitte später erneut versuchen.", 429, "rate_limited");
+}
+
+/** Grenze je angemeldetem Nutzer und Stunde (großzügig; gedacht gegen Fehlbedienung und Skripte). */
+export async function begrenzeJeNutzer(action: Extract<AuditAction, "pers_submit">, nutzerId: string | null | undefined, limit: number): Promise<void> {
+  if (limit <= 0 || !nutzerId) return;
+  const r = await query<{ n: string }>(
+    `SELECT count(*)::text AS n FROM audit_log WHERE action = $1 AND actor_id::text = $2 AND created_at > now() - interval '1 hour'`,
+    [action, nutzerId],
+  );
+  if (Number(r.rows[0]?.n ?? 0) >= limit) throw new PersFehler("Zu viele Anfragen in kurzer Zeit, bitte in einigen Minuten erneut versuchen.", 429, "rate_limited");
+}
+
+/**
+ * Entwurfs-Bezug eines Aufrufs für die Zählung: Query `entwurf` (UUID) oder, ohne die, ein Kurz-Hash des
+ * Entwurfs-Tokens aus dem Header. Ohne beides null (dann greift nur die Grenze je IP).
+ */
+export function entwurfSchluesselAusAufruf(req: Request): string | null {
+  const id = new URL(req.url).searchParams.get("entwurf");
+  if (id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return id.toLowerCase();
+  const token = req.headers.get("x-entwurf-token");
+  return token && /^[0-9a-f]{64}$/.test(token) ? `t:${sha256Hex(token).slice(0, 16)}` : null;
 }
 
 export async function zaehle(action: AuditAction, ip: string | null | undefined, actor: { type: "customer" | "staff" | "system"; id?: string | null } = { type: "system" }, detail: Record<string, unknown> = {}) {
@@ -39,7 +74,7 @@ export function normalisiereDatensaetze(eingabe: unknown): Datensatz[] {
     throw new PersFehler(`Es sind höchstens ${config.personalisierung.maxDatensaetze} Datensätze erlaubt.`, 413, "zu_viele");
   }
   return eingabe.map((d, i) => {
-    const p = DatensatzSchema.safeParse(d);
+    const p = parseDatensatz(d);
     if (!p.success) throw new PersFehler(`Datensatz ${i + 1} ist ungültig.`);
     return p.data;
   });
@@ -52,7 +87,7 @@ function uebersetze(e: unknown): never {
 
 export async function pruefe(d: VorlageDetail, datensaetze: Datensatz[]): Promise<Meldung[]> {
   try {
-    return await pruefeDatensaetze(d.vorlage, await ladeRessourcen(d), datensaetze, renderGrenzen());
+    return await mitRenderPlatz(async () => pruefeDatensaetze(d.vorlage, await ladeRessourcen(d), datensaetze, renderGrenzen()));
   } catch (e) {
     return uebersetze(e);
   }
@@ -60,7 +95,7 @@ export async function pruefe(d: VorlageDetail, datensaetze: Datensatz[]): Promis
 
 export async function vorschau(d: VorlageDetail, datensatz: Datensatz | null): Promise<Ergebnis> {
   try {
-    return await erzeugeVorschau(d.vorlage, await ladeRessourcen(d), datensatz);
+    return await mitRenderPlatz(async () => erzeugeVorschau(d.vorlage, await ladeRessourcen(d), datensatz));
   } catch (e) {
     return uebersetze(e);
   }
@@ -92,7 +127,8 @@ export async function erzeugeDruckdatenFuerAnfrage(
   const modus = opt.modus ?? d.vorlage.ausgabe.modus;
   let ergebnis: Ergebnis;
   try {
-    ergebnis = await erzeugePdf(d.vorlage, await ladeRessourcen(d), opt.datensaetze, { modus, grenzen: renderGrenzen() });
+    // Nach der Bestätigung (Gast) wird gewartet statt abgelehnt: die Anfrage ist dann schon eingegangen.
+    ergebnis = await mitRenderPlatz(async () => erzeugePdf(d.vorlage, await ladeRessourcen(d), opt.datensaetze, { modus, grenzen: renderGrenzen() }), { warteMs: 120_000 });
   } catch (e) {
     return uebersetze(e);
   }
