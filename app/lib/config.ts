@@ -1,3 +1,5 @@
+import { vorschauAktiv, vorschauStaffEmails } from "./vorschau/modus";
+
 function required(name: string, fallback?: string): string {
   const value = process.env[name] ?? fallback;
   if (value === undefined || value === "") {
@@ -49,7 +51,18 @@ function optionalMb(name: string): number | null {
   return Math.floor(parsed * 1024 * 1024);
 }
 
+/**
+ * Vorschau-Modus (docs/vorschau.md): PREVIEW_MODE=1 für eine getrennte Vorschau-Umgebung. Schaltet Beispieldaten,
+ * Banner, noindex und die Schutzregeln gegen Außenwirkung ein; Standard aus.
+ */
+const vorschau = vorschauAktiv();
+
 export const config = {
+  preview: {
+    active: vorschau,
+    /** PREVIEW_STAFF_EMAILS: Mitarbeiter-Konten der Vorschau und erlaubte Mail-Empfänger. */
+    staffEmails: vorschauStaffEmails(),
+  },
   appBaseUrl: optional("APP_BASE_URL", "http://localhost:3000"),
   firmInbox: optional("FIRM_INBOX", "print@example.com"),
   auth: {
@@ -94,7 +107,8 @@ export const config = {
   },
   mistral: {
     baseUrl: optional("MISTRAL_API_BASE", "https://api.eu.mistral.ai/v1"),
-    apiKey: optional("MISTRAL_API_KEY"),
+    // In der Vorschau-Umgebung sind Mistral-Aufrufe aus (kein Schlüssel, keine Kosten, keine Außenwirkung).
+    apiKey: vorschau ? "" : optional("MISTRAL_API_KEY"),
     model: optional("MISTRAL_MODEL", "mistral-medium-3.5"),
   },
   clamav: {
@@ -113,7 +127,7 @@ export const config = {
     /** Zeitlimit für das Laden der Partner-Datei (unter dem 60-s-Timeout des Seeräuber-Clients halten). */
     fileTimeoutSeconds: numberVar("PARTNER_FILE_TIMEOUT_SECONDS", 45),
     /** Webhook-Worker im App-Prozess (instrumentation.ts); "off" schaltet ihn ab. */
-    webhookWorker: optional("PARTNER_WEBHOOK_WORKER", "on") !== "off",
+    webhookWorker: !vorschau && optional("PARTNER_WEBHOOK_WORKER", "on") !== "off",
     webhookIntervalSeconds: numberVar("PARTNER_WEBHOOK_INTERVAL_SECONDS", 15),
   },
   /** Offene Anfrage ohne Kundenkonto (lib/inquiry, docs/anfrage-api.md). 0 = unbegrenzt. */

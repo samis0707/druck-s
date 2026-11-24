@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { vorschauAktiv } from "@/lib/vorschau/modus";
 import { absolut } from "@/lib/hilfe/site";
 
 /** Öffentliche Seiten und Hilfe für alle Crawler (auch KI-Crawler); private Bereiche und API gesperrt. */
@@ -29,6 +30,8 @@ const KI_CRAWLER = [
 ];
 
 export default function robots(): MetadataRoute.Robots {
+  // Vorschau-Umgebung: für alle Crawler gesperrt.
+  if (vorschauAktiv()) return { rules: [{ userAgent: "*", disallow: "/" }] };
   return {
     rules: [
       { userAgent: "*", allow: ["/", ...OEFFENTLICHE_API], disallow: PRIVAT },

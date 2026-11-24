@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { vorschauAktiv } from "@/lib/vorschau/modus";
 
 /**
  * Laufzeit-Einstellungen der Besucherstatistik (Umami). Die Seiten selbst sind statisch gebaut – deshalb liest
@@ -7,6 +8,8 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export function GET() {
+  // Vorschau-Umgebung: keine Besucherstatistik.
+  if (vorschauAktiv()) return NextResponse.json({ aktiv: false }, { headers: { "cache-control": "no-store" } });
   const url = process.env.UMAMI_URL?.trim().replace(/\/$/, "");
   const websiteId = process.env.UMAMI_WEBSITE_ID?.trim();
   const aktiv = !!url && !!websiteId && /^https:\/\//.test(url);

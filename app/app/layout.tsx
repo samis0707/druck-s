@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { VorschauBanner } from "@/components/vorschau/VorschauBanner";
 import { Statistik } from "@/components/analytics/Statistik";
 import { THEME_INIT_SCRIPT } from "@/components/brand/ThemeToggle";
 import "./globals.css";
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
+        <VorschauBanner />
         <TooltipProvider>
           <Header />
           <div className="flex-1">{children}</div>

@@ -109,7 +109,19 @@ export function attachmentsFit(
   return checkAttachments(getMailTransport().limits, attachments, body);
 }
 
-export async function sendMail(mail: OutboundMail): Promise<SendResult> {
+export async function sendMail(original: OutboundMail): Promise<SendResult> {
+  let mail = original;
+  if (config.preview.active) {
+    // Vorschau-Umgebung (docs/vorschau.md): nur Mitarbeiter und im Ablauf eingegebene Adressen, Betreff mit Präfix.
+    const { vorschauMail } = await import("./vorschau/mail");
+    const v = await vorschauMail(original, config.preview.staffEmails);
+    if (!v) {
+      console.info("[mail] Vorschau: keine erlaubten Empfänger, Mail nicht gesendet");
+      return { transport: "vorschau", messageId: null };
+    }
+    if (v.verworfen > 0) console.info(`[mail] Vorschau: ${v.verworfen} nicht erlaubte Empfänger entfernt`);
+    mail = v.mail;
+  }
   const t = getMailTransport();
   const replyTo = mail.replyTo || config.mail.replyTo || undefined;
   try {

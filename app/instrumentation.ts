@@ -7,6 +7,10 @@ export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   if (process.env.NEXT_PHASE === "phase-production-build") return;
   const { config } = await import("./lib/config");
+  // Vorschau-Umgebung (docs/vorschau.md): Beispieldaten anlegen; im Hintergrund, Fehler werden nur geloggt.
+  if (config.preview.active) {
+    void import("./lib/vorschau/seed").then((m) => m.seedVorschau()).catch((err) => console.error("[vorschau] Seed abgebrochen:", err));
+  }
   // Aufräumen alle 10 Minuten, unabhängig vom Webhook-Worker: abgebrochene Gast-Anfragen (DRAFT, nach
   // DRAFT_TTL_MINUTES) samt Kontaktdaten und Dateien, abgelaufene Personalisierungs-Entwürfe (Personendaten),
   // Aufbewahrungsfristen der Druckdaten und Anonymisierung der IP-/E-Mail-Angaben im Audit-Log.
