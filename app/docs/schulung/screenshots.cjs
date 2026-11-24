@@ -6,7 +6,7 @@
  *
  *   PARTNER_WEBHOOK_WORKER=off npx next dev -p 3100      # in einem zweiten Terminal
  *   node docs/schulung/screenshots.cjs http://localhost:3100 /tmp/shots
- *   node docs/schulung/zu-webp.cjs /tmp/shots              # → public/hilfe/img/*.webp + lib/hilfe/bilder.ts
+ *   node docs/schulung/zu-webp.cjs /tmp/shots              # → public/hilfe/img/*.webp (Staff-Bilder: hilfe-intern/img) + lib/hilfe/bilder.ts
  *
  * Desktop 1280×860 @1.5, deutsche Locale, `?tour=aus` (keine Tour-Einladung im Bild), Toasts ausgeblendet.
  */

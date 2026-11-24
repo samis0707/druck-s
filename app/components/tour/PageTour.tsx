@@ -6,7 +6,7 @@ import { Compass01Icon } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { alsAngebotenMerken, alsErledigtMerken, einladungZeigen, tourModusAusUrl } from "./storage";
-import { TOUR_KNOPF, TOUREN, type TourId } from "./touren";
+import { TOUR_KNOPF, TOUREN_OEFFENTLICH, istMitarbeiterTour, type Tour, type TourId } from "./touren";
 import { TourOverlay } from "./TourOverlay";
 
 /** Verzögerung, bis die Seite steht und die Einladung erscheint */
@@ -30,19 +30,38 @@ export function PageTour({
   /** false: keine Einladung (Toast), die Tour startet nur über den Knopf oder `?tour=start` */
   einladen?: boolean;
 }) {
-  const tour = TOUREN[id];
+  // Öffentliche Touren stehen im Bundle; Touren des Mitarbeiter-Kurses kommen nur mit Staff-Sitzung vom Server.
+  const [geladen, setGeladen] = useState<{ id: TourId; tour: Tour } | null>(null);
+  const tour: Tour | null = istMitarbeiterTour(id) ? (geladen?.id === id ? geladen.tour : null) : TOUREN_OEFFENTLICH[id];
   const pathname = usePathname();
   const [aktiv, setAktiv] = useState(false);
   const [lauf, setLauf] = useState(0);
   const startPfad = useRef(pathname);
   const toastId = useRef<string | null>(null);
 
+  useEffect(() => {
+    if (!istMitarbeiterTour(id)) return;
+    let abgebrochen = false;
+    fetch(`/api/staff/hilfe/tour/${id}`, { credentials: "same-origin" })
+      .then((res) => (res.ok ? (res.json() as Promise<Tour>) : null))
+      .then((t) => {
+        if (t && !abgebrochen) setGeladen({ id, tour: t });
+      })
+      .catch(() => {
+        // Ohne Tour-Texte bleibt nur der Knopf (ohne Wirkung); die Seite funktioniert unverändert.
+      });
+    return () => {
+      abgebrochen = true;
+    };
+  }, [id]);
+
   const starten = useCallback(() => {
+    if (!tour) return;
     alsErledigtMerken(id);
     if (toastId.current) toast.close(toastId.current);
     setLauf((n) => n + 1);
     setAktiv(true);
-  }, [id]);
+  }, [id, tour]);
 
   const beenden = useCallback(() => {
     alsErledigtMerken(id);
@@ -50,7 +69,7 @@ export function PageTour({
   }, [id]);
 
   useEffect(() => {
-    if (!bereit) return;
+    if (!bereit || !tour) return;
     const modus = tourModusAusUrl(window.location.search);
     let timer: ReturnType<typeof setTimeout> | undefined;
     if (modus === "start") {
@@ -82,7 +101,7 @@ export function PageTour({
       if (timer) clearTimeout(timer);
       if (toastId.current) toast.close(toastId.current);
     };
-  }, [id, tour.einladung, starten, bereit, einladen]);
+  }, [id, tour, starten, bereit, einladen]);
 
   useEffect(() => {
     if (pathname !== startPfad.current) {
@@ -93,11 +112,11 @@ export function PageTour({
 
   return (
     <>
-      <Button type="button" variant="outline" onClick={starten} data-tour={TOUR_KNOPF} className="gap-1.5">
+      <Button type="button" variant="outline" onClick={starten} disabled={!tour} data-tour={TOUR_KNOPF} className="gap-1.5">
         <HugeiconsIcon icon={Compass01Icon} size={16} aria-hidden="true" />
         Tour starten
       </Button>
-      {aktiv && <TourOverlay key={lauf} schritte={tour.schritte} onEnde={beenden} />}
+      {aktiv && tour && <TourOverlay key={lauf} schritte={tour.schritte} onEnde={beenden} />}
     </>
   );
 }

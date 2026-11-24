@@ -4,6 +4,7 @@
  */
 import { company } from "@/lib/company";
 import { FAKTEN, FRAGEN, PRODUKT, kursMinuten, lektionsPfad, type Frage, type Kurs, type Lektion } from "./inhalte";
+import { bildPfad } from "./bilder-pfad";
 import { HILFE_STAND, absolut } from "./site";
 
 type Json = Record<string, unknown>;
@@ -140,7 +141,7 @@ export function lektionDaten(kurs: Kurs, lektion: Lektion): Json {
     educationalLevel: "Einsteiger",
     isPartOf: { "@id": absolut(`/hilfe/${kurs.slug}#kurs`) },
     dateModified: HILFE_STAND,
-    image: lektion.bilder?.map((b) => absolut(`/hilfe/img/${b.name}.webp`)),
+    image: lektion.bilder?.map((b) => absolut(bildPfad(b.name))),
     step: lektion.schritte.map((text, i) => ({
       "@type": "HowToStep",
       position: i + 1,

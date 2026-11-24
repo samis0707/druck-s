@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
-import { KURSE, lektionsPfad } from "@/lib/hilfe/inhalte";
+import { KURSE_OEFFENTLICH, lektionsPfad } from "@/lib/hilfe/inhalte";
 import { BILDER } from "@/lib/hilfe/bilder";
+import { bildPfad } from "@/lib/hilfe/bilder-pfad";
 import { HILFE_STAND, absolut } from "@/lib/hilfe/site";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: absolut("/anfrage"), lastModified: hilfe, changeFrequency: "monthly", priority: 0.9 },
     { url: absolut("/hilfe"), lastModified: hilfe, changeFrequency: "monthly", priority: 0.9 },
   ];
-  for (const kurs of KURSE) {
+  // Nur öffentliche Kurse: Mitarbeiter-Hilfeseiten gehören nicht in die Sitemap.
+  for (const kurs of KURSE_OEFFENTLICH) {
     seiten.push({ url: absolut(`/hilfe/${kurs.slug}`), lastModified: hilfe, changeFrequency: "monthly", priority: 0.8 });
     for (const l of kurs.lektionen) {
       seiten.push({
@@ -21,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         lastModified: hilfe,
         changeFrequency: "monthly",
         priority: 0.7,
-        images: (l.bilder ?? []).filter((b) => BILDER[b.name]).map((b) => absolut(`/hilfe/img/${b.name}.webp`)),
+        images: (l.bilder ?? []).filter((b) => BILDER[b.name]).map((b) => absolut(bildPfad(b.name))),
       });
     }
   }

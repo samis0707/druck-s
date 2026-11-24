@@ -1,5 +1,5 @@
 /**
- * Maße der Schulungsbilder in public/hilfe/img/*.webp.
+ * Maße der Schulungsbilder in public/hilfe/img/*.webp (öffentlich) und hilfe-intern/img/*.webp (Mitarbeiter-Kurs).
  * ERZEUGT von docs/schulung/zu-webp.cjs — nicht von Hand ändern.
  */
 export const BILDER: Record<string, { breite: number; hoehe: number }> = {

@@ -1,11 +1,19 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { DOWNLOADS, FRAGEN, KURSE, lektionsPfad } from "@/lib/hilfe/inhalte";
+import { FRAGEN, KURSE_OEFFENTLICH, kursDownloads, lektionsPfad } from "@/lib/hilfe/inhalte";
+import { alleKurseUngefiltert } from "@/lib/hilfe/kurse";
+import { istInternesBild } from "@/lib/hilfe/bilder-pfad";
 import { BILDER } from "@/lib/hilfe/bilder";
 import { hilfeStartMarkdown, kursMarkdown, lektionMarkdown, llmsFullTxt, llmsTxt } from "@/lib/hilfe/markdown";
 import { faqSeite, kursDaten, lektionDaten, serialisieren } from "@/lib/hilfe/jsonld";
-import { TOUREN, TOUR_KNOPF } from "@/components/tour/touren";
+import { TOUR_KNOPF, TOUREN_OEFFENTLICH } from "@/components/tour/touren";
+import { TOUREN_MITARBEITER } from "@/components/tour/touren-mitarbeiter";
+
+/** Alle Kurse (auch der Mitarbeiter-Kurs) — Inhalts- und Dateiprüfungen gelten für alle; Zugriffsregeln: tests/hilfe-zugriff.test.ts. */
+const KURSE = alleKurseUngefiltert();
+const DOWNLOADS = KURSE.flatMap(kursDownloads);
+const TOUREN = { ...TOUREN_OEFFENTLICH, ...TOUREN_MITARBEITER };
 
 const ROOT = path.resolve(__dirname, "..");
 
@@ -76,11 +84,18 @@ describe("Hilfe-Inhalte", () => {
       for (const l of k.lektionen) {
         for (const b of l.bilder ?? []) {
           expect(BILDER[b.name], `Maße für ${b.name}`).toBeDefined();
-          expect(existsSync(path.join(ROOT, "public/hilfe/img", `${b.name}.webp`)), b.name).toBe(true);
+          // Öffentliche Bilder in public/hilfe/img, interne (Mitarbeiter-Kurs) in hilfe-intern/img — nie beides.
+          const oeffentlich = existsSync(path.join(ROOT, "public/hilfe/img", `${b.name}.webp`));
+          const intern = existsSync(path.join(ROOT, "hilfe-intern/img", `${b.name}.webp`));
+          expect(oeffentlich !== intern, b.name).toBe(true);
+          expect(intern, b.name).toBe(istInternesBild(b.name));
         }
       }
     }
-    for (const d of DOWNLOADS) expect(existsSync(path.join(ROOT, "public", d.href)), d.href).toBe(true);
+    for (const d of DOWNLOADS) {
+      const datei = d.href.startsWith("/hilfe-intern/") ? path.join(ROOT, "hilfe-intern/pdf", path.basename(d.href)) : path.join(ROOT, "public", d.href);
+      expect(existsSync(datei), d.href).toBe(true);
+    }
   });
 
   it("hat für jede Tour-Station einen data-tour-Anker im Code", () => {
@@ -100,13 +115,13 @@ describe("Markdown für KI-Assistenten", () => {
   it("llms.txt folgt der Konvention und verlinkt jede Lektion als .md", () => {
     const txt = llmsTxt();
     expect(txt.startsWith("# dmp druckraum\n\n> ")).toBe(true);
-    for (const k of KURSE) for (const l of k.lektionen) expect(txt).toContain(`${lektionsPfad(k, l)}.md`);
+    for (const k of KURSE_OEFFENTLICH) for (const l of k.lektionen) expect(txt).toContain(`${lektionsPfad(k, l)}.md`);
     expect(txt).not.toMatch(/undefined|\[object Object\]/);
   });
 
   it("llms-full.txt enthält alle Lektionen, Fragen und Codebeispiele", () => {
     const txt = llmsFullTxt();
-    for (const k of KURSE) for (const l of k.lektionen) expect(txt).toContain(l.titel);
+    for (const k of KURSE_OEFFENTLICH) for (const l of k.lektionen) expect(txt).toContain(l.titel);
     for (const f of FRAGEN) expect(txt).toContain(f.frage);
     expect(txt).toContain("```bash");
     expect(txt).not.toMatch(/undefined|\[object Object\]/);

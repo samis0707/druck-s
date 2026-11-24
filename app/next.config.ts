@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   // Gebaute kalpri-Werkbank (vendor/kalpri-werkbank) wird zur Laufzeit gelesen: in das Standalone-Paket aufnehmen.
   outputFileTracingIncludes: {
     "/staff/kalkulation/werkbank/[[...pfad]]": ["./vendor/kalpri-werkbank/**/*"],
+    // PDFs und Screenshots des Mitarbeiter-Kurses (nicht in public/): werden von der Route nur mit Staff-Sitzung gelesen.
+    "/hilfe-intern/[...datei]": ["./hilfe-intern/**/*"],
   },
   // Sicherheits-Header für alle Antworten (siehe lib/sicherheitsHeader.ts); die Werkbank behält ihre eigene CSP.
   async headers() {

@@ -1,6 +1,9 @@
 /**
  * Markdown-Fassungen der Hilfe für KI-Assistenten und Agenten (llms.txt-Konvention, https://llmstxt.org).
  * Alles wird aus lib/hilfe/inhalte.ts erzeugt — keine zweite Textquelle.
+ *
+ * Öffentlich abrufbare Gesamtdateien (llms.txt, llms-full.txt, /hilfe.md) enthalten ausschließlich die öffentlichen Kurse;
+ * der Mitarbeiter-Kurs kommt hier nie vor. Einzelne Mitarbeiter-Seiten als Markdown liefert nur app/hilfe-md/… mit Staff-Sitzung.
  */
 import { company } from "@/lib/company";
 import {
@@ -8,7 +11,7 @@ import {
   FAKTEN,
   FRAGEN,
   GLOSSAR,
-  KURSE,
+  KURSE_OEFFENTLICH as KURSE,
   PRODUKT,
   STATUS_ERKLAERT,
   kursMinuten,

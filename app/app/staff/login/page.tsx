@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { sichererRuecksprung } from "@/lib/hilfe/zugriff";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function StaffLoginPage() {
@@ -34,7 +35,8 @@ export default function StaffLoginPage() {
     });
     if (!res.ok) return toast.add({ description: "Login fehlgeschlagen", type: "error" });
     toast.add({ description: "Angemeldet.", type: "success" });
-    router.push("/staff");
+    // Rücksprung (z. B. zur Mitarbeiter-Hilfe): nur interne Pfade, sonst der Staff-Start.
+    router.push(sichererRuecksprung(new URLSearchParams(window.location.search).get("weiter")));
   }
 
   return (

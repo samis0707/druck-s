@@ -8,7 +8,10 @@ import { JsonLd } from "@/components/hilfe/JsonLd";
 import { FortschrittsBalken } from "@/components/hilfe/KursFortschritt";
 import { cn } from "@/lib/utils";
 import { company } from "@/lib/company";
-import { ABLAUF, DOWNLOADS, FAKTEN, FRAGEN, GLOSSAR, KURSE, PRODUKT, kursMinuten, type Frage } from "@/lib/hilfe/inhalte";
+import { ABLAUF, FAKTEN, FRAGEN, GLOSSAR, PRODUKT, kursMinuten, type Frage } from "@/lib/hilfe/inhalte";
+import { downloadsFuer, sichtbareKurse } from "@/lib/hilfe/kurse";
+import { MITARBEITER_KURS } from "@/lib/hilfe/zugriff";
+import { istMitarbeiterAnfrage } from "@/lib/hilfe/zugriff-server";
 import { brotkrumen, faqSeite, graph, organisation, website } from "@/lib/hilfe/jsonld";
 import { HILFE_STAND, absolut } from "@/lib/hilfe/site";
 
@@ -41,7 +44,15 @@ function anker(text: string): string {
     .replace(/^-|-$/g, "");
 }
 
-export default function HilfeStart() {
+/**
+ * Die Übersicht hängt von der Zielgruppe ab: Mitarbeitende sehen zusätzlich den Mitarbeiter-Kurs und dessen Unterlagen,
+ * gewöhnliche Besucher (Gäste, Kunden) nur die öffentlichen Kurse — ohne Titel, Link oder PDF des Mitarbeiter-Kurses.
+ * Dafür wird die Seite je Anfrage mit der Sitzung gerendert (nicht statisch vorab erzeugt).
+ */
+export default async function HilfeStart() {
+  const mitarbeiter = await istMitarbeiterAnfrage();
+  const KURSE = sichtbareKurse(mitarbeiter);
+  const DOWNLOADS = downloadsFuer(mitarbeiter);
   const jsonLd = graph(
     organisation(),
     website(),
@@ -83,6 +94,11 @@ export default function HilfeStart() {
           <Link href="/upload?tour=start" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "min-h-11")}>
             Tour auf der Upload-Seite
           </Link>
+          {mitarbeiter && (
+            <Link href={`/hilfe/${MITARBEITER_KURS}`} className={cn(buttonVariants({ size: "lg", variant: "secondary" }), "min-h-11")}>
+              Kurs für Mitarbeitende
+            </Link>
+          )}
         </div>
       </header>
 

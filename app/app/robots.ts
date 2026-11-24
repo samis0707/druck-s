@@ -1,11 +1,17 @@
 import type { MetadataRoute } from "next";
 import { vorschauAktiv } from "@/lib/vorschau/modus";
 import { absolut } from "@/lib/hilfe/site";
+import { KURS_ZIELGRUPPE } from "@/lib/hilfe/zugriff";
 
 /** Öffentliche Seiten und Hilfe für alle Crawler (auch KI-Crawler); private Bereiche und API gesperrt. */
 export const dynamic = "force-dynamic";
 
-const PRIVAT = ["/api/", "/staff", "/requests", "/konto", "/u/", "/anfrage/", "/login", "/hilfe-md/"];
+/** Hilfeseiten für Mitarbeitende (Präfix schließt Lektionen und die .md-Fassungen ein). */
+const MITARBEITER_HILFE = Object.entries(KURS_ZIELGRUPPE)
+  .filter(([, z]) => z === "mitarbeiter")
+  .map(([slug]) => `/hilfe/${slug}`);
+
+const PRIVAT = ["/api/", "/staff", "/requests", "/konto", "/u/", "/anfrage/", "/login", "/hilfe-md/", "/hilfe-intern/", ...MITARBEITER_HILFE];
 
 /** Die öffentliche Anfrage-Schnittstelle und ihre Beschreibung sind für Assistenten gedacht und bleiben lesbar. */
 const OEFFENTLICHE_API = ["/api/v1/", "/api/docs"];

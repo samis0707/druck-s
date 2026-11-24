@@ -4,7 +4,8 @@
  *   node docs/schulung/render.cjs
  *
  * Quelle: docs/schulung/<name>.html (je Seite <div class="page">…<footer class="bottom">…</footer></div>)
- * Ziel:   public/hilfe/<pdf-name>.pdf, Vorschau docs/schulung/preview-<name>.png (nicht im Repo).
+ * Ziel:   öffentliche PDFs (Kunden, Partner) → public/hilfe/<pdf-name>.pdf; PDFs des Mitarbeiter-Kurses → hilfe-intern/pdf/<pdf-name>.pdf
+ *         (nicht öffentlich, Auslieferung nur mit Staff-Sitzung; Liste: lib/hilfe/intern.json). Vorschau docs/schulung/preview-<name>.png (nicht im Repo).
  * Meldet je Seite „Inhalt … / Fußzeile …“: Inhalt muss über der Fußzeile enden, sonst Exit 2.
  */
 const { chromium } = require("playwright");
@@ -13,6 +14,8 @@ const fs = require("fs");
 
 const DIR = __dirname;
 const OUT = path.resolve(DIR, "../../public/hilfe");
+const OUT_INTERN = path.resolve(DIR, "../../hilfe-intern/pdf");
+const INTERN = new Set(require("../../lib/hilfe/intern.json").pdfs);
 const ANLEITUNGEN = {
   kunden: "dmp-druckraum-kurzanleitung-kunden.pdf",
   druckerei: "dmp-druckraum-kurzanleitung-druckerei.pdf",
@@ -24,6 +27,7 @@ const ANLEITUNGEN = {
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
+  fs.mkdirSync(OUT_INTERN, { recursive: true });
   const b = await chromium.launch();
   const p = await (await b.newContext({ viewport: { width: 794, height: 1123 }, deviceScaleFactor: 1 })).newPage();
   let fehler = false;
@@ -44,7 +48,7 @@ const ANLEITUNGEN = {
       if (!ok) fehler = true;
       console.log(`${name} Seite ${i + 1}: Inhalt bis ${s.inhalt}px, Fußzeile ab ${s.fuss}px ${ok ? "ok" : "← ÜBERLAUF"}`);
     });
-    await p.pdf({ path: path.join(OUT, pdf), preferCSSPageSize: true, printBackground: true });
+    await p.pdf({ path: path.join(INTERN.has(pdf) ? OUT_INTERN : OUT, pdf), preferCSSPageSize: true, printBackground: true });
     await p.emulateMedia({ media: "print" });
     await p.screenshot({ path: path.join(DIR, `preview-${name}.png`), fullPage: true });
     await p.emulateMedia({ media: "screen" });

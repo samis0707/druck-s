@@ -6,11 +6,18 @@ import { HelpCircleIcon } from "@hugeicons/core-free-icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { kursDownloads, kursFuer, type KursSlug } from "@/lib/hilfe/inhalte";
+import { KURSE_OEFFENTLICH, kursDownloads, type KursSlug } from "@/lib/hilfe/inhalte";
 
-/** Dropdown „Hilfe“ im Arbeitsbereich: Online-Schulung, Kurzanleitung (echter Download), alle Unterlagen. */
+/**
+ * Dropdown „Hilfe“ im Arbeitsbereich: Online-Schulung, Kurzanleitung (echter Download), alle Unterlagen.
+ *
+ * Läuft im Browser und kennt deshalb nur die öffentlichen Kurse (inhalte.ts). Der Mitarbeiter-Kurs steht nicht im
+ * Client-Bundle: Das Menü führt direkt zu ihm (/hilfe/druckerei, Zugriff nur mit Staff-Sitzung); seine Kurzanleitungen
+ * stehen dort im Abschnitt „Unterlagen“, nicht in diesem Menü.
+ */
 export function HilfeMenue({ kurs }: { kurs: KursSlug }) {
-  const k = kursFuer(kurs);
+  const k = KURSE_OEFFENTLICH.find((x) => x.slug === kurs);
+  const mitarbeiter = !k;
   const eintrag = "flex min-h-10 items-center rounded-xl px-3 py-2 hover:bg-muted focus-visible:bg-muted outline-none";
   return (
     <Popover>
@@ -23,6 +30,11 @@ export function HilfeMenue({ kurs }: { kurs: KursSlug }) {
           <Link href={`/hilfe/${kurs}`} className={eintrag}>
             Online-Schulung
           </Link>
+          {mitarbeiter && (
+            <Link href={`/hilfe/${kurs}#unterlagen`} className={eintrag}>
+              Kurzanleitungen (PDF)
+            </Link>
+          )}
           {k &&
             kursDownloads(k).map((d, i) => (
               <a key={d.href} href={d.href} download={d.datei} className={eintrag}>

@@ -1,0 +1,36 @@
+{
+  "_hinweis": "Nicht öffentliche Hilfe-Dateien (nur mit Staff-Sitzung ausgeliefert, Route /hilfe-intern/…). Quelle für Pipeline (docs/schulung) und Auslieferung (app/hilfe-intern).",
+  "bilder": [
+    "druckerei-assets",
+    "druckerei-auftraege",
+    "druckerei-auftrag-freigabe",
+    "druckerei-auftrag-pruefung",
+    "druckerei-auftrag-versand",
+    "druckerei-einstellungen",
+    "druckerei-kunden",
+    "druckerei-login",
+    "kalk-auftrag-richtpreis",
+    "kalk-einstellungen",
+    "kalk-ergebnis",
+    "kalk-kunden-richtpreis",
+    "kalk-rechenweg",
+    "kalk-rechner",
+    "kalk-stammdaten",
+    "pers-auftrag",
+    "pers-bibliothek",
+    "pers-editor",
+    "pers-editor-beispiel",
+    "pers-editor-eigenschaften",
+    "pers-freigabe-link",
+    "pers-fuer-kunden",
+    "pers-schritt-bogen",
+    "pers-schritt-design",
+    "pers-schritt-freigabe",
+    "pers-uebersicht"
+  ],
+  "pdfs": [
+    "dmp-druckraum-kurzanleitung-druckerei.pdf",
+    "dmp-druckraum-kurzanleitung-kalkulation.pdf",
+    "dmp-druckraum-kurzanleitung-personalisierung-vorlage.pdf"
+  ]
+}

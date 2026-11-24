@@ -3,6 +3,9 @@
  * und Maß-Tabelle lib/hilfe/bilder.ts (für width/height an next/image).
  *
  *   node docs/schulung/zu-webp.cjs /tmp/shots
+ *
+ * Ziel: öffentliche Bilder → public/hilfe/img, Bilder des Mitarbeiter-Kurses → hilfe-intern/img (Liste: lib/hilfe/intern.json,
+ * Auslieferung nur mit Staff-Sitzung). Neue Staff-Bilder: Namen vorher in intern.json unter "bilder" eintragen.
  */
 const path = require("path");
 const fs = require("fs");
@@ -10,8 +13,11 @@ const sharp = require("sharp");
 
 const [quelle] = process.argv.slice(2);
 const APP = path.resolve(__dirname, "../..");
-const ziel = path.join(APP, "public/hilfe/img");
-fs.mkdirSync(ziel, { recursive: true });
+const zielOeffentlich = path.join(APP, "public/hilfe/img");
+const zielIntern = path.join(APP, "hilfe-intern/img");
+const INTERN = new Set(require("../../lib/hilfe/intern.json").bilder);
+fs.mkdirSync(zielOeffentlich, { recursive: true });
+fs.mkdirSync(zielIntern, { recursive: true });
 
 (async () => {
   // Bereits vorhandene Einträge bleiben erhalten, damit auch ein Teillauf (nur neue Bilder) die Tabelle nicht verkürzt.
@@ -25,7 +31,7 @@ fs.mkdirSync(ziel, { recursive: true });
     const info = await sharp(path.join(quelle, f))
       .resize({ width: 1600, withoutEnlargement: true })
       .webp({ quality: 80 })
-      .toFile(path.join(ziel, `${name}.webp`));
+      .toFile(path.join(INTERN.has(name) ? zielIntern : zielOeffentlich, `${name}.webp`));
     masse[name] = { breite: info.width, hoehe: info.height };
     console.log(`${name}.webp ${info.width}×${info.height} ${(info.size / 1024).toFixed(0)} KB`);
   }
@@ -33,7 +39,7 @@ fs.mkdirSync(ziel, { recursive: true });
   fs.writeFileSync(
     path.join(APP, "lib/hilfe/bilder.ts"),
     `/**
- * Maße der Schulungsbilder in public/hilfe/img/*.webp.
+ * Maße der Schulungsbilder in public/hilfe/img/*.webp (öffentlich) und hilfe-intern/img/*.webp (Mitarbeiter-Kurs).
  * ERZEUGT von docs/schulung/zu-webp.cjs — nicht von Hand ändern.
  */
 export const BILDER: Record<string, { breite: number; hoehe: number }> = {

@@ -60,7 +60,7 @@ ergänzt wird, muss die Umami-Adresse in `script-src` und `connect-src` freigege
 ## Hilfe, Schulung, SEO und KI-Assistenten
 
 - Online-Schulung unter `/hilfe` (Kurse für Kunden, Druckerei und Partner, Lektionen mit Bildern, Quiz, Fortschritt),
-  geführte Touren auf `/upload`, `/requests/<id>` und `/staff`, PDF-Kurzanleitungen in `public/hilfe/`.
+  geführte Touren auf `/upload`, `/requests/<id>` und `/staff`, PDF-Kurzanleitungen in `public/hilfe/` (Mitarbeiter-Kurs: nur mit Staff-Sitzung, Dateien in `hilfe-intern/`).
 - Für KI-Assistenten: `/llms.txt`, `/llms-full.txt` und jede Hilfeseite als Markdown (`.md` anhängen).
 - Suchmaschinen: `robots.txt` (öffentliche Seiten frei, auch für KI-Crawler; private Bereiche und API gesperrt),
   `sitemap.xml`, Canonicals, JSON-LD (Organization, WebApplication, FAQPage, Course, HowTo), `noindex` für

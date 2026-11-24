@@ -9,7 +9,10 @@ import {
   tourModusAusUrl,
   type KleinerSpeicher,
 } from "@/components/tour/storage";
-import { TOUREN } from "@/components/tour/touren";
+import { TOUREN_OEFFENTLICH } from "@/components/tour/touren";
+import { TOUREN_MITARBEITER } from "@/components/tour/touren-mitarbeiter";
+
+const TOUREN = { ...TOUREN_OEFFENTLICH, ...TOUREN_MITARBEITER };
 
 function speicher(): KleinerSpeicher & { daten: Map<string, string> } {
   const daten = new Map<string, string>();
