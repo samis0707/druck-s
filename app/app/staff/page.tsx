@@ -89,7 +89,7 @@ function FilterLeiste({
         </label>
         <select
           id="finder-sortierung"
-          className="h-8 w-auto rounded-2xl border border-transparent bg-input/50 px-2.5 text-sm outline-none focus-visible:border-ring"
+          className="h-8 w-auto rounded-2xl border-[1.5px] border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring"
           value={filter.sort}
           onChange={(e) => setFilter({ ...filter, sort: e.target.value as FinderSort })}
         >
@@ -247,7 +247,7 @@ function Inspektor({ requestId }: { requestId: string }) {
               Sortierung
               <select
                 aria-label="Assets sortieren"
-                className="h-8 rounded-2xl border border-transparent bg-input/50 px-2 text-xs outline-none focus-visible:border-ring"
+                className="h-8 rounded-2xl border-[1.5px] border-input bg-background px-2 text-xs outline-none focus-visible:border-ring"
                 value={assetSort}
                 onChange={(e) => setAssetSort(e.target.value as AssetSort)}
               >

@@ -423,11 +423,11 @@ export function SchrittFelder({
               {dokument ? <PdfSeite dokument={dokument} seite={pdfSeite} breitePx={seitePx.b} className="pointer-events-none absolute left-0 top-0" label={`${aktSeite === "hinten" ? "Rückseite" : "Vorderseite"}${beispielAn ? " mit Beispieldaten" : ""}`} /> : null}
               {/* Beschnittzone, Endformat, Sicherheitsabstand */}
               <svg className="pointer-events-none absolute inset-0" width={seitePx.b} height={seitePx.h} aria-hidden>
-                <path fillRule="evenodd" fill="rgba(220,38,38,0.12)" d={`M0 0H${seitePx.b}V${seitePx.h}H0Z M${laengeZuPx(b, massstab)} ${laengeZuPx(b, massstab)}H${laengeZuPx(b + W, massstab)}V${laengeZuPx(b + H, massstab)}H${laengeZuPx(b, massstab)}Z`} />
-                <rect x={laengeZuPx(b, massstab)} y={laengeZuPx(b, massstab)} width={laengeZuPx(W, massstab)} height={laengeZuPx(H, massstab)} fill="none" stroke="rgba(220,38,38,0.8)" strokeWidth={1} strokeDasharray="4 3" />
-                <rect x={laengeZuPx(b + 3, massstab)} y={laengeZuPx(b + 3, massstab)} width={Math.max(0, laengeZuPx(W - 6, massstab))} height={Math.max(0, laengeZuPx(H - 6, massstab))} fill="none" stroke="rgba(37,99,235,0.45)" strokeWidth={1} strokeDasharray="1 4" />
+                <path fillRule="evenodd" fill="rgba(179,38,30,0.12)" d={`M0 0H${seitePx.b}V${seitePx.h}H0Z M${laengeZuPx(b, massstab)} ${laengeZuPx(b, massstab)}H${laengeZuPx(b + W, massstab)}V${laengeZuPx(b + H, massstab)}H${laengeZuPx(b, massstab)}Z`} />
+                <rect x={laengeZuPx(b, massstab)} y={laengeZuPx(b, massstab)} width={laengeZuPx(W, massstab)} height={laengeZuPx(H, massstab)} fill="none" stroke="#b3261e" strokeWidth={1} strokeDasharray="4 3" />
+                <rect x={laengeZuPx(b + 3, massstab)} y={laengeZuPx(b + 3, massstab)} width={Math.max(0, laengeZuPx(W - 6, massstab))} height={Math.max(0, laengeZuPx(H - 6, massstab))} fill="none" stroke="rgba(93,100,142,0.6)" strokeWidth={1} strokeDasharray="1 4" />
                 {linien.map((l, i) =>
-                  l.achse === "x" ? <line key={i} x1={mmZuPx(l.pos, massstab)} x2={mmZuPx(l.pos, massstab)} y1={0} y2={seitePx.h} stroke="#d946ef" strokeWidth={1} /> : <line key={i} y1={mmZuPx(l.pos, massstab)} y2={mmZuPx(l.pos, massstab)} x1={0} x2={seitePx.b} stroke="#d946ef" strokeWidth={1} />,
+                  l.achse === "x" ? <line key={i} x1={mmZuPx(l.pos, massstab)} x2={mmZuPx(l.pos, massstab)} y1={0} y2={seitePx.h} stroke="#e6007e" strokeWidth={1} /> : <line key={i} y1={mmZuPx(l.pos, massstab)} y2={mmZuPx(l.pos, massstab)} x1={0} x2={seitePx.b} stroke="#e6007e" strokeWidth={1} />,
                 )}
               </svg>
               {felderSeite.map((f) => {

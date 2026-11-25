@@ -1,0 +1,13 @@
+Plus Jakarta Sans
+Copyright 2020 The Plus Jakarta Sans Project Authors (https://github.com/tokotype/PlusJakartaSans)
+
+Lizenz: SIL Open Font License, Version 1.1
+Volltext und FAQ: https://openfontlicense.org
+
+Datei: plus-jakarta-sans-latin-wght-normal.woff2 (Latin inkl. Umlaute; dieselbe Datei wie auf digitalemedien.de)
+(variable Schrift, Gewicht 200 bis 800, Paket @fontsource-variable/plus-jakarta-sans 5.3.0).
+
+IBM Plex Mono
+Copyright © 2017 IBM Corp. with Reserved Font Name "Plex"
+Lizenz: SIL Open Font License, Version 1.1
+Dateien: plex-mono-400.woff2, plex-mono-500.woff2

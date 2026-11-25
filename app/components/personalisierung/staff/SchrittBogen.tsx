@@ -158,9 +158,9 @@ function SkizzeMitAbstand({ bogen, raster, rand, abstand }: { bogen: { breite: n
   for (let z = 0; z < raster.zeilen; z++) for (let sp = 0; sp < raster.spalten; sp++) zellen.push({ z, sp });
   return (
     <svg width={bogen.breite * s} height={bogen.hoehe * s} viewBox={`0 0 ${bogen.breite} ${bogen.hoehe}`} role="img" aria-label={`Bogen ${bogen.breite} mal ${bogen.hoehe} Millimeter mit ${raster.proBogen} Nutzen`} className="max-w-full rounded-sm border border-border bg-white shadow-sm" data-tour="pers-skizze">
-      <rect x={rand.links} y={rand.oben} width={Math.max(0, bogen.breite - rand.links - rand.rechts)} height={Math.max(0, bogen.hoehe - rand.oben - rand.unten)} fill="none" stroke="#94a3b8" strokeDasharray="3 2" strokeWidth={0.6} />
+      <rect x={rand.links} y={rand.oben} width={Math.max(0, bogen.breite - rand.links - rand.rechts)} height={Math.max(0, bogen.hoehe - rand.oben - rand.unten)} fill="none" stroke="#5d648e" strokeDasharray="3 2" strokeWidth={0.6} />
       {zellen.map(({ z, sp }) => (
-        <rect key={`${z}-${sp}`} data-nutzen x={raster.start.x + sp * (raster.zelle.breite + abstand.spalten)} y={raster.start.y + z * (raster.zelle.hoehe + abstand.zeilen)} width={raster.zelle.breite} height={raster.zelle.hoehe} fill="rgba(14,165,233,0.25)" stroke="#0284c7" strokeWidth={0.5} />
+        <rect key={`${z}-${sp}`} data-nutzen x={raster.start.x + sp * (raster.zelle.breite + abstand.spalten)} y={raster.start.y + z * (raster.zelle.hoehe + abstand.zeilen)} width={raster.zelle.breite} height={raster.zelle.hoehe} fill="rgba(100,179,45,0.22)" stroke="#38730f" strokeWidth={0.5} />
       ))}
     </svg>
   );
