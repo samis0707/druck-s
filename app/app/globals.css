@@ -2,96 +2,172 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Design-Token (Default; Firmenfarben brauchen Freigabe — Task 9.6). */
-@theme {
-  --color-brand-50: #f3faec;
-  --color-brand-100: #eef6e6;
-  --color-brand-200: #cfe6b8;
-  --color-brand-300: #a9d47f;
-  --color-brand-400: #82c451;
-  --color-brand-500: #64b32d;
-  --color-brand-600: #4f9122;
-  --color-brand-700: #3d7a17;
-  --color-brand-800: #2f5c14;
-  --color-brand-900: #234413;
-
-  --color-signal-50: #f2f8fc;
-  --color-signal-100: #e8f2f9;
-  --color-signal-200: #bcdaec;
-  --color-signal-300: #86bedd;
-  --color-signal-400: #3d97cd;
-  --color-signal-500: #0075bd;
-  --color-signal-600: #005e97;
-  --color-signal-700: #004b79;
-  --color-signal-800: #003a5e;
-  --color-signal-900: #002c47;
-
-  --color-paper: #f7f8f5;
-  --color-surface: #ffffff;
-  --color-surface-sunk: #eef1ea;
-  --color-ink: #16191c;
-  --color-ink-mid: #5b636b;
-  --color-ink-soft: #8c949c;
-  --color-rule: #e5e8e1;
-
-  --color-warn-soft: #fbf2e0;
-  --color-warn-line: #ecd9ac;
-  --color-warn: #a06a10;
-  --color-danger: #c0392b;
-
-  --color-rule-strong: #d3d8cc;
-
-  /* Elevation-Scale E0-E3 (verbindlich): E0 flach, E1 Cards, E2 sticky/Sheet, E3 Dialog/Toast. */
-  --shadow-e1: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-e2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-e3: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* ════════════════════════════════════════════════════════════════════
+   Design System „digitale medien“ (gemeinsam mit digitalemedien.de)
+   Referenz: https://claude.ai/artifact/6pySHnsqxPzs3YT5sVK7fo
+   Die Tokens tragen dieselben Namen wie in digitalemedien/assets/site.css.
+   Hell ist das Thema der Website, Dunkel gibt es nur hier in der App.
+   ════════════════════════════════════════════════════════════════════ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.153 0.006 107.1);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.153 0.006 107.1);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.153 0.006 107.1);
-  --primary: oklch(0.648 0.2 131.684);
-  --primary-foreground: oklch(0.986 0.031 120.757);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.966 0.005 106.5);
-  --muted-foreground: oklch(0.58 0.031 107.3);
-  --accent: oklch(0.966 0.005 106.5);
-  --accent-foreground: oklch(0.228 0.013 107.4);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.93 0.007 106.5);
-  --input: oklch(0.93 0.007 106.5);
-  --ring: oklch(0.737 0.021 106.9);
-  /* Shadcn-Basis: alle Radien leiten sich hiervon ab. */
-  --radius: 0.625rem;
+  /* Papier und Farbe */
+  --paper: #f0f1ed;
+  --paper-2: #e9ebe6;
+  --paper-3: #dcdfd7;
+  --ink: #0d1554;
+  --ink-2: #434a78;
+  --ink-3: #5d648e;
+  --line: rgba(13, 21, 84, 0.18);
+  --line-2: rgba(13, 21, 84, 0.09);
+  --spot: #64b32d;
+  --spot-ink: #38730f;
+  --spot-soft: rgba(100, 179, 45, 0.16);
+  --on-spot: #0d1554;
+  --band: #0d1554;
+  --band-2: #182266;
+  --on-band: #eef0ea;
+  --on-band-2: #b9bedd;
+  --band-line: rgba(238, 240, 234, 0.2);
+  --band-spot: #8fd45a;
+  /* Zustände */
+  --danger: #b3261e;
+  --danger-soft: rgba(179, 38, 30, 0.1);
+  --warn: #8a5a00;
+  --warn-soft: rgba(138, 90, 0, 0.1);
+  --warn-line: rgba(138, 90, 0, 0.32);
+  /* Skalenfarben, nur für Kontrollstreifen und Passer */
+  --c: #009fe3;
+  --m: #e6007e;
+  --y: #ffeb00;
+  --k: #1b1b1b;
+  /* Schatten nur für schwebende Ebenen */
+  --shadow-1: 0 1px 2px 0 rgba(13, 21, 84, 0.08);
+  --shadow-2: 0 8px 24px -8px rgba(13, 21, 84, 0.28);
+  --shadow-3: 0 24px 48px -16px rgba(13, 21, 84, 0.38);
+  --shadow-press: inset 0 2px 4px rgba(34, 38, 66, 0.45);
+
+  /* Schrift (die Familien setzt next/font in layout.tsx) */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-strong: 650;
+  --fw-bold: 700;
+  --fw-black: 800;
+  --ls-caps: 0.07em;
+  --heading-ls: -0.012em;
+  --fs-xs: 0.78rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 0.9375rem;
+  --fs-base: 1rem;
+  --fs-body: 1.0625rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fs-lead: clamp(1.0625rem, 1.4vw, 1.25rem);
+  --fs-title-s: clamp(1.25rem, 2.6vw, 1.6rem);
+  --fs-title: clamp(1.5rem, 2.8vw, 2.3rem);
+  --fs-claim: clamp(1.75rem, 3.5vw, 2.9rem);
+  --fs-h2: clamp(1.9rem, 4.3vw, 3.5rem);
+
+  /* Maße */
+  --radius-s: 2px;
+  --radius: 3px;
+  --radius-pill: 999px;
+
+  /* shadcn-Basis, abgeleitet aus den Tokens (gilt für beide Themen) */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper-2);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: var(--paper-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-2);
+  --muted-foreground: var(--ink-2);
+  --accent: var(--paper-2);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--line);
+  --input: var(--ink-3);
+  --ring: var(--spot-ink);
 }
 
+/* Dunkel (nur App): Navy-Papier aus der Bandfarbe, Grün wird band-spot */
 .dark {
-  --background: oklch(0.153 0.006 107.1);
-  --foreground: oklch(0.988 0.003 106.5);
-  --card: oklch(0.228 0.013 107.4);
-  --card-foreground: oklch(0.988 0.003 106.5);
-  --popover: oklch(0.228 0.013 107.4);
-  --popover-foreground: oklch(0.988 0.003 106.5);
-  --primary: oklch(0.768 0.233 130.85);
-  --primary-foreground: oklch(0.405 0.101 131.063);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.286 0.016 107.4);
-  --muted-foreground: oklch(0.737 0.021 106.9);
-  --accent: oklch(0.286 0.016 107.4);
-  --accent-foreground: oklch(0.988 0.003 106.5);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.58 0.031 107.3);
+  color-scheme: dark;
+  --paper: #0b1240;
+  --paper-2: #141c58;
+  --paper-3: #212a6b;
+  --ink: #eef0ea;
+  --ink-2: #b9bedd;
+  --ink-3: #959bc6;
+  --line: rgba(238, 240, 234, 0.2);
+  --line-2: rgba(238, 240, 234, 0.1);
+  --spot: #8fd45a;
+  --spot-ink: #8fd45a;
+  --spot-soft: rgba(143, 212, 90, 0.16);
+  --band: #060a2e;
+  --band-2: #111950;
+  --danger: #ff8f84;
+  --danger-soft: rgba(255, 143, 132, 0.14);
+  --warn: #e9b65c;
+  --warn-soft: rgba(233, 182, 92, 0.13);
+  --warn-line: rgba(233, 182, 92, 0.36);
+  --shadow-1: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  --shadow-3: 0 24px 48px -16px rgba(0, 0, 0, 0.7);
+  --shadow-press: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Alte Namen der App, auf die Design-Tokens gelegt (keine eigenen Werte mehr). */
+@theme {
+  /* Grün: 500 = spot, 600/700 = spot-ink (Text), helle Stufen = Hauch */
+  --color-brand-50: color-mix(in srgb, var(--spot) 8%, var(--paper));
+  --color-brand-100: var(--spot-soft);
+  --color-brand-200: color-mix(in srgb, var(--spot) 35%, var(--paper));
+  --color-brand-300: color-mix(in srgb, var(--spot) 60%, var(--paper));
+  --color-brand-400: color-mix(in srgb, var(--spot) 80%, var(--paper));
+  --color-brand-500: var(--spot);
+  --color-brand-600: var(--spot-ink);
+  --color-brand-700: var(--spot-ink);
+  --color-brand-800: var(--spot-ink);
+  --color-brand-900: color-mix(in srgb, var(--spot) 22%, var(--paper));
+
+  /* „Signal“ ist jetzt Navy aus der Tinte (Info, Rolle Druckerei) */
+  --color-signal-50: color-mix(in srgb, var(--ink) 4%, var(--paper));
+  --color-signal-100: color-mix(in srgb, var(--ink) 9%, var(--paper));
+  --color-signal-200: color-mix(in srgb, var(--ink) 22%, var(--paper));
+  --color-signal-300: var(--ink-3);
+  --color-signal-400: var(--ink-3);
+  --color-signal-500: var(--ink-2);
+  --color-signal-600: var(--band-2);
+  --color-signal-700: var(--ink);
+  --color-signal-800: var(--ink);
+  --color-signal-900: color-mix(in srgb, var(--ink) 16%, var(--paper));
+
+  --color-paper: var(--paper);
+  --color-surface: var(--paper-2);
+  --color-surface-sunk: var(--paper-3);
+  --color-ink: var(--ink);
+  --color-ink-mid: var(--ink-2);
+  --color-ink-soft: var(--ink-3);
+  --color-rule: var(--line);
+  --color-rule-strong: var(--ink-3);
+
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-line: var(--warn-line);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+
+  /* Elevation E1-E3: nur schwebende Ebenen (Karte im Hover, Popover, Dialog). */
+  --shadow-e1: var(--shadow-1);
+  --shadow-e2: var(--shadow-2);
+  --shadow-e3: var(--shadow-3);
+
+  --font-sans: var(--font-text);
+  --font-mono: var(--font-mono-face);
 }
 
 @theme inline {
@@ -113,13 +189,14 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  /* Der Bogen hat kaum Rundung: alles Eckige 3 px, Fokus 2 px, Pillen bleiben rounded-full. */
+  --radius-sm: var(--radius-s);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
 }
 
 @layer base {
@@ -130,36 +207,61 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+  :focus-visible {
+    outline-color: var(--spot-ink);
+  }
+  ::selection {
+    background: var(--spot);
+    color: var(--on-spot);
+  }
+  h1, h2, h3 {
+    letter-spacing: var(--heading-ls);
+    text-wrap: balance;
+  }
 }
 
 @layer components {
-  /* Navigation (zentral, vgl. Referenz-Header). */
+  /* Navigation: liegt auf dem Papier, Haarlinie unten. */
   .nav {
     @apply sticky top-0 z-30 flex items-center gap-7 h-[68px] px-8 border-b border-(--color-rule);
-    background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+    background: color-mix(in srgb, var(--paper) 90%, transparent);
     backdrop-filter: saturate(1.4) blur(10px);
   }
   .nav-link {
-    @apply text-sm font-medium text-(--color-ink-mid) pb-[3px] border-b-2 border-transparent hover:text-(--color-ink);
-    transition: color 0.2s ease;
+    @apply text-sm text-(--color-ink-mid) pb-[3px] border-b-[1.5px] border-transparent hover:text-(--color-ink);
+    font-weight: var(--fw-semibold);
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .nav-link:hover {
+    border-color: var(--spot);
   }
   .nav-active {
     @apply text-(--color-ink) border-(--color-brand-500);
   }
 
-  /* Dropzone (Door A): gestrichelt, Hover/Drag-Zustand. */
+  /* Mono-Versalien für Dachzeilen, Rollen, Nummern (Baustein „Kicker“). */
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  /* Dropzone (Door A): gestrichelt, Hover/Drag-Zustand (Baustein „Dropzone“). */
   .auftrag-dropzone {
-    @apply relative mt-1 flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-(--color-rule-strong) bg-(--color-surface) px-6 py-10 text-center;
+    @apply relative mt-1 flex cursor-pointer flex-col items-center gap-3 rounded-(--radius) border-[1.5px] border-dashed border-(--color-rule-strong) bg-(--paper) px-6 py-10 text-center;
     transition: border-color 0.15s ease, background-color 0.15s ease;
   }
   .auftrag-dropzone:hover {
-    @apply border-(--color-brand-400);
+    @apply border-(--spot-ink) bg-(--spot-soft);
   }
   .auftrag-dropzone-drag {
-    @apply border-transparent bg-(--color-brand-50);
+    @apply border-transparent bg-(--spot-soft);
   }
   .auftrag-dropzone-icon {
-    @apply grid size-12 place-items-center rounded-full border border-(--color-rule-strong) bg-(--color-surface) text-(--color-brand-600);
+    @apply grid size-12 place-items-center rounded-full border border-(--color-rule) bg-(--paper-2) text-(--spot-ink);
   }
   .auftrag-dropzone-main {
     @apply m-0 text-base text-(--color-ink);
@@ -173,32 +275,6 @@
    Regel: Basis-Stile sind der ruhige Endzustand. Bewegung liegt
    ausschließlich in `prefers-reduced-motion: no-preference`.
    ════════════════════════════════════════════════════════════════════ */
-
-/* Dunkelmodus für die eigenen Tokens (die Shadcn-Tokens hat `.dark` oben schon). */
-.dark {
-  color-scheme: dark;
-  /* Shadcn-Flächen an die eigenen Papier-Tokens angleichen (sonst olivstichig). */
-  --background: #0e110f;
-  --card: #161a17;
-  --popover: #1a1f1b;
-  --color-paper: #0e110f;
-  --color-surface: #161a17;
-  --color-surface-sunk: #1d221e;
-  --color-ink: #eef1ec;
-  --color-ink-mid: #a6afa7;
-  --color-ink-soft: #7c857d;
-  --color-rule: #262c27;
-  --color-rule-strong: #353d36;
-  --color-brand-50: #17260f;
-  --color-brand-100: #1c2e12;
-  --color-warn-soft: #2a2211;
-  --color-warn-line: #4a3b17;
-  --color-warn: #e3b25a;
-  --color-danger: #ef6b5c;
-  --shadow-e1: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-  --shadow-e2: 0 4px 8px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
-  --shadow-e3: 0 20px 30px -5px rgb(0 0 0 / 0.55), 0 8px 12px -6px rgb(0 0 0 / 0.5);
-}
 
 /* Papierkorn: feines Rauschen über dem Papierton, kaum sichtbar. */
 body {
@@ -236,7 +312,7 @@ body {
   content: "";
   height: 1px;
   flex: 1;
-  background: linear-gradient(to right, transparent, var(--color-rule-strong) 30%, var(--color-rule-strong) 70%, transparent);
+  background: linear-gradient(to right, transparent, var(--color-rule) 30%, var(--color-rule) 70%, transparent);
 }
 
 /* ── Papier-Karten: Hover hebt ab, Stapel für mehrteilige Aufträge ── */
@@ -249,8 +325,8 @@ body {
 }
 .sheet-stack {
   --stack:
-    3px 3px 0 -1px var(--color-surface), 3px 3px 0 0 var(--color-rule-strong),
-    6px 6px 0 -1px var(--color-surface), 6px 6px 0 0 var(--color-rule-strong);
+    3px 3px 0 -1px var(--color-surface), 3px 3px 0 0 var(--color-rule),
+    6px 6px 0 -1px var(--color-surface), 6px 6px 0 0 var(--color-rule);
   box-shadow: var(--stack);
 }
 .sheet-stack.sheet-card:hover,
@@ -279,9 +355,9 @@ body {
   justify-content: center;
   padding: 0 0.35rem;
   height: 1.4rem;
-  border: 1px solid var(--color-rule-strong);
+  border: 1px solid var(--color-rule);
   border-bottom-width: 2px;
-  border-radius: 0.4rem;
+  border-radius: var(--radius);
   background: var(--color-surface);
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -312,7 +388,7 @@ body {
   width: 100%;
   height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 18px 22px rgb(0 0 0 / 0.16)) drop-shadow(0 3px 5px rgb(0 0 0 / 0.1));
+  filter: drop-shadow(0 18px 22px rgb(13 21 84 / 0.16)) drop-shadow(0 3px 5px rgb(13 21 84 / 0.1));
 }
 .dark .hero-sheet {
   filter: drop-shadow(0 18px 26px rgb(0 0 0 / 0.55)) drop-shadow(0 3px 6px rgb(0 0 0 / 0.4));
@@ -334,7 +410,7 @@ body {
   gap: 0.4rem;
   max-width: 100%;
   padding: 0.3rem 0.7rem 0.3rem 0.35rem;
-  border: 1px solid var(--color-rule-strong);
+  border: 1px solid var(--color-rule);
   border-radius: 999px;
   background: var(--color-surface);
   box-shadow: var(--shadow-e2);
@@ -351,13 +427,14 @@ body {
   height: 1.15rem;
   border-radius: 50%;
   background: var(--color-brand-500);
-  color: #fff;
+  color: var(--on-spot);
   font-size: 0.65rem;
   font-weight: 800;
 }
 .hero-chip[data-tone="warn"] {
   border-color: var(--color-warn-line);
-  background: var(--color-warn-soft);
+  /* deckend, weil der Chip auf dem weißen Bogen liegt */
+  background: color-mix(in srgb, var(--warn) 14%, var(--paper-2));
 }
 .hero-chip[data-tone="warn"] .hero-chip-dot {
   background: var(--color-warn);
@@ -375,8 +452,8 @@ body {
   left: 10%;
   right: 10%;
   height: 3px;
-  border-radius: 2px;
-  background: var(--color-rule-strong);
+  border-radius: var(--radius-s);
+  background: var(--paper-3);
 }
 .rail-fill {
   position: absolute;
@@ -422,7 +499,7 @@ body {
 .rail-step[data-state="done"] .rail-node {
   border-color: var(--color-brand-500);
   background: var(--color-brand-500);
-  color: #fff;
+  color: var(--on-spot);
 }
 .rail-step[data-state="done"] .rail-label,
 .rail-step[data-state="current"] .rail-label {
@@ -451,7 +528,7 @@ body {
   height: calc(100% - 2px);
   x: 1px;
   y: 1px;
-  rx: 15px;
+  rx: 3px;
 }
 .file-sheet {
   transform: rotate(var(--tilt, 0deg));

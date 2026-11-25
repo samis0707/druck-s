@@ -94,7 +94,7 @@ export default async function LektionSeite({ params }: PageProps<"/hilfe/[kurs]/
               <li key={i} id={`schritt-${i + 1}`} className="flex gap-4">
                 <span
                   aria-hidden="true"
-                  className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--color-brand-600) text-sm font-semibold text-white tabular-nums"
+                  className="flex size-8 shrink-0 items-center justify-center rounded-full bg-(--spot) text-sm font-semibold text-(--on-spot) tabular-nums"
                 >
                   {i + 1}
                 </span>

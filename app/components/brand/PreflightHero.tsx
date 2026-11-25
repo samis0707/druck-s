@@ -7,7 +7,17 @@ const CHIPS: { text: string; tone: "ok" | "warn"; style: CSSProperties }[] = [
   { text: "Alle Seiten einheitlich", tone: "ok", style: { top: "78%", right: 0, ["--d" as string]: "3.5s" } },
 ];
 
-const INK = "#16191c";
+/* Der Bogen ist bedrucktes Papier: Er trägt in beiden Themen die Werte des Themas Hell
+   aus dem Design System „digitale medien“ (ink, band-2, ink-2, ink-3, paper-3, spot, band-spot, danger). */
+const INK = "#0d1554";
+const PAPIERWEISS = "#ffffff";
+const ZEILE = "#dcdfd7";
+const BILD = "#182266";
+const KREIS = "#434a78";
+const SICHER = "#5d648e";
+const GRUEN = "#64b32d";
+const GRUEN_HELL = "#8fd45a";
+const ANSCHNITT = "#b3261e";
 
 /**
  * Zeigt die Vorabprüfung statt sie zu beschreiben: Ein Druckbogen mit Schnittmarken,
@@ -36,26 +46,26 @@ export function PreflightHero() {
         </defs>
 
         {/* Papier bleibt in beiden Themes weiß: es ist ein physischer Bogen. */}
-        <rect x="-20" y="-20" width="340" height="420" rx="3" fill="#ffffff" />
+        <rect x="-20" y="-20" width="340" height="420" rx="3" fill={PAPIERWEISS} />
 
         {/* Druckbild, läuft bis in den Anschnitt. */}
         <g clipPath="url(#hero-art)">
-          <rect width="300" height="150" fill="var(--color-signal-600)" />
-          <circle cx="238" cy="70" r="74" fill="var(--color-signal-500)" />
-          <circle cx="262" cy="40" r="34" fill="var(--color-brand-400)" />
+          <rect width="300" height="150" fill={BILD} />
+          <circle cx="238" cy="70" r="74" fill={KREIS} />
+          <circle cx="262" cy="40" r="34" fill={GRUEN_HELL} />
           <rect x="24" y="176" width="200" height="16" rx="3" fill={INK} />
           <rect x="24" y="200" width="140" height="16" rx="3" fill={INK} />
           {[238, 252, 266, 280, 294].map((y, i) => (
-            <rect key={y} x="24" y={y} width={[250, 236, 252, 208, 150][i]} height="6" rx="3" fill="#d5d9d2" />
+            <rect key={y} x="24" y={y} width={[250, 236, 252, 208, 150][i]} height="6" rx="3" fill={ZEILE} />
           ))}
-          <rect x="24" y="326" width="112" height="26" rx="13" fill="var(--color-brand-500)" />
-          <rect x="38" y="336" width="60" height="6" rx="3" fill="#ffffff" opacity="0.9" />
+          <rect x="24" y="326" width="112" height="26" rx="13" fill={GRUEN} />
+          <rect x="38" y="336" width="60" height="6" rx="3" fill={PAPIERWEISS} opacity="0.9" />
         </g>
 
         {/* Anschnitt (rot, gestrichelt), Endformat (schwarz), Sicherheitsrand (blau, gepunktet). */}
-        <rect x="0" y="0" width="300" height="380" fill="none" stroke="var(--color-danger)" strokeWidth="1" strokeDasharray="4 3" />
+        <rect x="0" y="0" width="300" height="380" fill="none" stroke={ANSCHNITT} strokeWidth="1" strokeDasharray="4 3" />
         <rect x="12" y="12" width="276" height="356" fill="none" stroke={INK} strokeWidth="1" />
-        <rect x="24" y="24" width="252" height="332" fill="none" stroke="var(--color-signal-400)" strokeWidth="1" strokeDasharray="1 3" />
+        <rect x="24" y="24" width="252" height="332" fill="none" stroke={SICHER} strokeWidth="1" strokeDasharray="1 3" />
 
         {/* Schnittmarken außerhalb des Anschnitts + Passermarke. */}
         <path

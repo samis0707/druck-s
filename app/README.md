@@ -18,7 +18,16 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Design System
+
+Die App nutzt das Design System „digitale medien“, dasselbe wie digitalemedien.de:
+https://claude.ai/artifact/6pySHnsqxPzs3YT5sVK7fo (Tokens, Bausteine, Regeln).
+
+- Tokens stehen oben in `app/globals.css` unter denselben Namen wie in `digitalemedien/assets/site.css`
+  (`--paper`, `--ink`, `--spot` …), mit einem zweiten Satz Werte für `.dark` (nur die App hat ein dunkles Thema).
+  Die älteren App-Namen (`--color-brand-*`, `--color-ink-mid` …) und die shadcn-Variablen sind darauf abgebildet.
+- Schriften: Plus Jakarta Sans und IBM Plex Mono, selbst gehostet über `next/font/local` (`app/fonts/`, SIL OFL).
+- Neue Werte nicht hier erfinden: zuerst im Design System ergänzen, dann hier übernehmen.
 
 ## Learn More
 

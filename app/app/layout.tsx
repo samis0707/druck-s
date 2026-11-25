@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "@/components/layout/Header";
@@ -8,14 +8,22 @@ import { Statistik } from "@/components/analytics/Statistik";
 import { THEME_INIT_SCRIPT } from "@/components/brand/ThemeToggle";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+/* Schriften aus dem Design System „digitale medien“, selbst gehostet (SIL OFL, siehe fonts/OFL.txt). */
+const plusJakarta = localFont({
+  src: "./fonts/plus-jakarta-sans-latin-wght-normal.woff2",
+  weight: "200 800",
+  style: "normal",
+  variable: "--font-text",
+  fallback: ["system-ui", "-apple-system", "Segoe UI", "Arial", "sans-serif"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const plexMono = localFont({
+  src: [
+    { path: "./fonts/plex-mono-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/plex-mono-500.woff2", weight: "500", style: "normal" },
+  ],
+  variable: "--font-mono-face",
+  fallback: ["ui-monospace", "SF Mono", "Menlo", "Consolas", "monospace"],
 });
 
 export const metadata: Metadata = {
@@ -35,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="de"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${plusJakarta.variable} ${plexMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
